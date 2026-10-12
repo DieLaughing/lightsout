@@ -363,3 +363,11 @@ def test_nls_next_season_from_announcement():
     assert [e.key for e in evs] == [f"2027-nls{n}" for n in range(1, 9)]  # the double-header is two events
     assert evs[0].sessions[0].day == date(2027, 3, 20) and evs[3].sessions[0].name == "6h race"
     assert evs[5].sessions[0].day == date(2027, 9, 12)
+
+
+def test_every_series_has_a_type_and_official_site():
+    from lightsout.series import SERIES
+    for s in SERIES:
+        assert s.category in {"single", "sportscar", "stock", "rally"}, s.id
+        assert s.site.startswith("https://"), s.id
+        assert not s.timing or s.timing.startswith("https://"), s.id

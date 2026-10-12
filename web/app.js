@@ -208,16 +208,8 @@ async function homeView() {
 
   const today = localDay({ start_utc: new Date().toISOString() });
   const upcoming = sessions.filter(s => !isLive(s) && (s.start_utc ? Date.parse(s.end_utc) > Date.now() : (s.end_day || s.day) >= today));
-  const groups = new Map();
-  for (const s of upcoming) {
-    const d = localDay(s);
-    if (!groups.has(d)) groups.set(d, []);
-    groups.get(d).push(s);
-  }
-  if (!groups.size) html += `<div class="empty">Nothing scheduled in the next 60 days for your series.</div>`;
-  for (const [d, rows] of [...groups].sort((a, b) => a[0].localeCompare(b[0]))) {
-    html += `<h2>${esc(dayLabel(d))}</h2><div class="card">${rows.map(s => sessionRow(s, followed)).join("")}</div>`;
-  }
+  if (upcoming.length) html += filterBar(upcoming);
+  html += `<div id="upcoming">${upcomingList(upcoming, followed, today)}</div>`;
   const banner = await getAppBanner().catch(() => "");
   html = newBanner() + html;
   if (banner) html = `<div class="getapp"><div>${banner}</div><a class="btn primary" href="#/app">Show me how</a><button class="link x" id="hidebanner" aria-label="Hide">✕</button></div>` + html;
@@ -230,6 +222,104 @@ async function homeView() {
   view.querySelectorAll("[data-dismiss]").forEach(b => b.addEventListener("click", () => {
     store.set("dismissed", [...dismissed(), b.dataset.dismiss]); homeView();
   }));
+  wireFilters(upcoming, followed, today);
+}
+
+// ---- Upcoming filters (remembered per device) ------------------------------------
+const WHEN = [["all", "Any day"], ["today", "Today"], ["weekend", "This weekend"]];
+const SESSION_FILTERS = [["races", "Races"], ["qualifying", "Qualifying"], ["practice", "Practice"]];
+const TYPES = [["single", "Single seaters"], ["sportscar", "Sportscars & GT"], ["stock", "Stock cars"], ["rally", "Rally & off-road"]];
+const RACE_KINDS = new Set(["race", "sprint", "rally_day", "event"]);
+const NO_FILTERS = { when: "all", sessions: [], types: [], free: false };
+
+function upFilters() {
+  try { return { ...NO_FILTERS, ...JSON.parse(localStorage.getItem("upFilters") || "{}") }; } catch { return { ...NO_FILTERS }; }
+}
+function saveUpFilters(f) {
+  try { localStorage.setItem("upFilters", JSON.stringify(f)); } catch { /* fine */ }
+}
+const filtersOn = f => f.when !== "all" || f.sessions.length || f.types.length || f.free;
+
+const addDays = (day, n) => {
+  const d = new Date(`${day}T12:00:00`);
+  d.setDate(d.getDate() + n);
+  return localDay({ start_utc: d.toISOString() });
+};
+// Friday to Sunday: this weekend while it's on, otherwise the next one.
+function weekend(today) {
+  const dow = new Date(`${today}T12:00:00`).getDay();  // 0 = Sunday
+  if (dow === 0) return [today, today];
+  if (dow >= 5) return [today, addDays(today, 7 - dow)];
+  return [addDays(today, 5 - dow), addDays(today, 7 - dow)];
+}
+
+function passes(s, f, today) {
+  const start = localDay(s), end = s.end_day && s.end_day > start ? s.end_day : start;
+  if (f.when === "today" && !(start <= today && end >= today)) return false;
+  if (f.when === "weekend") {
+    const [a, b] = weekend(today);
+    if (!(start <= b && end >= a)) return false;
+  }
+  if (f.sessions.length && !f.sessions.includes(RACE_KINDS.has(s.kind) ? "races" : s.kind)) return false;
+  if (f.types.length && !f.types.includes(BY_ID[s.series]?.category)) return false;
+  if (f.free && s.watch?.badge !== "FREE") return false;
+  return true;
+}
+
+function filterBar(upcoming) {
+  const f = upFilters();
+  const present = new Set(upcoming.map(s => BY_ID[s.series]?.category));
+  const btn = (group, value, label, on) =>
+    `<button class="chip-btn${on ? " active" : ""}" data-f="${group}" data-v="${value}" aria-pressed="${on}">${label}</button>`;
+  return `<div class="filters" id="filters">
+    <div class="chips">${WHEN.map(([v, l]) => btn("when", v, l, f.when === v)).join("")}${btn("free", "1", "Free to watch", f.free)}</div>
+    <div class="chips">${SESSION_FILTERS.map(([v, l]) => btn("sessions", v, l, f.sessions.includes(v))).join("")}</div>
+    ${present.size > 1 ? `<div class="chips">${TYPES.filter(([v]) => present.has(v)).map(([v, l]) => btn("types", v, l, f.types.includes(v))).join("")}</div>` : ""}
+  </div>`;
+}
+
+function upcomingList(upcoming, followed, today) {
+  const f = upFilters();
+  const shown = upcoming.filter(s => passes(s, f, today));
+  const groups = new Map();
+  for (const s of shown) {
+    const d = localDay(s);
+    if (!groups.has(d)) groups.set(d, []);
+    groups.get(d).push(s);
+  }
+  let html = filtersOn(f) ? `<p class="muted small filter-count">Showing ${shown.length} of ${upcoming.length} sessions ·
+    <button class="link" id="f-clear">Clear filters</button></p>` : "";
+  if (!upcoming.length) html += `<div class="empty">Nothing scheduled in the next 60 days for your series.</div>`;
+  else if (!shown.length) html += `<div class="empty">Nothing matches these filters in the next 60 days.</div>`;
+  for (const [d, rows] of [...groups].sort((a, b) => a[0].localeCompare(b[0]))) {
+    html += `<h2>${esc(dayLabel(d))}</h2><div class="card">${rows.map(s => sessionRow(s, followed)).join("")}</div>`;
+  }
+  return html;
+}
+
+function wireFilters(upcoming, followed, today) {
+  const bar = view.querySelector("#filters"), list = view.querySelector("#upcoming");
+  const redraw = () => {
+    const f = upFilters();
+    bar.querySelectorAll("[data-f]").forEach(b => {
+      const on = b.dataset.f === "when" ? f.when === b.dataset.v : b.dataset.f === "free" ? f.free : f[b.dataset.f].includes(b.dataset.v);
+      b.classList.toggle("active", on);
+      b.setAttribute("aria-pressed", on);
+    });
+    list.innerHTML = upcomingList(upcoming, followed, today);
+    list.querySelector("#f-clear")?.addEventListener("click", () => { saveUpFilters({ ...NO_FILTERS }); redraw(); });
+  };
+  bar?.addEventListener("click", e => {
+    const b = e.target.closest("[data-f]");
+    if (!b) return;
+    const f = upFilters(), g = b.dataset.f, v = b.dataset.v;
+    if (g === "when") f.when = v;
+    else if (g === "free") f.free = !f.free;
+    else f[g] = f[g].includes(v) ? f[g].filter(x => x !== v) : [...f[g], v];
+    saveUpFilters(f);
+    redraw();
+  });
+  list.querySelector("#f-clear")?.addEventListener("click", () => { saveUpFilters({ ...NO_FILTERS }); redraw(); });
 }
 
 async function seriesListView() {
@@ -256,6 +346,24 @@ function statusText(st) {
   return `${st.events} event${st.events === 1 ? "" : "s"} · updated ${new Date(st.last_ok).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`;
 }
 
+// "7 of 24 rounds done": the season of the next round (or the last one, once it's over).
+function seasonProgress(events, today) {
+  const end = e => e.end_day || e.start_day;
+  const season = (events.find(e => end(e) >= today) || events[events.length - 1])?.season;
+  const rounds = events.filter(e => e.season === season);
+  if (rounds.length < 2) return "";
+  const done = rounds.filter(e => end(e) < today).length;
+  const years = [...new Set(rounds.map(e => e.start_day.slice(0, 4)))];
+  const label = years.length > 1 ? `${years[0]}–${years[years.length - 1].slice(2)}` : years[0];
+  const next = rounds[done];
+  const text = done === rounds.length ? `Season complete · ${rounds.length} rounds`
+    : done === 0 ? `${rounds.length} rounds · starts ${esc(shortDate(next.start_day))}`
+    : `<b>${done}</b> of ${rounds.length} rounds done · next: ${esc(next.name)}`;
+  return `<div class="season"><div class="season-text">${text}<span class="muted"> · ${esc(label)}</span></div>
+    <div class="season-bar" role="img" aria-label="${done} of ${rounds.length} rounds done">${rounds.map((e, i) =>
+      `<i class="${i < done ? "done" : i === done ? "next" : ""}" title="${esc(e.name)}"></i>`).join("")}</div></div>`;
+}
+
 const SERIES_TABS = [["schedule", "Schedule"], ["last", "Last race"], ["drivers", "Drivers"], ["teams", "Teams"]];
 
 async function seriesView(id, tab = "schedule") {
@@ -268,13 +376,15 @@ async function seriesView(id, tab = "schedule") {
   const liveNow = (await api("/api/live").catch(() => [])).some(f => f.series === id);
   const tabs = s.has_standings || liveNow ? `<div class="tabs" role="tablist">${liveNow ? `<a role="tab" href="#/live/${id}" class="live-tab">● Live</a>` : ""}${(s.has_standings ? shown : SERIES_TABS.slice(0, 1)).map(([t, label]) =>
     `<a role="tab" href="#/series/${id}/${t}" class="${t === tab ? "active" : ""}" aria-selected="${t === tab}">${label}</a>`).join("")}</div>` : "";
-  const head = `${backLink("#/series")}<h1>${chip(id)} ${esc(s.name)}</h1>${tabs}`;
+  const links = [s.site && `<a class="btn" href="${esc(s.site)}" target="_blank" rel="noopener">Official site ↗</a>`,
+    s.timing && `<a class="btn" href="${esc(s.timing)}" target="_blank" rel="noopener">Official timing ↗</a>`].filter(Boolean).join("");
+  const head = `${backLink("#/series")}<h1>${chip(id)} ${esc(s.name)}</h1>${links ? `<div class="series-links">${links}</div>` : ""}${tabs}`;
   if (tab === "schedule") {
     const [events, storyKeys] = await Promise.all([api(`/api/series/${id}/events`), api(`/api/stories/${id}`).catch(() => [])]);
     const hasStory = new Set(storyKeys);
     const today = localDay({ start_utc: new Date().toISOString() });
     const followed = followedSeries();
-    view.innerHTML = `${head}<p class="muted small">${statusText(s.status)}</p>
+    view.innerHTML = `${head}${seasonProgress(events, today)}<p class="muted small">${statusText(s.status)}</p>
       <div class="list">${events.map(e => {
         const past = e.end_day && e.end_day < today;
         return `<div class="card${past ? " past" : ""}">
