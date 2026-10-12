@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Lights Out: offline</title>
+  <meta name="theme-color" content="#0f1115">
+  <style>
+    /* Shown by sw.js when the Pi can't be reached, so everything is inline (no other requests). */
+    :root { --bg: #f6f7f9; --surface: #ffffff; --border: #e3e6eb; --text: #15181d; --muted: #5f6672; --accent: #e10600; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #0f1115; --surface: #181b21; --border: #2a2f38; --text: #eceff3; --muted: #9aa2ae; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px 16px;
+           background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .card { max-width: 420px; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+            padding: 28px 24px; text-align: center; }
+    img { width: 64px; height: 64px; border-radius: 14px; }
+    h1 { font-size: 1.3rem; margin: 14px 0 6px; }
+    p { color: var(--muted); margin: 0 0 12px; }
+    button { margin-top: 8px; font: inherit; font-weight: 600; color: #fff; background: var(--accent); border: 0;
+             border-radius: 10px; padding: 10px 20px; cursor: pointer; }
+    .small { font-size: .85rem; margin-top: 14px; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <img src="/icons/icon.svg" alt="">
+    <h1 id="title">Lights Out is offline</h1>
+    <p id="why">The server it runs on is down for the moment (most likely a power or internet blip at its home). It comes back on its own.</p>
+    <p>Your follows and settings are safe.</p>
+    <button id="retry">Try again</button>
+    <p class="small" id="status">Checking every 30 seconds; this page reloads by itself when Lights Out is back.</p>
+  </main>
+  <script>
+    // Opened at the page that failed (sw.js answers for it), or as /offline.html?back=<page> from the app.
+    const back = location.pathname === "/offline.html" ? (new URLSearchParams(location.search).get("back") || "/") : location.href;
+    if (!navigator.onLine) {
+      document.getElementById("title").textContent = "You're offline";
+      document.getElementById("why").textContent = "Your phone or computer isn't connected to the internet. Lights Out will load once you're back online.";
+    }
+    // The manifest is a tiny file the Pi serves itself: 200 means the app is reachable again.
+    async function check() {
+      try {
+        const r = await fetch("/manifest.webmanifest?ping=" + Date.now(), { cache: "no-store" });
+        if (r.ok) back === location.href ? location.reload() : location.replace(back);
+      } catch { /* still down */ }
+    }
+    document.getElementById("retry").addEventListener("click", () => {
+      document.getElementById("status").textContent = "Checking...";
+      check().then(() => { document.getElementById("status").textContent = "Still offline. Checking every 30 seconds."; });
+    });
+    setTimeout(check, 5000);
+    setInterval(check, 30000);
+    addEventListener("online", check);
+  </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+# Where to buy tickets, per series. Links checked 2026-10-12 (each answered 200 with its tickets page).
+# F2, F3 and F1 Academy race on F1 weekends, so F1's store sells their tickets too.
+# `event_page: true` = no working tickets page of its own (WEC 404, WRC empty shell, Euro RX blocks): link the event page.
+# Series not listed (ARA, World Rally-Raid) get no tickets link.
+f1:      {url: "https://tickets.formula1.com/en", label: "F1 Ticket Store"}
+f2:      {url: "https://tickets.formula1.com/en", label: "F1 Ticket Store (F1 weekend)"}
+f3:      {url: "https://tickets.formula1.com/en", label: "F1 Ticket Store (F1 weekend)"}
+f1a:     {url: "https://tickets.formula1.com/en", label: "F1 Ticket Store (F1 weekend)"}
+fe:      {url: "https://www.fiaformulae.com/en/tickets", label: "Formula E tickets"}
+indycar: {url: "https://www.indycar.com/tickets", label: "IndyCar tickets"}
+cup:     {url: "https://www.nascar.com/tickets", label: "NASCAR tickets"}
+noaps:   {url: "https://www.nascar.com/tickets", label: "NASCAR tickets"}
+truck:   {url: "https://www.nascar.com/tickets", label: "NASCAR tickets"}
+nls:     {url: "https://tickets.nuerburgring.de/section/adac-nurburgring-langstrecken-serie-wkuu", label: "Nürburgring tickets (NLS)"}
+gtwce:   {url: "https://www.gt-world-challenge-europe.com/tickets", label: "GT World Challenge tickets"}
+gtwc:    {url: "https://www.macau.grandprix.gov.mo/en/tickets", label: "Macau Grand Prix tickets"}
+frwc:    {url: "https://www.macau.grandprix.gov.mo/en/tickets", label: "Macau Grand Prix tickets"}
+f4wc:    {url: "https://www.macau.grandprix.gov.mo/en/tickets", label: "Macau Grand Prix tickets"}
+wec:     {event_page: true, label: "Event page (tickets)"}
+wrc:     {event_page: true, label: "Event page (tickets)"}
+erx:     {event_page: true, label: "Event page (tickets)"}
+
+# F1's store has a page per Grand Prix on sale. These were listed on 2026-10-12; the app also re-reads the store
+# twice a day when it isn't behind its waiting-room queue. Races not listed use the store's front page.
+f1_races:
+  united-states: "https://tickets.formula1.com/en/f1-3320-united-states"
+  mexico: "https://tickets.formula1.com/en/f1-4861-mexico"
+  brazil: "https://tickets.formula1.com/en/f1-3325-brazil"
+  las-vegas: "https://tickets.formula1.com/en/f1-59007-las-vegas"
+  qatar: "https://tickets.formula1.com/en/f1-56257-qatar"
+  abu-dhabi: "https://tickets.formula1.com/en/f1-3312-abu-dhabi"

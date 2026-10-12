@@ -1,0 +1,66 @@
+# US where-to-watch, per series and session kind. Recheck every January.
+# badge: FREE (no subscription), TV (broadcast/cable channel), PAID (subscription only)
+# kinds: practice | qualifying | sprint | race | rally_day | event   (omit = every kind)
+# The first matching rule wins. Sources are in the design doc (Phase 0, checked 2026-10-11).
+season: 2026
+
+f1:
+  - {kinds: [practice], badge: FREE, label: Apple TV app, url: "https://tv.apple.com", note: "All practice sessions are free in the Apple TV app"}
+  - {badge: PAID, label: Apple TV, url: "https://tv.apple.com", note: "Select races are free; F1 TV Premium included"}
+f2:
+  - {badge: PAID, label: F1 TV (via Apple TV), url: "https://f1tv.formula1.com"}
+f3:
+  - {badge: PAID, label: F1 TV (via Apple TV), url: "https://f1tv.formula1.com"}
+f1a:
+  - {badge: PAID, label: F1 TV (via Apple TV), url: "https://f1tv.formula1.com"}
+fe:
+  - {badge: PAID, label: Disney+ / ESPN+, url: "https://www.disneyplus.com", note: "From Season 13 (Dec 2026)"}
+indycar:
+  - {kinds: [race], badge: TV, label: FOX, url: "https://www.foxsports.com/motor/indycar", note: "Free over the air with an antenna; also FOX One"}
+  - {badge: TV, label: FS1 / FS2, url: "https://www.foxsports.com/motor/indycar", note: "Cable, or stream on FOX One"}
+wec:
+  - {badge: PAID, label: HBO Max, url: "https://www.hbomax.com", note: "Every session; Le Mans, São Paulo and Austin also on truTV"}
+gtwce:
+  - {badge: FREE, label: GT World YouTube, url: "https://www.youtube.com/@GTWorld", note: "Every session streams free, in several languages"}
+nls:
+  - {badge: FREE, label: NLS YouTube, url: "https://www.youtube.com/c/VLNOFFICIAL", note: "Every race streams free on the series' own channel"}
+gtwc:
+  - {badge: FREE, label: FIA YouTube, url: "https://www.youtube.com/results?search_query=FIA+Macau+World+Cup+live", note: "Free in 2025; 2026 not yet confirmed"}
+frwc:
+  - {badge: FREE, label: FIA YouTube, url: "https://www.youtube.com/results?search_query=FIA+Macau+World+Cup+live", note: "Free in 2025; 2026 not yet confirmed"}
+f4wc:
+  - {badge: FREE, label: FIA YouTube, url: "https://www.youtube.com/results?search_query=FIA+Macau+World+Cup+live", note: "Free in 2025; 2026 not yet confirmed"}
+wrc:
+  - {badge: PAID, label: Rally.TV (DAZN), url: "https://www.dazn.com/RallyTV", note: "Free live timing and maps on wrc.com"}
+ara:
+  - {badge: FREE, label: ARA YouTube, url: "https://www.youtube.com/channel/UCxEEivORLl9PYtkkvuQOEAg", note: "Free in past seasons; 2026 coverage unconfirmed"}
+erx:
+  - {badge: FREE, label: FIA Rallycross YouTube, url: "https://www.youtube.com/results?search_query=FIA+Rallycross+live", note: "Every session, no paywall"}
+w2rc:
+  - {badge: PAID, label: TBA, note: "Dakar 2026 was on FloRacing; 2027 US partner not announced"}
+
+# NASCAR names each race's network in its own feed; these entries turn that name into a badge.
+# Practice and qualifying fall back to the series rules below.
+tv:
+  FOX: {badge: TV, label: FOX, url: "https://www.foxsports.com/nascar", note: "Free over the air with an antenna; also FOX One"}
+  FS1: {badge: TV, label: FS1, url: "https://www.foxsports.com/nascar", note: "Cable, or stream on FOX One"}
+  FS2: {badge: TV, label: FS2, url: "https://www.foxsports.com/nascar", note: "Cable, or stream on FOX One"}
+  NBC: {badge: TV, label: NBC, url: "https://www.nbcsports.com/nascar", note: "Free over the air; also Peacock"}
+  USA: {badge: TV, label: USA Network, url: "https://www.nbcsports.com/nascar", note: "Cable; also Peacock"}
+  CNBC: {badge: TV, label: CNBC, note: "Cable"}
+  Peacock: {badge: PAID, label: Peacock, url: "https://www.peacocktv.com"}
+  TNT: {badge: TV, label: TNT, note: "Cable; also on HBO Max"}
+  truTV: {badge: TV, label: truTV, note: "Cable; also on HBO Max"}
+  TNT Sports: {badge: TV, label: TNT, note: "Cable; also on HBO Max"}
+  Prime Video: {badge: PAID, label: Prime Video, url: "https://www.amazon.com/primevideo"}
+  Amazon Prime: {badge: PAID, label: Prime Video, url: "https://www.amazon.com/primevideo"}
+  Prime: {badge: PAID, label: Prime Video, url: "https://www.amazon.com/primevideo"}
+  The CW: {badge: TV, label: The CW, url: "https://www.cwtv.com", note: "Free over the air; also the free CW app"}
+  CW: {badge: TV, label: The CW, url: "https://www.cwtv.com", note: "Free over the air; also the free CW app"}
+
+cup:
+  - {badge: TV, label: FOX / NBC networks, note: "Network varies by race; see each race"}
+noaps:
+  - {badge: TV, label: The CW, url: "https://www.cwtv.com", note: "Free over the air; also the free CW app"}
+truck:
+  - {badge: TV, label: FS1 / FOX, url: "https://www.foxsports.com/nascar", note: "Mostly FS1 (cable or FOX One)"}

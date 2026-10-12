@@ -1,0 +1,118 @@
+# What's new in Lights Out, newest first. Written for the people using the app, not for developers.
+# Every shipped feature gets an entry (kind: new | improved | fixed). `link` is where "Try it" goes.
+# After editing: `.venv/bin/python tools/changelog.py` rewrites CHANGELOG.md (a test checks they match),
+# and `.venv/bin/python tools/release.py` publishes the day's GitHub Release.
+
+- date: 2026-10-12
+  kind: fixed
+  title: NASCAR last race
+  text: "Cup, O'Reilly and Truck Series Last race showed nothing while NASCAR's official results were still being posted. It now shows the finishing order straight from the race's timing (marked unofficial, without points) until the official results arrive, with the winner's race time and everyone else's gap to the winner (+0.029, 2 laps down, Out on lap 76)."
+  link: "#/standings/cup/last"
+
+- date: 2026-10-12
+  kind: new
+  title: Standings tab
+  text: "Every championship in one place, from the top bar: pick a series, then Drivers, Teams or Last race. Your series come first, and it remembers the last one you looked at. Pages you open from elsewhere (a series, a driver, a Race story, live timing) now have a Back link, and on phones Settings is the gear icon."
+  link: "#/standings"
+
+- date: 2026-10-12
+  kind: improved
+  title: Offline page
+  text: If the server Lights Out runs on goes down (a power or internet blip at its home), the app shows a short "Lights Out is offline" page instead of an error, and reloads by itself once it's back. Your phone picks this up the next time you open the app.
+  link: "#/"
+
+- date: 2026-10-12
+  kind: fixed
+  title: Home screen icon
+  text: Phones showed an "L" instead of the app's icon on the home screen. Remove the app from your home screen and add it again to get the real one (on iPhone, turn alerts back on afterwards in Settings).
+  link: "#/app"
+
+- date: 2026-10-12
+  kind: new
+  title: Nürburgring NLS
+  text: "The Nordschleife endurance series Verstappen races in: this season's races and the eight 2027 dates (from March 20), free on the NLS YouTube channel, with the series' news in the Race Wire. NLS publishes no entry lists, so drivers show up through its race previews."
+  link: "#/series/nls"
+
+- date: 2026-10-12
+  kind: new
+  title: What's new
+  text: This page. A dot on Settings and a banner on Upcoming show when something new has been added.
+  link: "#/new"
+
+- date: 2026-10-12
+  kind: improved
+  title: F1 tickets for each Grand Prix
+  text: F1 ticket links go straight to that Grand Prix's page on the F1 store. F1 Academy, F2 and F3 link to the Grand Prix weekend they race at.
+  link: "#/series/f1"
+
+- date: 2026-10-12
+  kind: new
+  title: Driver pages
+  text: Tap any name in Following to see where they race (team and car number in every series), their next qualifying and races, championship position, last result and news.
+  link: "#/"
+
+- date: 2026-10-12
+  kind: new
+  title: Ticket links
+  text: Race days have a Tickets link to each series' official ticket page, or the event page where there isn't one.
+  link: "#/"
+
+- date: 2026-10-12
+  kind: new
+  title: GT World Challenge Europe
+  text: Every round's schedule and entry list, free on GT World's YouTube. Follows find drivers who drop in for a round, like Max Verstappen at Portimão.
+  link: "#/series/gtwce"
+
+- date: 2026-10-11
+  kind: new
+  title: Alerts
+  text: Push notifications for race starts, cautions and red flags, the drivers you follow (incidents, penalties, retirements, taking the lead), results and news. Pick which in Settings.
+  link: "#/app"
+
+- date: 2026-10-11
+  kind: new
+  title: Race events and Race stories
+  text: Live timing shows what's happening - penalties, safety cars, cautions with their cause, retirements, lead changes - and every event keeps a lap-by-lap Race story afterwards.
+  link: "#/series"
+
+- date: 2026-10-11
+  kind: new
+  title: The Race Wire
+  text: Racing news from Motorsport.com, Autosport, RACER, The Race and DirtFish plus the big race moments, filtered by series, team or driver.
+  link: "#/wire"
+
+- date: 2026-10-11
+  kind: improved
+  title: Your settings follow you
+  text: Follows, series and calendar choices are saved to your account, so they're the same on every device.
+  link: "#/settings"
+
+- date: 2026-10-11
+  kind: new
+  title: NASCAR
+  text: The Cup Series, O'Reilly Auto Parts Series and Truck Series, with each race's TV network and live timing.
+  link: "#/series/cup"
+
+- date: 2026-10-11
+  kind: new
+  title: Live timing
+  text: Live leaderboards for F1, F2, F3, F1 Academy, WRC, NASCAR and IndyCar, connected only while a session is running.
+  link: "#/series"
+
+- date: 2026-10-11
+  kind: new
+  title: Standings and results
+  text: Championship tables and the last race's results for F1, F2, F3, F1 Academy, IndyCar, Formula E and WRC.
+  link: "#/series"
+
+- date: 2026-10-11
+  kind: new
+  title: Follow drivers anywhere
+  text: Follow a driver or team by name - spelling doesn't need to be perfect - and Lights Out watches every grid and entry list for them, with a NEW badge when they're entered somewhere.
+  link: "#/settings"
+
+- date: 2026-10-11
+  kind: new
+  title: Lights Out opens
+  text: Schedules for every series in one place, a calendar feed for your phone, and US where-to-watch badges that make free versus paid obvious.
+  link: "#/"

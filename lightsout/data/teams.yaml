@@ -1,0 +1,67 @@
+# Teams for news and race-event tagging: the name shown in the app, then the everyday names stories use.
+# Grid team names that differ from a canonical name map onto it through `grid:`.
+# NASCAR grids list the manufacturer, not the team, so its teams are all hand-kept here.
+
+f1:
+  Red Bull Racing: { aliases: [Red Bull], grid: [Red Bull] }
+  Racing Bulls: { aliases: [Racing Bulls, VCARB], grid: [RB F1 Team] }
+  Mercedes: { aliases: [Mercedes] }
+  Ferrari: { aliases: [Ferrari, Scuderia Ferrari] }
+  McLaren: { aliases: [McLaren] }
+  Aston Martin: { aliases: [Aston Martin] }
+  Alpine: { aliases: [Alpine], grid: [Alpine F1 Team] }
+  Williams: { aliases: [Williams] }
+  Haas: { aliases: [Haas], grid: [Haas F1 Team] }
+  Audi: { aliases: [Audi] }
+  Cadillac: { aliases: [Cadillac], grid: [Cadillac F1 Team] }
+
+indycar:
+  Team Penske: { aliases: [Team Penske, Penske] }
+  Chip Ganassi Racing: { aliases: [Ganassi] }
+  Arrow McLaren: { aliases: [Arrow McLaren] }
+  Andretti Global: { aliases: [Andretti] }
+  Rahal Letterman Lanigan Racing: { aliases: [RLL, Rahal Letterman Lanigan] }
+  Meyer Shank Racing: { aliases: [Meyer Shank] }
+  Ed Carpenter Racing: { aliases: [Ed Carpenter Racing], grid: [ECR] }
+  A.J. Foyt Racing: { aliases: [Foyt], grid: [A.J. Foyt Enterprises, HMD Motorsports w/ AJ Foyt Racing] }
+  Dale Coyne Racing: { aliases: [Dale Coyne] }
+  Juncos Hollinger Racing: { aliases: [Juncos Hollinger, Juncos] }
+  Dreyer & Reinbold Racing: { aliases: [Dreyer & Reinbold] }
+  Abel Motorsports: { aliases: [Abel Motorsports] }
+
+nascar:
+  Hendrick Motorsports: { aliases: [Hendrick] }
+  Joe Gibbs Racing: { aliases: [Joe Gibbs Racing, JGR, Gibbs] }
+  Team Penske: { aliases: [Team Penske, Penske] }
+  23XI Racing: { aliases: [23XI] }
+  Trackhouse Racing: { aliases: [Trackhouse] }
+  RFK Racing: { aliases: [RFK Racing, RFK] }
+  Richard Childress Racing: { aliases: [Richard Childress Racing, RCR, Childress] }
+  Legacy Motor Club: { aliases: [Legacy Motor Club, Legacy MC] }
+  Spire Motorsports: { aliases: [Spire] }
+  Kaulig Racing: { aliases: [Kaulig] }
+  Wood Brothers Racing: { aliases: [Wood Brothers] }
+  Front Row Motorsports: { aliases: [Front Row Motorsports, Front Row] }
+  JR Motorsports: { aliases: [JR Motorsports, JRM] }
+  Haas Factory Team: { aliases: [Haas Factory Team] }
+
+fe:
+  Jaguar: { aliases: [Jaguar], grid: [JAGUAR TCS RACING] }
+  Porsche: { aliases: [Porsche], grid: [PORSCHE FORMULA E TEAM] }
+  Nissan: { aliases: [Nissan], grid: [NISSAN FORMULA E TEAM] }
+  DS Penske: { aliases: [DS Penske, Penske], grid: [DS PENSKE] }
+  Andretti: { aliases: [Andretti], grid: [ANDRETTI FORMULA E] }
+  Envision: { aliases: [Envision], grid: [ENVISION RACING] }
+  Mahindra: { aliases: [Mahindra], grid: [MAHINDRA RACING] }
+  Citroen: { aliases: [Citroen, Citroën], grid: [CITROËN RACING] }
+  Cupra Kiro: { aliases: [Cupra Kiro, Kiro], grid: [CUPRA KIRO] }
+  Lola Yamaha ABT: { aliases: [Lola, Yamaha, ABT], grid: [LOLA YAMAHA ABT FORMULA E TEAM] }
+
+wrc:
+  Toyota Gazoo Racing: { aliases: [Toyota Gazoo Racing, Toyota], grid: [Toyota Gazoo Racing WRT, Toyota Gazoo Racing WRT2, Toyota] }
+  Hyundai: { aliases: [Hyundai], grid: [Hyundai Shell Mobis World Rally Team, Hyundai] }
+  M-Sport Ford: { aliases: [M-Sport], grid: [M-sport Ford World Rally Team, Ford] }
+  Toksport: { aliases: [Toksport], grid: [Toksport WRT, Toksport WRT 2] }
+  Skoda: { aliases: [Skoda, Škoda], grid: [Skoda] }
+  Citroen: { aliases: [Citroen, Citroën], grid: [Citroen] }
+  Lancia: { aliases: [Lancia], grid: [Lancia, Lancia Corse HF] }

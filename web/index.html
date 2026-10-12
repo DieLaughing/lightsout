@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Lights Out</title>
+  <meta name="description" content="Racing schedules, calendar and where to watch.">
+  <meta name="theme-color" content="#0f1115">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Lights Out">
+  <!-- AGPL: people using the site can get its source. Point this at your fork. -->
+  <meta name="source" content="https://github.com/DieLaughing/lightsout">
+  <link rel="manifest" href="manifest.webmanifest?v=4">
+  <link rel="icon" href="icons/icon.svg?v=3" type="image/svg+xml">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=4">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="#/"><span class="lights" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>Lights Out</a>
+    <nav id="nav">
+      <a href="#/" data-nav="home">Upcoming</a>
+      <a href="#/wire" data-nav="wire">Wire</a>
+      <a href="#/standings" data-nav="standings">Standings</a>
+      <a href="#/series" data-nav="series">Series</a>
+      <a href="#/settings" data-nav="settings" aria-label="Settings"><span class="nav-text">Settings</span><svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.4-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.7a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.4 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.7h4l.4-2.7a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></a>
+      <a href="#/admin" data-nav="admin" id="admin-tab" hidden>Admin</a>
+    </nav>
+  </header>
+  <main id="view" aria-live="polite"></main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
