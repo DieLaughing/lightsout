@@ -14,7 +14,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from . import access, adapters, alerts, changes, follow, ics, news, refresh, tickets, watch
+from . import access, adapters, alerts, changes, follow, ics, news, refresh, tickets, watch, weather
 from .db import Store
 from .live.hub import LiveHub
 from .push import Pusher
@@ -85,7 +85,7 @@ async def lifespan(app: FastAPI):
              asyncio.create_task(starts_loop())]
     if not os.environ.get("LIGHTSOUT_NO_REFRESH"):
         tasks += [asyncio.create_task(refresh.loop(store)), asyncio.create_task(news_loop()),
-                  asyncio.create_task(tickets.refresh_loop())]
+                  asyncio.create_task(tickets.refresh_loop()), asyncio.create_task(weather.loop(store, DATA_DIR))]
     yield
     for task in tasks:
         task.cancel()
@@ -124,7 +124,7 @@ def list_sessions(start: str | None = None, end: str | None = None, series: str 
     start = start or _iso(now - timedelta(hours=12))
     end = end or _iso(now + timedelta(days=60))
     ids = [s for s in series.split(",") if s in BY_ID] if series else None
-    return _with_watch(store.sessions(start, end, ids))
+    return weather.attach(_with_watch(store.sessions(start, end, ids)))
 
 
 @app.get("/api/series/{series_id}/events")
@@ -137,6 +137,7 @@ def series_events(series_id: str):
         e["tickets"] = tickets.for_event(series_id, e, f1_events)
         for s in e["sessions"]:
             s["watch"] = watch.watch_for(series_id, s["kind"], s.get("tv"))
+        weather.attach([{**s, "venue": e.get("venue"), "event_name": e.get("name"), "_s": s} for s in e["sessions"]])
     return events
 
 
@@ -356,6 +357,8 @@ async def save_settings(request: Request):
                             if isinstance(f, dict) and f.get("name")]
     if "seenChanges" in body:
         clean["seenChanges"] = str(body["seenChanges"] or "")[:120]  # newest What's new entry this person has seen
+    if "units" in body:
+        clean["units"] = "c" if body["units"] == "c" else "f"  # weather temperatures
     if "seenSeries" in body:
         clean["seenSeries"] = [x for x in body["seenSeries"] or [] if x in BY_ID]
     if "kinds" in body:
@@ -386,7 +389,7 @@ def person(name: str):
                 and (r["start_utc"] or r["day"] + "T23:59:59Z") >= _iso(now)]
     # The sessions that decide things (qualifying, sprints, races, rally days), not every practice.
     upcoming = [r for r in upcoming if r["kind"] in ("qualifying", "sprint", "race", "rally_day", "event")]
-    _with_watch(upcoming)
+    weather.attach(_with_watch(upcoming))
     standings, results = [], []
     for sid in st["series"]:
         table = store.standings(sid) or {}

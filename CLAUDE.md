@@ -61,6 +61,14 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
   it isn't behind its Queue-Fair waiting room (never try to bypass it). Matched on race name, then venue (never
   country: Miami/Austin/Vegas). F2/F3/F1A use the GP page of the overlapping F1 weekend.
 
+- Weather (lightsout/weather.py): places in lightsout/data/venues.yaml (first matching term on "<venue> <event name>"
+  wins; rallies match on the rally name and use the service park town). Open-Meteo forecasts only for places with a
+  session in the next 7 days, refreshed every 6 h (1 h when a session is < 36 h away), cached in /data/weather.json.
+  Sessions get {c, rain, code} at the start hour or {hi, lo, rain, code} for untimed days; °C stored, user setting
+  `units` (f/c). Unmatched venues are logged ("no weather place for ..."): add them to venues.yaml. W2RC skipped.
+- Upcoming filters (web/app.js filterBar/passes): when / session type / racing type (Series.category) / free to watch,
+  kept in localStorage. Series pages show season progress (seasonProgress) and official site/timing (Series.site/.timing).
+
 ## Series notes
 - GT World Challenge Europe (`gtwce`; not `gtwc` = FIA GT World Cup at Macau): lightsout/adapters/gtwce.py scrapes
   gt-world-challenge-europe.com: /calendar (upcoming cards + a separate "past events" list; cross-month dates repeat

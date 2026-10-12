@@ -5,6 +5,12 @@
 
 - date: 2026-10-12
   kind: new
+  title: Weather at the track
+  text: "Sessions in the next 7 days show the forecast at the track for when they start: sky, temperature and chance of rain (in blue when it's 10% or more). It updates every few hours, and every hour on the day. Pick °F or °C in Settings."
+  link: "#/"
+
+- date: 2026-10-12
+  kind: new
   title: Filters on Upcoming
   text: "Narrow Upcoming to Today or This weekend, to Races, Qualifying or Practice, to a type of racing (single seaters, sportscars and GT, stock cars, rally and off-road), or to sessions that are free to watch. Your filters are remembered on each device."
   link: "#/"

@@ -23,6 +23,7 @@ It installs on a phone like an app (no app store), sends alerts, and you host it
 - **Follows:** follow drivers or teams by name (spelling doesn't need to be perfect). A NEW badge appears when they're
   entered somewhere. Driver pages show where they race, their next sessions, championship positions and news.
 - **Standings and results** for F1, F2, F3, F1 Academy, Formula E, IndyCar, WRC (and its classes) and NASCAR.
+- **Weather at the track** for sessions in the next 7 days (forecasts from [Open-Meteo](https://open-meteo.com)).
 - **Live timing** for F1, F2, F3, F1 Academy, WRC, NASCAR and IndyCar, connected only while a session is on.
 - **Race events:** penalties, safety cars, cautions with their cause, retirements and lead changes as they happen,
   plus a lap-by-lap **Race story** afterwards.
