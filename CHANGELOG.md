@@ -5,6 +5,7 @@ This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit th
 
 ## October 12, 2026
 
+- **New: Weather at the track.** Sessions in the next 7 days show the forecast at the track for when they start: sky, temperature and chance of rain (in blue when it's 10% or more). It updates every few hours, and every hour on the day. Pick °F or °C in Settings.
 - **New: Filters on Upcoming.** Narrow Upcoming to Today or This weekend, to Races, Qualifying or Practice, to a type of racing (single seaters, sportscars and GT, stock cars, rally and off-road), or to sessions that are free to watch. Your filters are remembered on each device.
 - **New: Season progress and official links.** Each series page shows how far through the season it is (17 of 23 rounds done, and what's next), plus buttons to the series' official site and its official live timing.
 - **Fixed: NASCAR last race.** Cup, O'Reilly and Truck Series Last race showed nothing while NASCAR's official results were still being posted. It now shows the finishing order straight from the race's timing (marked unofficial, without points) until the official results arrive, with the winner's race time and everyone else's gap to the winner (+0.029, 2 laps down, Out on lap 76).

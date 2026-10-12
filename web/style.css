@@ -298,3 +298,7 @@ input:disabled { opacity: .6; }
 .season-bar i.done { background: var(--accent); }
 .season-bar i.next { background: var(--muted); }
 .filter-count .link { border: 0; background: none; padding: 0 2px; color: var(--accent); font-weight: 600; cursor: pointer; font-size: inherit; }
+
+/* weather at the track */
+.wx { white-space: nowrap; font-size: 13px; color: var(--muted); margin-left: 4px; }
+.wx .rain { color: #4a90d9; font-weight: 600; }

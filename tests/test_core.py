@@ -371,3 +371,45 @@ def test_every_series_has_a_type_and_official_site():
         assert s.category in {"single", "sportscar", "stock", "rally"}, s.id
         assert s.site.startswith("https://"), s.id
         assert not s.timing or s.timing.startswith("https://"), s.id
+
+
+def test_venue_list_is_sane_and_matches_this_seasons_tracks():
+    from lightsout import weather
+    seen = {}
+    for p in weather.places():
+        assert -90 <= p["lat"] <= 90 and -180 <= p["lon"] <= 180, p["name"]
+        for t in p["terms"]:
+            assert t not in seen, f"{t!r} is in both {seen.get(t)} and {p['name']}"
+            seen[t] = p["name"]
+    cases = {
+        ("Circuit of the Americas", "United States Grand Prix"): "Circuit of the Americas",
+        ("Americas", "Austin E-Prix"): "Circuit of the Americas",
+        ("Homestead-Miami Speedway", "NASCAR Championship Race"): "Homestead-Miami Speedway",
+        ("Miami IA", "Miami E-Prix"): "Miami International Autodrome",
+        ("Las Vegas Strip Street Circuit", "Las Vegas Grand Prix"): "Las Vegas Strip Circuit",
+        ("Monte Carlo", "Monaco E-Prix"): "Monaco",
+        ("", "Rallye Monte-Carlo"): "Rallye Monte-Carlo (Gap)",
+        ("Jarama", "Madrid E-Prix"): "Jarama",
+        ("TotalEnergies 6 Hours of Spa-Francorchamps", ""): "Spa-Francorchamps",
+        ("Nürburgring Nordschleife", "NLS1"): "Nurburgring",
+        ("Autódromo José Carlos Pace", "Brazilian Grand Prix"): "Interlagos",
+        ("", "Rally Sweden"): "Rally Sweden (Umea)",
+    }
+    for (venue, name), want in cases.items():
+        assert (weather.place_for(venue, name) or {}).get("name") == want, (venue, name)
+    assert weather.place_for("Barcelona", "Rally Spain") and not weather.place_for("", "Somewhere Unknown")
+
+
+def test_forecast_picks_the_start_hour_or_the_day():
+    from datetime import datetime, timezone
+    from lightsout.weather import forecast_for
+    data = {"utc_offset_seconds": -18000,
+            "hourly": {"time": ["2026-10-25T13:00", "2026-10-25T14:00"], "temperature_2m": [24.1, 25.3],
+                       "precipitation_probability": [10, 40], "weather_code": [2, 61]},
+            "daily": {"time": ["2026-10-25"], "temperature_2m_max": [27.0], "temperature_2m_min": [15.0],
+                      "precipitation_probability_max": [45], "weather_code": [61]}}
+    now = datetime(2026, 10, 22, tzinfo=timezone.utc)
+    # 19:00 UTC = 14:00 in Austin (UTC-5)
+    assert forecast_for({"start_utc": "2026-10-25T19:00:00Z"}, data, now) == {"c": 25.3, "rain": 40, "code": 61}
+    assert forecast_for({"day": "2026-10-25"}, data, now) == {"hi": 27.0, "lo": 15.0, "rain": 45, "code": 61}
+    assert forecast_for({"start_utc": "2026-11-20T19:00:00Z"}, data, now) is None  # more than 7 days out

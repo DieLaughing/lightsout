@@ -5,7 +5,7 @@ import { matchName, normalise, splitNames } from "./match.js?v=2";
 
 const view = document.getElementById("view");
 
-const SYNCED = ["series", "follows", "kinds", "dismissed", "notify", "seenSeries", "seenChanges"];
+const SYNCED = ["series", "follows", "kinds", "dismissed", "notify", "seenSeries", "seenChanges", "units"];
 let SETTINGS = null;      // from /api/me once signed in
 let saveTimer = null;
 
@@ -141,13 +141,26 @@ function badge(w) {
     : `<span class="badge ${esc(w.badge)}" title="${title}">${inner}</span>`;
 }
 
+// Forecast at the track (sessions in the next 7 days). Open-Meteo weather codes -> icon.
+const WX = [[0, "☀️", "Clear"], [2, "🌤️", "Partly cloudy"], [3, "☁️", "Cloudy"], [48, "🌫️", "Fog"], [57, "🌦️", "Drizzle"],
+  [67, "🌧️", "Rain"], [77, "❄️", "Snow"], [82, "🌦️", "Showers"], [86, "🌨️", "Snow showers"], [99, "⛈️", "Thunderstorms"]];
+const deg = c => Math.round(store.get("units", "f") === "c" ? c : c * 9 / 5 + 32);
+function weatherTag(w) {
+  if (!w) return "";
+  const [, icon, text] = WX.find(([max]) => w.code <= max) || [0, "", ""];
+  const unit = store.get("units", "f") === "c" ? "°C" : "°F";
+  const t = w.c != null ? `${deg(w.c)}${unit}` : `${deg(w.lo)}–${deg(w.hi)}${unit}`;
+  const rain = w.rain >= 10 ? ` <span class="rain">${w.rain}%</span>` : "";
+  return ` <span class="wx" title="${esc(text)}${w.rain != null ? `, ${w.rain}% chance of rain` : ""} (forecast)">${icon} ${t}${rain}</span>`;
+}
+
 function sessionRow(s, followed) {
   const extra = s.kind === "event" && s.end_day ? ` · through ${esc(shortDate(s.end_day))}` : "";
   return `<div class="row${followed.has(s.series) ? " followed" : ""}">
     ${timeCell(s)}
     <div class="what">
       <div class="ev">${esc(s.event_name)}</div>
-      <div class="ses">${chip(s.series)} ${esc(s.name)}${extra}${isLive(s) ? ' <span class="live">LIVE</span>' : ""}${s.tickets && !isLive(s)
+      <div class="ses">${chip(s.series)} ${esc(s.name)}${extra}${isLive(s) ? ' <span class="live">LIVE</span>' : ""}${weatherTag(s.weather)}${s.tickets && !isLive(s)
         ? ` <a class="tag tix" href="${esc(s.tickets.url)}" target="_blank" rel="noopener" title="${esc(s.tickets.label)}">Tickets ↗</a>` : ""}</div>
     </div>
     ${badge(s.watch)}
@@ -474,6 +487,11 @@ async function settingsView() {
     <div class="card" id="notif"><div class="empty">Checking this device…</div></div>
     <div class="card" style="margin-top:8px">${alertToggles()}</div>
 
+    <h2>Weather</h2>
+    <div class="card"><div class="item"><div>Temperatures in<div class="small muted">Forecasts at the track show up for sessions in the next 7 days.</div></div>
+      <div class="chips" style="margin:0">${[["f", "°F"], ["c", "°C"]].map(([u, l]) =>
+        `<button class="chip-btn${store.get("units", "f") === u ? " active" : ""}" data-units="${u}">${l}</button>`).join("")}</div></div></div>
+
     <h2>Calendar feed</h2>
     <div class="card"><div class="form">
       <div class="small muted">Subscribe once and your calendar app keeps it updated, including reschedules. It covers the ${ids.length} series switched on in <a href="#/series">Series</a>; change those and subscribe again with the new link.</div>
@@ -490,6 +508,9 @@ async function settingsView() {
     <div class="card">${SERIES.map(s => `<div class="item"><div>${chip(s.id)} ${esc(s.name)}</div><div class="small muted" style="text-align:right">${statusText(s.status)}</div></div>`).join("")}</div>
     <p class="small muted">Where-to-watch info is for the US, ${esc(CONFIG.watch_season)} season.</p>`;
 
+  view.querySelectorAll("[data-units]").forEach(b => b.addEventListener("click", () => {
+    store.set("units", b.dataset.units); settingsView();
+  }));
   view.querySelectorAll("[data-kind]").forEach(cb => cb.addEventListener("change", () => {
     const chosen = [...view.querySelectorAll("[data-kind]:checked")].map(c => c.dataset.kind);
     store.set("kinds", chosen.length ? chosen : KINDS.map(k => k[0]));
