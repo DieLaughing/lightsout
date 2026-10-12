@@ -1,0 +1,23 @@
+# Lights Out with Docker Compose. Copy .env.example to .env, fill it in, then:
+#   docker compose up -d                    # just the app, on http://127.0.0.1:8787
+#   docker compose --profile tunnel up -d   # the app plus a Cloudflare Tunnel (see the README)
+services:
+  lightsout:
+    image: ghcr.io/dielaughing/lightsout:latest   # or build it yourself: replace this line with `build: .`
+    container_name: lightsout
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/data          # the database, keys and calendar token live here: back this folder up
+    ports:
+      - "127.0.0.1:8787:8787"  # only this machine; the tunnel (or your own reverse proxy) is the way in
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    profiles: [tunnel]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN:-}
+    depends_on:
+      - lightsout

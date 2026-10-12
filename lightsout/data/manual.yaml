@@ -1,0 +1,37 @@
+# Hand-kept schedules for low-volume series. (ARA and Euro RX are read from their websites: adapters/ara.py, adapters/erx.py.) Edit, then restart (or wait for the next refresh).
+# Formats are described in lightsout/adapters/manual.py. Dates are local event dates.
+# Sources (checked 2026-10-11):
+#   Macau:  https://www.pitdebrief.com/?p=116111
+#   W2RC:   https://api.fia.com/news/fia-approves-five-round-2027-world-rally-raid-championship-calendar
+
+gtwc:
+  - name: FIA GT World Cup, Macau
+    venue: Guia Circuit
+    country: Macau
+    start: 2026-11-19
+    end: 2026-11-22
+    url: https://www.macau.grandprix.gov.mo/
+
+frwc:
+  - name: FIA FR World Cup, Macau Grand Prix
+    venue: Guia Circuit
+    country: Macau
+    start: 2026-11-19
+    end: 2026-11-22
+    url: https://www.macau.grandprix.gov.mo/
+
+f4wc:
+  - name: FIA F4 World Cup, Macau
+    venue: Guia Circuit
+    country: Macau
+    start: 2026-11-19
+    end: 2026-11-22
+    url: https://www.macau.grandprix.gov.mo/
+
+# Rally-raids run up to two weeks, so each is one spanning entry rather than a daily one.
+w2rc:
+  - {name: Dakar Rally, country: Saudi Arabia, start: 2027-01-01, end: 2027-01-15, url: https://www.dakar.com/en}
+  - {name: Abu Dhabi Desert Challenge, country: UAE, start: 2027-03-21, end: 2027-03-26}
+  - {name: South African Safari Rally, venue: Sun City, country: South Africa, start: 2027-06-14, end: 2027-06-19}
+  - {name: Rally-Raid Portugal, country: Portugal, start: 2027-09-21, end: 2027-09-26}
+  - {name: Rallye du Maroc, country: Morocco, start: 2027-10-24, end: 2027-10-29}

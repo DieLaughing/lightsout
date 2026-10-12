@@ -1,0 +1,29 @@
+# What's new in Lights Out
+
+Every update to [Lights Out](https://github.com/DieLaughing/lightsout), newest first. The same list is on the app's What's new page.
+This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit that file, not this one.
+
+## October 12, 2026
+
+- **Fixed: NASCAR last race.** Cup, O'Reilly and Truck Series Last race showed nothing while NASCAR's official results were still being posted. It now shows the finishing order straight from the race's timing (marked unofficial, without points) until the official results arrive, with the winner's race time and everyone else's gap to the winner (+0.029, 2 laps down, Out on lap 76).
+- **New: Standings tab.** Every championship in one place, from the top bar: pick a series, then Drivers, Teams or Last race. Your series come first, and it remembers the last one you looked at. Pages you open from elsewhere (a series, a driver, a Race story, live timing) now have a Back link, and on phones Settings is the gear icon.
+- **Improved: Offline page.** If the server Lights Out runs on goes down (a power or internet blip at its home), the app shows a short "Lights Out is offline" page instead of an error, and reloads by itself once it's back. Your phone picks this up the next time you open the app.
+- **Fixed: Home screen icon.** Phones showed an "L" instead of the app's icon on the home screen. Remove the app from your home screen and add it again to get the real one (on iPhone, turn alerts back on afterwards in Settings).
+- **New: Nürburgring NLS.** The Nordschleife endurance series Verstappen races in: this season's races and the eight 2027 dates (from March 20), free on the NLS YouTube channel, with the series' news in the Race Wire. NLS publishes no entry lists, so drivers show up through its race previews.
+- **New: What's new.** This page. A dot on Settings and a banner on Upcoming show when something new has been added.
+- **Improved: F1 tickets for each Grand Prix.** F1 ticket links go straight to that Grand Prix's page on the F1 store. F1 Academy, F2 and F3 link to the Grand Prix weekend they race at.
+- **New: Driver pages.** Tap any name in Following to see where they race (team and car number in every series), their next qualifying and races, championship position, last result and news.
+- **New: Ticket links.** Race days have a Tickets link to each series' official ticket page, or the event page where there isn't one.
+- **New: GT World Challenge Europe.** Every round's schedule and entry list, free on GT World's YouTube. Follows find drivers who drop in for a round, like Max Verstappen at Portimão.
+
+## October 11, 2026
+
+- **New: Alerts.** Push notifications for race starts, cautions and red flags, the drivers you follow (incidents, penalties, retirements, taking the lead), results and news. Pick which in Settings.
+- **New: Race events and Race stories.** Live timing shows what's happening - penalties, safety cars, cautions with their cause, retirements, lead changes - and every event keeps a lap-by-lap Race story afterwards.
+- **New: The Race Wire.** Racing news from Motorsport.com, Autosport, RACER, The Race and DirtFish plus the big race moments, filtered by series, team or driver.
+- **Improved: Your settings follow you.** Follows, series and calendar choices are saved to your account, so they're the same on every device.
+- **New: NASCAR.** The Cup Series, O'Reilly Auto Parts Series and Truck Series, with each race's TV network and live timing.
+- **New: Live timing.** Live leaderboards for F1, F2, F3, F1 Academy, WRC, NASCAR and IndyCar, connected only while a session is running.
+- **New: Standings and results.** Championship tables and the last race's results for F1, F2, F3, F1 Academy, IndyCar, Formula E and WRC.
+- **New: Follow drivers anywhere.** Follow a driver or team by name - spelling doesn't need to be perfect - and Lights Out watches every grid and entry list for them, with a NEW badge when they're entered somewhere.
+- **New: Lights Out opens.** Schedules for every series in one place, a calendar feed for your phone, and US where-to-watch badges that make free versus paid obvious.
