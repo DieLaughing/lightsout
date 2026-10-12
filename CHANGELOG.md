@@ -5,6 +5,8 @@ This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit th
 
 ## October 12, 2026
 
+- **New: Filters on Upcoming.** Narrow Upcoming to Today or This weekend, to Races, Qualifying or Practice, to a type of racing (single seaters, sportscars and GT, stock cars, rally and off-road), or to sessions that are free to watch. Your filters are remembered on each device.
+- **New: Season progress and official links.** Each series page shows how far through the season it is (17 of 23 rounds done, and what's next), plus buttons to the series' official site and its official live timing.
 - **Fixed: NASCAR last race.** Cup, O'Reilly and Truck Series Last race showed nothing while NASCAR's official results were still being posted. It now shows the finishing order straight from the race's timing (marked unofficial, without points) until the official results arrive, with the winner's race time and everyone else's gap to the winner (+0.029, 2 laps down, Out on lap 76).
 - **New: Standings tab.** Every championship in one place, from the top bar: pick a series, then Drivers, Teams or Last race. Your series come first, and it remembers the last one you looked at. Pages you open from elsewhere (a series, a driver, a Race story, live timing) now have a Back link, and on phones Settings is the gear icon.
 - **Improved: Offline page.** If the server Lights Out runs on goes down (a power or internet blip at its home), the app shows a short "Lights Out is offline" page instead of an error, and reloads by itself once it's back. Your phone picks this up the next time you open the app.

@@ -4,6 +4,18 @@
 # and `.venv/bin/python tools/release.py` publishes the day's GitHub Release.
 
 - date: 2026-10-12
+  kind: new
+  title: Filters on Upcoming
+  text: "Narrow Upcoming to Today or This weekend, to Races, Qualifying or Practice, to a type of racing (single seaters, sportscars and GT, stock cars, rally and off-road), or to sessions that are free to watch. Your filters are remembered on each device."
+  link: "#/"
+
+- date: 2026-10-12
+  kind: new
+  title: Season progress and official links
+  text: "Each series page shows how far through the season it is (17 of 23 rounds done, and what's next), plus buttons to the series' official site and its official live timing."
+  link: "#/series/f1"
+
+- date: 2026-10-12
   kind: fixed
   title: NASCAR last race
   text: "Cup, O'Reilly and Truck Series Last race showed nothing while NASCAR's official results were still being posted. It now shows the finishing order straight from the race's timing (marked unofficial, without points) until the official results arrive, with the winner's race time and everyone else's gap to the winner (+0.029, 2 laps down, Out on lap 76)."
