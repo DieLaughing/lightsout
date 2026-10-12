@@ -1,7 +1,7 @@
 """Publish one GitHub Release per day of updates in lightsout/data/changes.yaml (tag v<date>, e.g. v2026.10.12).
 
 Past days are tagged at that day's last commit; today's at HEAD. A release that already exists gets its notes
-refreshed if entries were added. Needs the gh CLI signed in. Run after pushing: .venv/bin/python tools/release.py
+refreshed if entries were added; today's also moves to HEAD and rebuilds the Docker image. Needs the gh CLI signed in. Run after pushing: .venv/bin/python tools/release.py
 """
 import subprocess
 import sys
@@ -28,6 +28,11 @@ def main():
             if current.strip() != notes.strip():
                 run("gh", "release", "edit", tag, "--notes", notes)
                 print(f"{tag}: notes updated")
+                if day == today:  # today's release moves to the newest commit and rebuilds the Docker image
+                    run("git", "tag", "-f", tag, "HEAD")
+                    run("git", "push", "-f", "origin", f"refs/tags/{tag}")
+                    run("gh", "workflow", "run", "docker.yml", "--ref", tag)
+                    print(f"{tag}: moved to {run('git', 'rev-parse', '--short', 'HEAD')}, image rebuilding")
             continue
         sha = run("git", "rev-parse", "HEAD") if day == today else \
             run("git", "log", "-1", "--format=%H", f"--before={day} 23:59:59")
