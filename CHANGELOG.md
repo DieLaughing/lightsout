@@ -5,6 +5,7 @@ This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit th
 
 ## October 12, 2026
 
+- **New: Event pages.** Tap any race weekend (on Upcoming or a series page) for everything about it in one place: the schedule with where to watch and the weather, which of your drivers are there, the full entry list, results and the Race story afterwards, tickets, news about it, and the other series racing at the same track that weekend.
 - **New: Weather at the track.** Sessions in the next 7 days show the forecast at the track for when they start: sky, temperature and chance of rain (in blue when it's 10% or more). It updates every few hours, and every hour on the day. Pick °F or °C in Settings.
 - **New: Filters on Upcoming.** Narrow Upcoming to Today or This weekend, to Races, Qualifying or Practice, to a type of racing (single seaters, sportscars and GT, stock cars, rally and off-road), or to sessions that are free to watch. Your filters are remembered on each device.
 - **New: Season progress and official links.** Each series page shows how far through the season it is (17 of 23 rounds done, and what's next), plus buttons to the series' official site and its official live timing.

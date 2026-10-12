@@ -69,6 +69,11 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
 - Upcoming filters (web/app.js filterBar/passes): when / session type / racing type (Series.category) / free to watch,
   kept in localStorage. Series pages show season progress (seasonProgress) and official site/timing (Series.site/.timing).
 
+- Event pages (#/event/<series>/<event_key>, /api/event/...): sessions with watch/tickets/weather, round N of M,
+  entry list (event_entry joined with the grid for team/number; else the series grid), results when the standings'
+  last_event is this event, Race story flag, other series at the same place (weather place, dates ±1 day) and news
+  (series-tagged, -10/+4 days, mentioning a keyword from the name/venue/place terms minus GENERIC words).
+
 ## Series notes
 - GT World Challenge Europe (`gtwce`; not `gtwc` = FIA GT World Cup at Macau): lightsout/adapters/gtwce.py scrapes
   gt-world-challenge-europe.com: /calendar (upcoming cards + a separate "past events" list; cross-month dates repeat

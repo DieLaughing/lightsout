@@ -159,7 +159,7 @@ function sessionRow(s, followed) {
   return `<div class="row${followed.has(s.series) ? " followed" : ""}">
     ${timeCell(s)}
     <div class="what">
-      <div class="ev">${esc(s.event_name)}</div>
+      <div class="ev">${s.event_key && s.series ? `<a class="ev-link" href="#/event/${s.series}/${encodeURIComponent(s.event_key)}">${esc(s.event_name)}</a>` : esc(s.event_name)}</div>
       <div class="ses">${chip(s.series)} ${esc(s.name)}${extra}${isLive(s) ? ' <span class="live">LIVE</span>' : ""}${weatherTag(s.weather)}${s.tickets && !isLive(s)
         ? ` <a class="tag tix" href="${esc(s.tickets.url)}" target="_blank" rel="noopener" title="${esc(s.tickets.label)}">Tickets ↗</a>` : ""}</div>
     </div>
@@ -359,6 +359,46 @@ function statusText(st) {
   return `${st.events} event${st.events === 1 ? "" : "s"} · updated ${new Date(st.last_ok).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`;
 }
 
+// One race weekend: schedule with where to watch and weather, your drivers, entry list, results, news.
+async function eventView(id, key) {
+  setNav("series");
+  const e = await api(`/api/event/${id}/${encodeURIComponent(key)}`);
+  const s = BY_ID[id];
+  const today = localDay({ start_utc: new Date().toISOString() });
+  const past = (e.end_day || e.start_day) < today;
+  const mine = new Set(follows().map(f => normalise(f.name)));
+  const isMine = d => mine.has(normalise(d.name)) || (d.team && mine.has(normalise(d.team)));
+  const yours = e.drivers.filter(isMine);
+  const live = (await api("/api/live").catch(() => [])).some(f => f.series === id);
+  const dates = `${shortDate(e.start_day)}${e.end_day && e.end_day !== e.start_day ? ` – ${shortDate(e.end_day)}` : ""}`;
+  const buttons = [
+    live && `<a class="btn primary" href="#/live/${id}">● Live timing</a>`,
+    e.story && `<a class="btn" href="#/story/${id}/${encodeURIComponent(e.key)}">Race story →</a>`,
+    !past && e.tickets && `<a class="btn" href="${esc(e.tickets.url)}" target="_blank" rel="noopener">Tickets ↗</a>`,
+    e.url && `<a class="btn" href="${esc(e.url)}" target="_blank" rel="noopener">Event page ↗</a>`,
+    s?.timing && `<a class="btn" href="${esc(s.timing)}" target="_blank" rel="noopener">Official timing ↗</a>`,
+  ].filter(Boolean).join("");
+  const driverRow = d => `<div class="srow${isMine(d) ? " followed" : ""}"><span class="pos">${esc(d.number ? `#${d.number}` : "")}</span>
+    <span class="who"><a class="who-link" href="#/driver/${encodeURIComponent(d.name)}"><b>${esc(d.name)}</b></a><span class="muted">${esc(d.team || "")}</span></span></div>`;
+  view.innerHTML = `${backLink(`#/series/${id}`)}
+    <h1>${chip(id)} ${esc(e.name)}</h1>
+    <p class="muted event-meta">${esc([e.venue, e.country].filter(Boolean).join(", "))} · ${esc(dates)} · Round ${e.round} of ${e.rounds}</p>
+    ${buttons ? `<div class="series-links">${buttons}</div>` : ""}
+    ${e.weekend.length ? `<p class="small">Also racing here: ${e.weekend.map(w =>
+      `<a href="#/event/${w.series}/${encodeURIComponent(w.key)}">${chip(w.series)}</a>`).join(" ")}</p>` : ""}
+    ${yours.length ? `<h2>Your drivers</h2><div class="card standings">${yours.map(driverRow).join("")}</div>` : ""}
+    ${e.results?.rows?.length ? `<h2>Results</h2>${standingsBody(id, "last", { last_results: e.results.rows, last_event: e.name, last_session: e.results.session })}` : ""}
+    <h2>Schedule</h2>
+    <div class="card">${e.sessions.map(x => sessionRow({ ...x, series: id, event_key: null, event_name: dayLabel(localDay(x)) }, new Set())).join("")
+      || `<div class="empty">No sessions published yet.</div>`}</div>
+    ${e.news.length ? `<h2>News</h2><div class="card">${e.news.map(n => `<a class="item news-item" href="${esc(n.url)}" target="_blank" rel="noopener">
+      <div><b>${esc(n.title)}</b><div class="muted small">${esc(n.source || "")} · ${esc(ago(n.time))}</div></div></a>`).join("")}</div>` : ""}
+    ${e.drivers.length ? `<h2>${e.entry_list ? "Entry list" : "On the grid"} (${e.drivers.length})</h2>
+      <details class="card entry-list"${e.drivers.length <= 30 ? " open" : ""}><summary class="small muted">${e.entry_list
+        ? "Everyone entered for this event" : "The series' regular drivers; this event has no separate entry list"}</summary>
+        <div class="standings">${e.drivers.map(driverRow).join("")}</div></details>` : ""}`;
+}
+
 // "7 of 24 rounds done": the season of the next round (or the last one, once it's over).
 function seasonProgress(events, today) {
   const end = e => e.end_day || e.start_day;
@@ -401,7 +441,7 @@ async function seriesView(id, tab = "schedule") {
       <div class="list">${events.map(e => {
         const past = e.end_day && e.end_day < today;
         return `<div class="card${past ? " past" : ""}">
-          <div class="event-head"><div class="ev">${esc(e.name)}${hasStory.has(e.key) ? ` <a class="tag story" href="#/story/${id}/${encodeURIComponent(e.key)}">Race story →</a>` : ""}${!past && e.tickets ? ` <a class="tag tix" href="${esc(e.tickets.url)}" target="_blank" rel="noopener" title="${esc(e.tickets.label)}">Tickets ↗</a>` : ""}</div>
+          <div class="event-head"><div class="ev"><a class="ev-link" href="#/event/${id}/${encodeURIComponent(e.key)}">${esc(e.name)} ›</a>${hasStory.has(e.key) ? ` <a class="tag story" href="#/story/${id}/${encodeURIComponent(e.key)}">Race story →</a>` : ""}${!past && e.tickets ? ` <a class="tag tix" href="${esc(e.tickets.url)}" target="_blank" rel="noopener" title="${esc(e.tickets.label)}">Tickets ↗</a>` : ""}</div>
           <div class="muted small">${esc([e.venue, e.country].filter(Boolean).join(", "))} · ${esc(shortDate(e.start_day))}${e.end_day && e.end_day !== e.start_day ? ` – ${esc(shortDate(e.end_day))}` : ""}</div></div>
           ${e.sessions.map(x => sessionRow({ ...x, series: id, event_name: dayLabel(localDay(x)) }, followed)).join("")}
         </div>`;
@@ -420,7 +460,7 @@ function standingsBody(id, tab, st) {
   const pts = p => Number.isInteger(p) ? p : p.toFixed(1);
   const updated = st.updated ? `Updated ${new Date(st.updated).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}` : "";
   if (tab === "last") {
-    return st.last_results?.length ? `<p class="muted small">${esc(st.last_event)} · ${esc(st.last_session)} · ${updated}</p>
+    return st.last_results?.length ? `<p class="muted small">${[st.last_event, st.last_session, updated].filter(Boolean).map(esc).join(" · ")}</p>
       <div class="card standings">${st.last_results.map(r => `<div class="srow${isMine(r.name, r.team) ? " followed" : ""}">
         <span class="pos">${esc(r.pos)}</span><span class="who"><b>${esc(r.name)}</b><span class="muted">${esc(r.team)}</span></span>
         <span class="num">${esc(r.time)}</span><span class="num pts">${r.points ? pts(r.points) : ""}</span></div>`).join("")}</div>`
@@ -1093,6 +1133,7 @@ async function route() {
     const lv = hash.match(/^\/live\/([\w-]+)$/);
     const person = hash.match(/^\/(driver|team)\/(.+)$/);
     const story = hash.match(/^\/story\/([\w-]+)\/(.+)$/);
+    const evp = hash.match(/^\/event\/([\w-]+)\/(.+)$/);
     const sd = hash.match(/^\/standings(?:\/([\w-]+)(?:\/(\w+))?)?$/);
     if (hash === "/admin") await adminView();
     else if (hash === "/wire") await wireView();
@@ -1103,6 +1144,7 @@ async function route() {
     else if (lv) await liveView(lv[1]);
     else if (m) await seriesView(m[1], m[2]);
     else if (sd) await standingsView(sd[1], sd[2]);
+    else if (evp) await eventView(evp[1], decodeURIComponent(evp[2]));
     else if (hash === "/series") await seriesListView();
     else if (hash === "/settings") await settingsView();
     else await homeView();
