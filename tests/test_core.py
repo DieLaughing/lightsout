@@ -413,3 +413,9 @@ def test_forecast_picks_the_start_hour_or_the_day():
     assert forecast_for({"start_utc": "2026-10-25T19:00:00Z"}, data, now) == {"c": 25.3, "rain": 40, "code": 61}
     assert forecast_for({"day": "2026-10-25"}, data, now) == {"hi": 27.0, "lo": 15.0, "rain": 45, "code": 61}
     assert forecast_for({"start_utc": "2026-11-20T19:00:00Z"}, data, now) is None  # more than 7 days out
+
+
+def test_event_keywords_skip_generic_words():
+    from lightsout.app import _keywords
+    assert _keywords({"name": "United States Grand Prix", "venue": "Circuit of the Americas"}) >= {"austin", "americas"}
+    assert "grand" not in _keywords({"name": "Brazilian Grand Prix", "venue": "Interlagos"})

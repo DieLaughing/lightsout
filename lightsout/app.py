@@ -448,6 +448,77 @@ def live_events(series_id: str, hours: float = 8):
     return store.events_since(_since(hours / 24), series=[series_id], limit=300)
 
 
+# ---- one race weekend ------------------------------------------------------------------------------
+GENERIC = {"grand", "prix", "race", "rally", "rallye", "hours", "of", "the", "e", "fia", "round", "series", "championship",
+           "nascar", "craftsman", "truck", "cup", "world", "and", "at", "de", "du", "del", "d", "endurance", "sprint", "6", "8",
+           "24", "1000", "km", "test", "official", "united", "states", "city", "international", "circuit", "speedway",
+           "raceway", "motor", "street", "autodromo", "park", "o", "reilly", "auto", "parts", "presented", "by", "500", "400",
+           "des", "la", "le", "lone", "star", "new", "san", "santa"}
+
+
+def _shift(day: str, days: int) -> str:
+    return (datetime.fromisoformat(day) + timedelta(days=days)).date().isoformat()
+
+
+def _keywords(ev: dict) -> set[str]:
+    words = set(weather.norm(f"{ev.get('name')} {ev.get('venue')}").split())
+    place = weather.place_for(ev.get("venue"), ev.get("name"))
+    for term in (place or {}).get("terms", []):
+        words |= set(term.split())
+    return {w for w in words - GENERIC if len(w) > 2 and not w.isdigit()}
+
+
+@app.get("/api/event/{series_id}/{event_key}")
+def event_page(series_id: str, event_key: str):
+    """Everything about one race weekend: sessions (watch, tickets, weather), round number, entry list, results,
+    Race story, other series racing at the same place, and news that mentions it."""
+    if series_id not in BY_ID:
+        raise HTTPException(404)
+    events = store.events(series_id)
+    ev = next((e for e in events if e["key"] == event_key), None)
+    if not ev:
+        raise HTTPException(404)
+    f1_events = _f1_calendar() if series_id in tickets.F1_FAMILY else []
+    ev["tickets"] = tickets.for_event(series_id, ev, f1_events)
+    for x in ev["sessions"]:
+        x["watch"] = watch.watch_for(series_id, x["kind"], x.get("tv"))
+    weather.attach([{**x, "venue": ev.get("venue"), "event_name": ev.get("name"), "_s": x} for x in ev["sessions"]])
+    season = [e for e in events if e["season"] == ev["season"]]
+    ev["round"], ev["rounds"] = season.index(ev) + 1, len(season)
+
+    entered = [r["name"] for r in store.conn.execute(
+        "SELECT name FROM event_entry WHERE series=? AND event_key=? ORDER BY name", (series_id, event_key))]
+    grid = {r["name"]: r for r in store.entries() if r["series"] == series_id}
+    ev["entry_list"] = bool(entered)
+    ev["drivers"] = [{"name": n, "team": (grid.get(n) or {}).get("team"), "number": (grid.get(n) or {}).get("number")}
+                     for n in (entered or sorted(grid, key=lambda n: (grid[n].get("team") or "", n)))]
+
+    st = store.standings(series_id) or {}
+    same = st.get("last_event") and weather.norm(st["last_event"]) in (weather.norm(ev["name"]), weather.norm(ev.get("venue") or ""))
+    ev["results"] = {"session": st.get("last_session"), "rows": st.get("last_results")} if same else None
+    ev["story"] = bool(store.conn.execute("SELECT 1 FROM race_event WHERE series=? AND event_key=? LIMIT 1",
+                                          (series_id, event_key)).fetchone())
+
+    place = weather.place_for(ev.get("venue"), ev.get("name"))
+    ev["weekend"] = []
+    if place and ev.get("start_day"):
+        for other in SERIES:
+            if other.id == series_id:
+                continue
+            for e in store.conn.execute("SELECT key, name, venue, start_day, end_day FROM event WHERE series=? "
+                                        "AND start_day <= ? AND COALESCE(end_day, start_day) >= ?",
+                                        (other.id, _shift(ev.get("end_day") or ev["start_day"], 1), _shift(ev["start_day"], -1))):
+                if (weather.place_for(e["venue"], e["name"]) or {}).get("name") == place["name"]:
+                    ev["weekend"].append({"series": other.id, "key": e["key"], "name": e["name"]})
+
+    words = _keywords(ev)
+    lo = (datetime.fromisoformat(ev["start_day"]) - timedelta(days=10)).isoformat() if ev.get("start_day") else ""
+    hi = (datetime.fromisoformat(ev.get("end_day") or ev["start_day"]) + timedelta(days=4)).isoformat() if ev.get("start_day") else "9"
+    ev["news"] = [n for n in store.news() if series_id in n["series"] and lo <= n["time"][:10] <= hi[:10]
+                  and words & set(weather.norm(f"{n['title']} {n.get('text') or ''}").split())][:8]
+    return ev
+
+
 @app.get("/api/story/{series_id}/{event_key}")
 def race_story(series_id: str, event_key: str):
     if series_id not in BY_ID:

@@ -302,3 +302,10 @@ input:disabled { opacity: .6; }
 /* weather at the track */
 .wx { white-space: nowrap; font-size: 13px; color: var(--muted); margin-left: 4px; }
 .wx .rain { color: #4a90d9; font-weight: 600; }
+
+/* event page */
+.ev-link { color: inherit; text-decoration: none; }
+.ev-link:hover { text-decoration: underline; }
+.event-meta { margin: -4px 0 10px; }
+.entry-list summary { padding: 10px 14px; cursor: pointer; }
+.news-item { text-decoration: none; color: inherit; }
