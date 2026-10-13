@@ -105,7 +105,7 @@ button, .btn {
   padding: 8px 12px; border-radius: 10px; cursor: pointer; text-decoration: none; display: inline-block;
 }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-input[type=text], select {
+input[type=text], input[type=number], select {
   font: inherit; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border);
   background: var(--surface); color: var(--text); width: 100%;
 }

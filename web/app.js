@@ -1079,16 +1079,18 @@ async function adminView() {
   const row = (u, buttons) => `<div class="person"><span class="em">${esc(u.email)}</span><span class="when">${esc(ago(u.requested || u.decided))}</span>${buttons}</div>`;
   const btn = (email, status, label, primary) => `<button class="${primary ? "btn primary" : "btn"}" data-email="${esc(email)}" data-status="${status}">${label}</button>`;
   const pending = people("pending"), approved = people("approved"), other = d.users.filter(u => ["denied", "revoked"].includes(u.status));
-  const unused = d.invites.filter(i => !i.used_by);
+  const openInvites = d.invites.filter(i => i.uses.length < i.max_uses);
   view.innerHTML = `<h1>Admin</h1>
     <h2>Waiting for approval</h2>
     <div class="card">${pending.length ? pending.map(u => row(u, btn(u.email, "approved", "Approve", true) + btn(u.email, "denied", "Deny"))).join("") : `<div class="empty">Nobody waiting.</div>`}</div>
     <h2>Invite a friend</h2>
-    <div class="card"><div class="copyrow"><input type="text" id="note" placeholder="Who it's for (optional)"><button class="btn primary" id="mkinvite">Make link</button></div>
+    <div class="card"><div class="copyrow"><input type="text" id="note" placeholder="Who it's for (optional)"><input type="number" id="uses" min="1" max="50" value="1" inputmode="numeric" aria-label="How many people" title="How many people can use it" style="flex:none;width:4.5em"><button class="btn primary" id="mkinvite">Make link</button></div>
       <div id="newlink"></div>
-      ${unused.map(i => `<div class="person"><span class="em">${esc(i.note || "Unnamed invite")}</span><span class="when">${esc(ago(i.created))}</span>
-        <button class="btn" data-copy="${esc(i.link)}">Copy link</button><button class="btn" data-del="${esc(i.code)}">Delete</button></div>`).join("")}</div>
-    <p class="small muted">Each link works once. Whoever signs in with it is approved straight away.</p>
+      ${openInvites.map(i => `<div class="person"><span class="em">${esc(i.note || "Unnamed invite")}
+          <div class="when">${i.max_uses > 1 ? `${i.uses.length} of ${i.max_uses} joined` : "For one person"}${i.uses.length ? `: ${i.uses.map(u => esc(u.email)).join(", ")}` : ""}</div></span>
+        <span class="when">${esc(ago(i.created))}</span>
+        <button class="btn" data-copy="${esc(i.link)}">Copy link</button><button class="btn" data-del="${esc(i.code)}">${i.uses.length ? "Close" : "Delete"}</button></div>`).join("")}</div>
+    <p class="small muted">Set how many people can use a link (one for a single friend, more for a group chat). Whoever signs in with it is approved straight away. Close a group link to stop it.</p>
     <h2>Approved (${approved.length})</h2>
     <div class="card">${approved.map(u => row(u, ME.email === u.email ? `<span class="small muted">You</span>` : btn(u.email, "revoked", "Revoke"))).join("")}</div>
     ${other.length ? `<h2>Denied or revoked</h2><div class="card">${other.map(u => row(u, btn(u.email, "approved", "Approve"))).join("")}</div>` : ""}`;
@@ -1106,7 +1108,7 @@ async function adminView() {
     adminView();
   }));
   document.getElementById("mkinvite").addEventListener("click", async () => {
-    const r = await send("/api/admin/invites", "POST", { note: document.getElementById("note").value });
+    const r = await send("/api/admin/invites", "POST", { note: document.getElementById("note").value, uses: +document.getElementById("uses").value || 1 });
     await adminView();
     document.getElementById("newlink").innerHTML = `<div class="copyrow"><input type="text" readonly value="${esc(r.link)}"><button class="btn" id="copynew">Copy</button></div>`;
     document.getElementById("copynew").addEventListener("click", e => copy(r.link, e.target));

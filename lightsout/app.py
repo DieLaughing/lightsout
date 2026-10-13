@@ -339,11 +339,16 @@ async def invite(code: str, request: Request):
     user = request.state.user
     if user and user["status"] == "approved":
         return RedirectResponse("/")
-    if not store.use_invite(code, email):
-        return HTMLResponse("<p>This invite link has already been used or doesn't exist. "
+    inv = store.invite(code)
+    # A group link mustn't undo a decision about this person; a link made for them alone still can.
+    shut_out = user and user["status"] in ("denied", "revoked") and inv and inv["max_uses"] > 1
+    if shut_out or not store.use_invite(code, email):
+        return HTMLResponse("<p>This invite link is used up or doesn't exist. "
                             "<a href='/'>Request access instead</a>.</p>", status_code=410)
     store.set_status(email, "approved")
-    await access.notify("Lights Out: invite used", f"{email} joined with an invite link.", tags="tada")
+    joined = f" ({len(inv['uses']) + 1} of {inv['max_uses']})" if inv["max_uses"] > 1 else ""
+    note = f" \"{inv['note']}\"" if inv["note"] else ""
+    await access.notify("Lights Out: invite used", f"{email} joined with the invite link{note}{joined}.", tags="tada")
     return RedirectResponse("/")
 
 
@@ -369,7 +374,11 @@ async def admin_set_user(request: Request):
 async def admin_new_invite(request: Request):
     body = await request.json()
     code = secrets.token_urlsafe(12)
-    store.add_invite(code, (body.get("note") or "")[:80] or None)
+    try:
+        uses = min(max(int(body.get("uses") or 1), 1), 50)
+    except (TypeError, ValueError):
+        raise HTTPException(400, "uses must be a number")
+    store.add_invite(code, (body.get("note") or "")[:80] or None, uses)
     return {"code": code, "link": f"{access.BASE_URL}/invite/{code}"}
 
 
