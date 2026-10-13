@@ -271,8 +271,10 @@ async def bug_report(request: Request):
     try:
         out = await bugs.file(email, kind, text, page, device, version)
     except Exception as exc:
+        # An expired or revoked token shouldn't lose the report: hand over GitHub's own form and tell the owner.
         log.warning("filing a bug report failed: %r", exc)
-        raise HTTPException(502, "Couldn't send it to GitHub just now. Try again in a bit.")
+        await access.notify("Bug report couldn't be filed", f"GitHub said: {exc!r}"[:300] + " (check the GitHub token)", tags="warning")
+        return {"link": bugs.new_issue_link(kind, text, page, device, version)}
     await access.notify(f"Lights Out: new {bugs.KINDS[kind][0].lower()} #{out['issue']}", out["title"],
                         tags="bug", click=out["url"])
     return out
