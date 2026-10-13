@@ -24,7 +24,8 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
   team's certs (LIGHTSOUT_ACCESS_TEAM / _AUD). Anyone with an email gets that far; the app keeps its own approved list
   (user/invite tables). The admin (LIGHTSOUT_ADMIN_EMAIL) is always approved.
 - "Request access" pushes to ntfy (optional) with Approve/Deny buttons = single-use signed links at /act. Invite links
-  (/invite/<code>) and an /admin page.
+  (/invite/<code>) work for up to max_uses people (invite_use table; a group link can't re-admit someone denied or
+  revoked; closing a used link sets max_uses to its use count) and an /admin page.
 - Paths that must bypass Access (separate Access apps with a Bypass policy): /act (ntfy buttons), /cal (calendar apps),
   /icons, /manifest.webmanifest, /apple-touch-icon.png, /apple-touch-icon-precomposed.png (phones fetch home-screen
   icons without the sign-in cookie).

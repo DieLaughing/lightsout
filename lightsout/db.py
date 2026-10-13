@@ -43,8 +43,12 @@ CREATE TABLE IF NOT EXISTS user (
     requested TEXT, decided TEXT,
     nonce TEXT                     -- makes each Approve/Deny link single-use
 );
-CREATE TABLE IF NOT EXISTS invite (
-    code TEXT PRIMARY KEY, created TEXT NOT NULL, note TEXT, used_by TEXT, used_at TEXT
+CREATE TABLE IF NOT EXISTS invite (   -- used_by/used_at: single-use invites from before invite_use
+    code TEXT PRIMARY KEY, created TEXT NOT NULL, note TEXT, used_by TEXT, used_at TEXT,
+    max_uses INTEGER NOT NULL DEFAULT 1
+);
+CREATE TABLE IF NOT EXISTS invite_use (
+    code TEXT NOT NULL, email TEXT NOT NULL, used_at TEXT NOT NULL, PRIMARY KEY (code, email)
 );
 CREATE TABLE IF NOT EXISTS race_event (   -- incidents, penalties, cautions, retirements... from live feeds
     id TEXT PRIMARY KEY,                      -- stable per feed item, so a reconnect never duplicates
@@ -88,6 +92,11 @@ class Store:
             cols = [r[1] for r in self.conn.execute(f"PRAGMA table_info({table})")]
             if column not in cols:
                 self.conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} TEXT")
+        if "max_uses" not in [r[1] for r in self.conn.execute("PRAGMA table_info(invite)")]:  # before multi-use invites
+            with self.conn:
+                self.conn.execute("ALTER TABLE invite ADD COLUMN max_uses INTEGER NOT NULL DEFAULT 1")
+                self.conn.execute("INSERT OR IGNORE INTO invite_use (code, email, used_at) "
+                                  "SELECT code, used_by, used_at FROM invite WHERE used_by IS NOT NULL")
 
     def save(self, series: str, result: AdapterResult) -> tuple[int, int]:
         """Replace every event of the covered seasons for this series."""
@@ -292,21 +301,41 @@ class Store:
             self.conn.executemany("INSERT OR IGNORE INTO sent VALUES (?,?)", [(k, now) for k in keys])
             self.conn.execute("DELETE FROM sent WHERE at < ?", (_iso(datetime.now(timezone.utc) - timedelta(days=40)),))
 
-    def add_invite(self, code: str, note: str | None) -> None:
+    def add_invite(self, code: str, note: str | None, max_uses: int = 1) -> None:
         with self.lock, self.conn:
-            self.conn.execute("INSERT INTO invite (code, created, note) VALUES (?,?,?)",
-                              (code, _iso(datetime.now(timezone.utc)), note))
+            self.conn.execute("INSERT INTO invite (code, created, note, max_uses) VALUES (?,?,?,?)",
+                              (code, _iso(datetime.now(timezone.utc)), note, max_uses))
+
+    def invite(self, code: str) -> dict | None:
+        row = self.conn.execute("SELECT * FROM invite WHERE code=?", (code,)).fetchone()
+        if not row:
+            return None
+        uses = [dict(r) for r in self.conn.execute(
+            "SELECT email, used_at FROM invite_use WHERE code=? ORDER BY used_at", (code,))]
+        return {k: row[k] for k in ("code", "created", "note", "max_uses")} | {"uses": uses}
 
     def use_invite(self, code: str, email: str) -> bool:
-        """Marks an unused invite as used by this email. False if it doesn't exist or was used."""
+        """Records this email on an invite with room left. False if it doesn't exist, is full, or they already used it."""
         with self.lock, self.conn:
-            cur = self.conn.execute("UPDATE invite SET used_by=?, used_at=? WHERE code=? AND used_by IS NULL",
-                                    (email, _iso(datetime.now(timezone.utc)), code))
+            row = self.conn.execute("SELECT max_uses FROM invite WHERE code=?", (code,)).fetchone()
+            if not row:
+                return False
+            used = self.conn.execute("SELECT COUNT(*) FROM invite_use WHERE code=?", (code,)).fetchone()[0]
+            if used >= row["max_uses"]:
+                return False
+            cur = self.conn.execute("INSERT OR IGNORE INTO invite_use (code, email, used_at) VALUES (?,?,?)",
+                                    (code, email, _iso(datetime.now(timezone.utc))))
             return cur.rowcount == 1
 
     def invites(self) -> list[dict]:
-        return [dict(r) for r in self.conn.execute("SELECT * FROM invite ORDER BY created DESC")]
+        codes = [r[0] for r in self.conn.execute("SELECT code FROM invite ORDER BY created DESC")]
+        return [self.invite(c) for c in codes]
 
     def delete_invite(self, code: str) -> None:
+        """Deletes an unused invite; one somebody joined with is closed instead, so it still shows who used it."""
         with self.lock, self.conn:
-            self.conn.execute("DELETE FROM invite WHERE code=? AND used_by IS NULL", (code,))
+            used = self.conn.execute("SELECT COUNT(*) FROM invite_use WHERE code=?", (code,)).fetchone()[0]
+            if used:
+                self.conn.execute("UPDATE invite SET max_uses=? WHERE code=?", (used, code))
+            else:
+                self.conn.execute("DELETE FROM invite WHERE code=?", (code,))

@@ -56,3 +56,24 @@ def test_owner_and_invites(client):
     assert c.get("/api/me").json()["status"] == "approved"
     who["email"] = "other@example.com"
     assert c.get(f"/invite/{code}", follow_redirects=False).status_code == 410  # single use
+
+
+def test_group_invite(client):
+    c, who, sent, app_module = client
+    who["email"] = "owner@example.com"
+    code = c.post("/api/admin/invites", json={"note": "Group chat", "uses": 2}).json()["code"]
+    c.post("/api/admin/users", json={"email": "gone@example.com", "status": "revoked"})
+    who["email"] = "gone@example.com"
+    assert c.get(f"/invite/{code}", follow_redirects=False).status_code == 410  # a group link can't undo a revoke
+    for n, email in enumerate(("a@example.com", "b@example.com"), 1):
+        who["email"] = email
+        assert c.get(f"/invite/{code}", follow_redirects=False).status_code == 307
+        assert c.get("/api/me").json()["status"] == "approved"
+        assert sent[-1][0] == "Lights Out: invite used" and len(app_module.store.invite(code)["uses"]) == n
+    who["email"] = "c@example.com"
+    assert c.get(f"/invite/{code}", follow_redirects=False).status_code == 410  # full
+    who["email"] = "owner@example.com"
+    inv, = [i for i in c.get("/api/admin").json()["invites"] if i["code"] == code]
+    assert [u["email"] for u in inv["uses"]] == ["a@example.com", "b@example.com"] and inv["max_uses"] == 2
+    c.delete(f"/api/admin/invites/{code}")
+    assert app_module.store.invite(code)["max_uses"] == 2  # used invites close, they don't vanish
