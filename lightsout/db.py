@@ -85,6 +85,9 @@ class Store:
         self.conn.row_factory = sqlite3.Row
         self.lock = threading.Lock()  # request handlers run in threads; serialise the access writes
         self.conn.execute("PRAGMA journal_mode=WAL")
+        # WAL + NORMAL: a save doesn't wait for the disk to confirm it (on a USB drive that's up to ~400 ms, and saves
+        # run on the worker that answers requests). A power cut can lose the last moment of saves; nothing corrupts.
+        self.conn.execute("PRAGMA synchronous=NORMAL")
         self.conn.executescript(SCHEMA)
         # Columns added after the first deploy: (table, column).
         for table, column in (("entry", "first_seen"), ("event_entry", "first_seen"), ("session", "tv"),
