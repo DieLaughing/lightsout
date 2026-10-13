@@ -156,6 +156,7 @@ Everything is in `.env`. `.env.example` explains each line.
 | `LIGHTSOUT_ACCESS_TEAM`, `LIGHTSOUT_ACCESS_AUD` | Cloudflare Access team domain and the app's AUD tag |
 | `LIGHTSOUT_LOCAL_EMAIL` | Home-network mode: no sign-in, everyone is this person |
 | `NTFY_URL`, `NTFY_TOKEN`, `LIGHTSOUT_NTFY_TOPIC` | Approval pushes (optional) |
+| `LIGHTSOUT_GITHUB_TOKEN`, `LIGHTSOUT_GITHUB_REPO` | In-app bug reports filed as GitHub issues (optional; see `.env.example`) |
 | `TUNNEL_TOKEN` | Cloudflare Tunnel token (with `--profile tunnel`) |
 | `TZ` | Server time zone (logs) |
 

@@ -3,6 +3,10 @@
 Every update to [Lights Out](https://github.com/DieLaughing/lightsout), newest first. The same list is on the app's What's new page.
 This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit that file, not this one.
 
+## October 13, 2026
+
+- **New: Report a problem.** Found something off, or have an idea? Tap "Something wrong? Report it" at the bottom of any page (or Settings → Report a problem). It goes straight onto the app's to-do list on GitHub without your name or email, along with which page you were on and what phone you're using, so there's no need to explain that part. Settings → Your reports shows whether it's been fixed, plus any reply.
+
 ## October 12, 2026
 
 - **New: Event pages.** Tap any race weekend (on Upcoming or a series page) for everything about it in one place: the schedule with where to watch and the weather, which of your drivers are there, the full entry list, results and the Race story afterwards, tickets, news about it, and the other series racing at the same track that weekend.

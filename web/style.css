@@ -309,3 +309,15 @@ input:disabled { opacity: .6; }
 .event-meta { margin: -4px 0 10px; }
 .entry-list summary { padding: 10px 14px; cursor: pointer; }
 .news-item { text-decoration: none; color: inherit; }
+
+/* bug reports */
+.foot { max-width: 760px; margin: -24px auto 0; padding: 0 16px 28px; text-align: center; font-size: 13px; }
+.foot a { color: var(--muted); }
+.pad16 { padding: 14px 16px; }
+.help { margin: 6px 2px 0; }
+.bugtext { width: 100%; box-sizing: border-box; resize: vertical; font: inherit; font-size: 15px; line-height: 1.4; padding: 10px;
+  border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+.report-row { display: flex; flex-direction: column; gap: 4px; padding: 11px 14px; border-top: 1px solid var(--border); text-decoration: none; color: inherit; }
+.report-row:first-child { border-top: 0; }
+.report-head { display: flex; gap: 8px; align-items: baseline; }
+.report-reply { padding: 6px 10px; border-left: 3px solid var(--border); }

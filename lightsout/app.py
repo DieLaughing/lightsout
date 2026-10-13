@@ -14,7 +14,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from . import access, adapters, alerts, changes, follow, ics, news, refresh, tickets, watch, weather
+from . import access, bugs, adapters, alerts, changes, follow, ics, news, refresh, tickets, watch, weather
 from .db import Store
 from .live.hub import LiveHub
 from .push import Pusher
@@ -40,6 +40,7 @@ def _cal_token() -> str:
 
 
 store = Store(DATA_DIR / "lightsout.db")
+bugs.init(store.conn)
 CAL_TOKEN = _cal_token()
 live = LiveHub(store)
 pusher = Pusher(DATA_DIR, access.ADMIN)
@@ -249,6 +250,37 @@ async def gate(request: Request, call_next):
 def _parse(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
+
+
+# ---- bug reports (filed as GitHub issues, anonymously; see bugs.py) ------------------------------------
+@app.post("/api/bug")
+async def bug_report(request: Request):
+    body = await request.json()
+    kind = body.get("kind") if body.get("kind") in bugs.KINDS else "bug"
+    text = str(body.get("text") or "").strip()[:4000]
+    if len(text) < 10:
+        raise HTTPException(400, "Tell us a bit more (at least a sentence).")
+    page = str(body.get("page") or "")[:200]
+    device = str(body.get("device") or "")[:120]
+    version = (changes.load() or [{}])[0].get("date", "")
+    email = request.state.email
+    if not bugs.configured():
+        return {"link": bugs.new_issue_link(kind, text, page, device, version)}
+    if not access.is_admin(email) and bugs.sent_today(email) >= bugs.PER_DAY:
+        raise HTTPException(429, "That's a lot of reports for one day. Thanks! Try again tomorrow.")
+    try:
+        out = await bugs.file(email, kind, text, page, device, version)
+    except Exception as exc:
+        log.warning("filing a bug report failed: %r", exc)
+        raise HTTPException(502, "Couldn't send it to GitHub just now. Try again in a bit.")
+    await access.notify(f"Lights Out: new {bugs.KINDS[kind][0].lower()} #{out['issue']}", out["title"],
+                        tags="bug", click=out["url"])
+    return out
+
+
+@app.get("/api/bugs")
+async def my_bug_reports(request: Request):
+    return {"reports": await bugs.mine(request.state.email), "repo": bugs.REPO, "filing": bugs.configured()}
 
 @app.get("/api/me")
 def me(request: Request):
