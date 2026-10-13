@@ -74,6 +74,11 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
   last_event is this event, Race story flag, other series at the same place (weather place, dates ±1 day) and news
   (series-tagged, -10/+4 days, mentioning a keyword from the name/venue/place terms minus GENERIC words).
 
+- Bug reports (#/report, footer link on every page, Settings > Your reports): lightsout/bugs.py files anonymous GitHub
+  issues (labels from-app + bug|enhancement; @mentions broken; page/device/version table) with LIGHTSOUT_GITHUB_TOKEN
+  (fine-grained, Issues read/write); bug_report table keeps who sent what; /api/bugs refreshes state + the
+  owner's latest comment every 10 min. 5 a day per person. No token = GitHub's prefilled new-issue link.
+
 ## Series notes
 - GT World Challenge Europe (`gtwce`; not `gtwc` = FIA GT World Cup at Macau): lightsout/adapters/gtwce.py scrapes
   gt-world-challenge-europe.com: /calendar (upcoming cards + a separate "past events" list; cross-month dates repeat

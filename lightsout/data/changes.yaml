@@ -3,6 +3,12 @@
 # After editing: `.venv/bin/python tools/changelog.py` rewrites CHANGELOG.md (a test checks they match),
 # and `.venv/bin/python tools/release.py` publishes the day's GitHub Release.
 
+- date: 2026-10-13
+  kind: new
+  title: Report a problem
+  text: Found something off, or have an idea? Tap "Something wrong? Report it" at the bottom of any page (or Settings → Report a problem). It goes straight onto the app's to-do list on GitHub without your name or email, along with which page you were on and what phone you're using, so there's no need to explain that part. Settings → Your reports shows whether it's been fixed, plus any reply.
+  link: "#/report"
+
 - date: 2026-10-12
   kind: new
   title: Event pages
