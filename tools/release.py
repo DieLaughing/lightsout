@@ -28,11 +28,12 @@ def main():
             if current.strip() != notes.strip():
                 run("gh", "release", "edit", tag, "--notes", notes)
                 print(f"{tag}: notes updated")
-                if day == today:  # today's release moves to the newest commit and rebuilds the Docker image
-                    run("git", "tag", "-f", tag, "HEAD")
-                    run("git", "push", "-f", "origin", f"refs/tags/{tag}")
-                    run("gh", "workflow", "run", "docker.yml", "--ref", tag)
-                    print(f"{tag}: moved to {run('git', 'rev-parse', '--short', 'HEAD')}, image rebuilding")
+            behind = run("git", "rev-parse", f"{tag}^{{commit}}", check=False) != run("git", "rev-parse", "HEAD")
+            if day == today and behind:  # today's release follows the newest commit and rebuilds the Docker image
+                run("git", "tag", "-f", tag, "HEAD")
+                run("git", "push", "-f", "origin", f"refs/tags/{tag}")
+                run("gh", "workflow", "run", "docker.yml", "--ref", tag)
+                print(f"{tag}: moved to {run('git', 'rev-parse', '--short', 'HEAD')}, image rebuilding")
             continue
         sha = run("git", "rev-parse", "HEAD") if day == today else \
             run("git", "log", "-1", "--format=%H", f"--before={day} 23:59:59")
