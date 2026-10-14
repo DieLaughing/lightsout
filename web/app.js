@@ -426,16 +426,43 @@ function passes(s, f, today) {
   return true;
 }
 
+// Day = one connected switch (pick one). Everything else lives behind "Filters", in labelled groups; when the
+// panel is closed, whatever is on shows as small chips you can tap off.
+const filterCount = f => f.sessions.length + f.types.length + (f.free ? 1 : 0) + (f.near && home() ? 1 : 0);
+const filtersOpen = () => local("filtersOpen", false);
+function activeChips(f) {
+  const label = (list, v) => (list.find(([x]) => x === v) || [, v])[1];
+  const on = [
+    ...(f.free ? [["free", "1", "Free to watch"]] : []),
+    ...(f.near && home() ? [["near", "1", `Near me · ${distLabel(nearMiles())}`]] : []),
+    ...f.sessions.map(v => ["sessions", v, label(SESSION_FILTERS, v)]),
+    ...f.types.map(v => ["types", v, label(TYPES, v)]),
+  ];
+  return on.map(([g, v, l]) => `<button class="chip-btn active on-chip" data-f="${g}" data-v="${v}" aria-label="Remove ${esc(l)}">${esc(l)} <span aria-hidden="true">✕</span></button>`).join("");
+}
+
 function filterBar(upcoming) {
   const f = upFilters();
   const present = new Set(upcoming.map(s => BY_ID[s.series]?.category));
   const btn = (group, value, label, on) =>
     `<button class="chip-btn${on ? " active" : ""}" data-f="${group}" data-v="${value}" aria-pressed="${on}">${label}</button>`;
-  return `<div class="filters" id="filters">
-    <div class="chips">${WHEN.map(([v, l]) => btn("when", v, l, f.when === v)).join("")}${btn("free", "1", "Free to watch", f.free)}${home()
-      ? btn("near", "1", `Near me · ${distLabel(nearMiles())}`, f.near) : `<a class="chip-btn ghost" href="#/settings/near">Near me…</a>`}</div>
-    <div class="chips">${SESSION_FILTERS.map(([v, l]) => btn("sessions", v, l, f.sessions.includes(v))).join("")}</div>
-    ${present.size > 1 ? `<div class="chips">${TYPES.filter(([v]) => present.has(v)).map(([v, l]) => btn("types", v, l, f.types.includes(v))).join("")}</div>` : ""}
+  const open = filtersOpen(), n = filterCount(f);
+  const group = (title, inner) => `<div class="fgroup"><div class="flabel">${title}</div><div class="chips">${inner}</div></div>`;
+  return `<div class="upfilters" id="filters">
+    <div class="fbar">
+      <div class="seg" role="radiogroup" aria-label="Day">${WHEN.map(([v, l]) =>
+        `<button role="radio" class="${f.when === v ? "active" : ""}" data-f="when" data-v="${v}" aria-checked="${f.when === v}">${l}</button>`).join("")}</div>
+      <button class="fbtn${n ? " has" : ""}" id="f-toggle" aria-expanded="${open}" aria-controls="fpanel">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        Filters<span class="fcount"${n ? "" : " hidden"}>${n}</span></button>
+    </div>
+    <div class="fpanel card" id="fpanel"${open ? "" : " hidden"}>
+      ${group("Watch", btn("free", "1", "Free to watch", f.free) + (home() ? btn("near", "1", `Near me · ${distLabel(nearMiles())}`, f.near)
+        : `<a class="chip-btn ghost" href="#/settings/near">Near me… set home</a>`))}
+      ${group("Sessions", SESSION_FILTERS.map(([v, l]) => btn("sessions", v, l, f.sessions.includes(v))).join(""))}
+      ${present.size > 1 ? group("Racing type", TYPES.filter(([v]) => present.has(v)).map(([v, l]) => btn("types", v, l, f.types.includes(v))).join("")) : ""}
+    </div>
+    <div class="factive" id="factive"${open || !n ? " hidden" : ""}>${open ? "" : activeChips(f)}</div>
   </div>`;
 }
 
@@ -463,16 +490,29 @@ function wireFilters(upcoming, followed, today) {
   const bar = view.querySelector("#filters"), list = view.querySelector("#upcoming");
   const redraw = () => {
     const f = upFilters();
-    bar.querySelectorAll("[data-f]").forEach(b => {
+    bar.querySelectorAll("#fpanel [data-f], .seg [data-f]").forEach(b => {
       const on = b.dataset.f === "when" ? f.when === b.dataset.v : b.dataset.f === "free" || b.dataset.f === "near" ? f[b.dataset.f] : f[b.dataset.f].includes(b.dataset.v);
       b.classList.toggle("active", on);
-      b.setAttribute("aria-pressed", on);
+      b.setAttribute(b.getAttribute("role") === "radio" ? "aria-checked" : "aria-pressed", on);
     });
+    const n = filterCount(f), open = filtersOpen(), count = bar.querySelector(".fcount"), act = bar.querySelector("#factive");
+    count.textContent = n; count.hidden = !n;
+    bar.querySelector("#f-toggle").classList.toggle("has", !!n);
+    act.innerHTML = open ? "" : activeChips(f);
+    act.hidden = open || !n;
     list.innerHTML = upcomingList(upcoming, followed, today);
     nearTracks(list);
     list.querySelector("#f-clear")?.addEventListener("click", () => { saveUpFilters({ ...NO_FILTERS }); redraw(); });
   };
   bar?.addEventListener("click", e => {
+    if (e.target.closest("#f-toggle")) {
+      const open = !filtersOpen();
+      try { localStorage.setItem("filtersOpen", JSON.stringify(open)); } catch { /* fine */ }
+      bar.querySelector("#fpanel").hidden = !open;
+      bar.querySelector("#f-toggle").setAttribute("aria-expanded", open);
+      redraw();
+      return;
+    }
     const b = e.target.closest("[data-f]");
     if (!b) return;
     const f = upFilters(), g = b.dataset.f, v = b.dataset.v;

@@ -92,7 +92,8 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
   series' events there this season + next, sessions in the next 14 days). Near me: settings.home {label, lat, lon}
   (US ZIP via /api/home -> zippopotam.us, or the device's location; rounded to 0.01°), settings.nearMiles; the Near me
   filter chip uses the session's place, and /api/tracks lists tracks in range with their next race from ANY series.
-- Upcoming filters (web/app.js filterBar/passes): when / session type / racing type (Series.category) / free to watch,
+- Upcoming filters (web/app.js filterBar/passes): day = .seg switch; Filters button (count, localStorage filtersOpen) opens
+  #fpanel with groups Watch (free, near) / Sessions / Racing type (Series.category); closed = #factive removable chips;
   kept in localStorage. Series pages show season progress (seasonProgress) and official site/timing (Series.site/.timing).
 
 - Event pages (#/event/<series>/<event_key>, /api/event/...): sessions with watch/tickets/weather, round N of M,
