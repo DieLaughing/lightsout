@@ -5,7 +5,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 
-from . import adapters
+from . import adapters, picks
 from .db import Store
 from .series import SERIES
 
@@ -40,6 +40,7 @@ async def refresh_series(store: Store, series_id: str) -> None:
             st = await module.standings(series_id)
             if st and (st.drivers or st.last_results):
                 store.save_standings(series_id, st)
+                picks.grade(store, series_id)  # a new Last race scores that race's Pick'em
         except Exception as exc:  # standings are a bonus; keep the last good copy
             log.warning("%s standings failed: %r", series_id, exc)
 

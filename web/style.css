@@ -8,6 +8,7 @@
   --free-bg: #e3f5e8; --free-fg: #13692f;
   --tv-bg: #e4edfb;   --tv-fg: #1d4f9c;
   --paid-bg: #fdf0dc; --paid-fg: #8a5300;
+  --lost-bg: #fde4e2; --lost-fg: #a3150c;
   --live: #e10600;
   color-scheme: light;
 }
@@ -21,6 +22,7 @@
     --free-bg: #12301c; --free-fg: #7fdc9b;
     --tv-bg: #152640;   --tv-fg: #8fb6f2;
     --paid-bg: #33240d; --paid-fg: #f2c27a;
+    --lost-bg: #3a1513; --lost-fg: #f2a19a;
     color-scheme: dark;
   }
 }
@@ -353,3 +355,38 @@ html, body { overflow-x: clip; }
 .back:hover { color: var(--text); border-color: var(--muted); }
 .back-ico { width: 17px; height: 17px; display: block; }
 @media (prefers-reduced-motion: reduce) { .tabbar a, .tab-ico, .top, .tab-pill { transition: none; } }
+
+/* Pick'em */
+.racebar { display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; gap: 8px; text-align: center; margin: 4px 0 8px; }
+.racebar > a { display: grid; place-items: center; height: 36px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface); text-decoration: none; font-weight: 700; }
+.pick-status { text-align: center; margin-bottom: 4px; }
+.pick-row { padding: 10px 12px; }
+.pick-row + .pick-row { border-top: 1px solid var(--border); }
+.pick-line { display: grid; grid-template-columns: 1fr 26px 1fr 40px; gap: 6px; align-items: center; }
+.pk { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 7px 9px; border-radius: 10px; min-width: 0; text-align: left;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-weight: 700; font-size: 13.5px; cursor: pointer; }
+.pk-nm, .pk-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.pk-sub { font-size: 11.5px; font-weight: 500; color: var(--muted); }
+.pk.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.pk.won { background: var(--free-bg); color: var(--free-fg); border-color: transparent; box-shadow: none; }
+.pk.lost { background: var(--lost-bg); color: var(--lost-fg); border-color: transparent; box-shadow: none; }
+.pk.lost .pk-nm { text-decoration: line-through; }
+.pk.won .pk-sub, .pk.lost .pk-sub { color: inherit; opacity: .85; }
+.pk.void { border-style: dashed; }
+.pk:disabled { cursor: default; }
+.pk:disabled:not(.on):not(.won):not(.lost) { opacity: .6; }
+.pick-mid { text-align: center; font-size: 12px; color: var(--muted); font-weight: 600; }
+.lockbtn { height: 38px; padding: 0; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 17px; cursor: pointer; }
+.lockbtn.on { background: #f5b700; border-color: #f5b700; color: #111; }
+.lockbtn:disabled { cursor: default; opacity: .55; }
+.lockbtn.on:disabled { opacity: 1; }
+.pick-friends { font-size: 12px; color: var(--muted); padding-top: 6px; }
+.podium-row { display: grid; grid-template-columns: 30px 1fr auto; gap: 8px; align-items: center; }
+.podium-row + .podium-row { margin-top: 8px; }
+.podium-pos { font-weight: 800; color: var(--muted); }
+.board { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.board th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 8px 10px; }
+.board td { padding: 9px 10px; border-top: 1px solid var(--border); }
+.board tr.me td { background: var(--tv-bg); }
+.help + .card, .pick-status + .help { margin-top: 10px; }
