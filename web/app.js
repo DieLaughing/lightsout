@@ -5,7 +5,7 @@ import { matchName, normalise, splitNames } from "./match.js?v=2";
 
 const view = document.getElementById("view");
 
-const SYNCED = ["series", "follows", "kinds", "dismissed", "notify", "seenSeries", "seenChanges", "units"];
+const SYNCED = ["series", "follows", "kinds", "dismissed", "notify", "seenSeries", "seenChanges", "units", "animations"];
 let SETTINGS = null;      // from /api/me once signed in
 let saveTimer = null;
 
@@ -28,8 +28,11 @@ const store = {
   },
 };
 
-const saveSettings = () => fetch("/api/settings", { method: "PUT", headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(SETTINGS) }).then(r => r.json());
+const saveSettings = () => {
+  for (const k of GET_CACHE.keys()) if (k.startsWith("/api/wire")) GET_CACHE.delete(k);  // "mine" depends on follows
+  return fetch("/api/settings", { method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(SETTINGS) }).then(r => r.json());
+};
 
 // A series added to the app later (GT World Challenge, 2026-10-12) is switched on once for everyone who has
 // a saved series list; after that, their own choice stands.
@@ -85,11 +88,32 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": 
 // Cloudflare's codes for "the Pi can't be reached" (a bug in the app is a plain 500): show the offline page.
 const PI_DOWN = status => [502, 503, 504, 520, 521, 522, 523, 524, 530].includes(status);
 const goOffline = () => location.replace(`/offline.html?back=${encodeURIComponent(location.href)}`);
+// The phone's own copy of every page's data (path -> {at, data}): tabs open from it instantly (see fast()).
+const GET_CACHE = new Map();
+const SHOW_COPY_FOR = 30 * 60000;   // older copies wait for fresh data instead
+const FRESH_WAIT = 150;             // ms a page waits for fresh data before drawing the phone's copy
 const api = path => fetch(path, { headers: { Accept: "application/json" } }).then(r => {
   if (PI_DOWN(r.status)) goOffline();
   if (!r.ok) throw new Error(`${path}: ${r.status}`);
   return r.json();
-});
+}).then(data => { GET_CACHE.set(path, { at: Date.now(), data }); return data; });
+
+// A page's data, fast: fresh data if it lands within FRESH_WAIT (so the page draws once, current), otherwise the
+// phone's copy straight away and one quiet redraw (after any page animation) if the fresh data differs.
+async function fast(path) {
+  const hit = GET_CACHE.get(path), age = hit ? Date.now() - hit.at : Infinity;
+  if (age < 3000) return hit.data;                              // just fetched (this is the redraw)
+  if (age > SHOW_COPY_FOR || QUIET_ROUTE) return api(path);
+  const at = location.hash, fresh = api(path);
+  const first = await Promise.race([fresh.then(d => ({ d }), () => null), new Promise(r => setTimeout(() => r(null), FRESH_WAIT))]);
+  if (first) return first.d;
+  fresh.then(async d => {
+    if (location.hash !== at || JSON.stringify(d) === JSON.stringify(hit.data)) return;
+    await Promise.all(view.getAnimations().map(a => a.finished.catch(() => {})));
+    if (location.hash === at) route(true);
+  }).catch(() => {});
+  return hit.data;
+}
 
 function localDay(s) {
   // TBA sessions only have the event's local date; timed ones use the viewer's time zone.
@@ -169,15 +193,58 @@ function sessionRow(s, followed) {
 
 // "← Back" on pages you reach from somewhere else: goes back if you came from inside the app, else to `fallback`.
 let CAME_FROM_APP = false;
-const backLink = fallback => `<a class="back" href="${fallback}" data-back>← Back</a>`;
+const backLink = (fallback, label = "Back") => `<a class="back" href="${fallback}" data-back><svg class="back-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${esc(label)}</span></a>`;
 document.addEventListener("click", e => {
   const a = e.target.closest("a[data-back]");
   if (a && CAME_FROM_APP) { e.preventDefault(); history.back(); }
 });
 
+// "Loading…" only when a page takes a moment: fast loads swap straight to the new page, no flash.
+function showLoading(text) {
+  const before = view.firstElementChild;
+  setTimeout(() => { if (view.firstElementChild === before) view.innerHTML = `<div class="empty">${text}</div>`; }, 350);
+}
+
 function setNav(name) {
   document.querySelectorAll("[data-nav]").forEach(a => a.classList.toggle("active", a.dataset.nav === name));
+  movePill();
 }
+
+// The bottom bar's highlight is one pill that slides (with a little spring) to the active tab.
+function movePill() {
+  const bar = document.getElementById("tabs"), on = bar?.querySelector("a.active");
+  if (!bar) return;
+  let pill = bar.querySelector(".tab-pill");
+  if (!pill) { pill = document.createElement("span"); pill.className = "tab-pill"; bar.prepend(pill); }
+  pill.classList.toggle("still", !motionOn() || !pill.dataset.placed);
+  if (!on) { pill.style.opacity = "0"; return; }
+  pill.style.opacity = "1";
+  pill.style.width = `${on.offsetWidth}px`;
+  pill.style.transform = `translateX(${on.offsetLeft}px)`;
+  pill.dataset.placed = "1";
+}
+window.addEventListener("resize", () => movePill());
+
+// Scrolling down folds the bottom bar's icons away and slides the top bar off; any scroll up (or the top of the
+// page, or a new page) brings both back. One passive listener, read once per frame.
+let lastScrollY = 0, scrollQueued = false;
+function setCompact(on) {
+  const bar = document.getElementById("tabs");
+  document.querySelector(".top")?.classList.toggle("tucked", on);
+  if (bar && bar.classList.contains("compact") !== on) { bar.classList.toggle("compact", on); requestAnimationFrame(movePill); }
+}
+window.addEventListener("scroll", () => {
+  if (scrollQueued) return;
+  scrollQueued = true;
+  requestAnimationFrame(() => {
+    scrollQueued = false;
+    const y = window.scrollY, dy = y - lastScrollY;
+    if (y < 40) setCompact(false);
+    else if (dy > 6) setCompact(true);
+    else if (dy < -2) setCompact(false);
+    lastScrollY = y;
+  });
+}, { passive: true });
 
 // ---- views ------------------------------------------------------------------
 async function homeView() {
@@ -187,11 +254,16 @@ async function homeView() {
     view.innerHTML = `<div class="empty">No series switched on. <a href="#/settings">Pick some in Settings</a>.</div>`;
     return;
   }
-  const [sessions] = await Promise.all([api(`/api/sessions?series=${ids.join(",")}`), loadFollowStatus()]);
+  // Follow status is loaded at startup and when follows change; here it refreshes behind the scenes.
+  if (!QUIET_ROUTE) {
+    const before = JSON.stringify(FOLLOW_STATUS);
+    loadFollowStatus().then(now => { if (JSON.stringify(now) !== before && (location.hash || "#/") === "#/") route(true); });
+  }
+  const [sessions, allFeeds] = await Promise.all([fast(`/api/sessions?series=${ids.join(",")}`), fast("/api/live").catch(() => [])]);
   const followed = followedSeries();
   const live = sessions.filter(isLive);
   let html = "";
-  const feeds = (await api("/api/live").catch(() => [])).filter(f => ids.includes(f.series));
+  const feeds = allFeeds.filter(f => ids.includes(f.series));
   if (feeds.length) {
     html += `<h2>Live timing</h2><div class="card">${feeds.map(f => `<a class="item live-card" href="#/live/${f.series}">
       <div>${chip(f.series)} <b>${esc(f.event)}</b> · ${esc(f.session)}
@@ -362,7 +434,7 @@ function statusText(st) {
 // One race weekend: schedule with where to watch and weather, your drivers, entry list, results, news.
 async function eventView(id, key) {
   setNav("series");
-  const e = await api(`/api/event/${id}/${encodeURIComponent(key)}`);
+  const e = await fast(`/api/event/${id}/${encodeURIComponent(key)}`);
   const s = BY_ID[id];
   const today = localDay({ start_utc: new Date().toISOString() });
   const past = (e.end_day || e.start_day) < today;
@@ -424,7 +496,7 @@ async function seriesView(id, tab = "schedule") {
   const s = BY_ID[id];
   if (!s) { view.innerHTML = `<div class="empty">Unknown series.</div>`; return; }
   if (!s.has_standings) tab = "schedule";
-  const st = s.has_standings ? await api(`/api/series/${id}/standings`) : {};
+  const st = s.has_standings ? await fast(`/api/series/${id}/standings`) : {};
   const shown = SERIES_TABS.filter(([t]) => t !== "teams" || st.teams?.length);
   const liveNow = (await api("/api/live").catch(() => [])).some(f => f.series === id);
   const tabs = s.has_standings || liveNow ? `<div class="tabs" role="tablist">${liveNow ? `<a role="tab" href="#/live/${id}" class="live-tab">● Live</a>` : ""}${(s.has_standings ? shown : SERIES_TABS.slice(0, 1)).map(([t, label]) =>
@@ -433,7 +505,7 @@ async function seriesView(id, tab = "schedule") {
     s.timing && `<a class="btn" href="${esc(s.timing)}" target="_blank" rel="noopener">Official timing ↗</a>`].filter(Boolean).join("");
   const head = `${backLink("#/series")}<h1>${chip(id)} ${esc(s.name)}</h1>${links ? `<div class="series-links">${links}</div>` : ""}${tabs}`;
   if (tab === "schedule") {
-    const [events, storyKeys] = await Promise.all([api(`/api/series/${id}/events`), api(`/api/stories/${id}`).catch(() => [])]);
+    const [events, storyKeys] = await Promise.all([fast(`/api/series/${id}/events`), fast(`/api/stories/${id}`).catch(() => [])]);
     const hasStory = new Set(storyKeys);
     const today = localDay({ start_utc: new Date().toISOString() });
     const followed = followedSeries();
@@ -496,7 +568,7 @@ async function standingsView(id, tab) {
   if (!list.length) { view.innerHTML = `<h1>Standings</h1><div class="empty">No standings yet.</div>`; return; }
   if (!BY_ID[id]?.has_standings) id = list.some(x => x.id === store.get("standingsSeries")) ? store.get("standingsSeries") : list[0].id;
   store.set("standingsSeries", id);
-  const st = await api(`/api/series/${id}/standings`);
+  const st = await fast(`/api/series/${id}/standings`);
   const tabs = STANDINGS_TABS.filter(([t]) => t !== "teams" || st.teams?.length);
   if (!tabs.some(([t]) => t === tab)) tab = "drivers";
   view.innerHTML = `<h1>Standings</h1>
@@ -513,7 +585,7 @@ const seriesClass = {};  // picked support championship per series (e.g. WRC2), 
 
 async function settingsView() {
   setNav("settings");
-  const entries = await api("/api/entries").catch(() => []);
+  const entries = await fast("/api/entries").catch(() => []);
   const ids = enabledSeries();
   const kinds = store.get("kinds", KINDS.map(k => k[0]));
   const allKinds = kinds.length === KINDS.length;
@@ -546,10 +618,17 @@ async function settingsView() {
     <h2>Following</h2>
     <div class="card" id="following"></div>
 
+    <h2>Display</h2>
+    <div class="card"><label class="item"><span>Animations between pages<span class="small muted" style="display:block">Quick slides between tabs and pages. Off for instant switching; also off when your phone's Reduce Motion is on.</span></span>
+      <input type="checkbox" id="animations" ${SETTINGS?.animations !== false ? "checked" : ""}></label></div>
+
+    ${ME.admin ? `<a class="card whatsnew-link" href="#/admin" style="margin-top:22px"><b>Admin</b><span class="muted small">People, invites, sources →</span></a>` : ""}
+
     <h2>Data sources</h2>
     <div class="card">${SERIES.map(s => `<div class="item"><div>${chip(s.id)} ${esc(s.name)}</div><div class="small muted" style="text-align:right">${statusText(s.status)}</div></div>`).join("")}</div>
     <p class="small muted">Where-to-watch info is for the US, ${esc(CONFIG.watch_season)} season.</p>`;
 
+  view.querySelector("#animations").addEventListener("change", e => store.set("animations", e.target.checked));
   view.querySelectorAll("[data-units]").forEach(b => b.addEventListener("click", () => {
     store.set("units", b.dataset.units); settingsView();
   }));
@@ -742,6 +821,15 @@ function bindRally(id) {
 // ---- the Wire: news + race events ------------------------------------------------------
 let NAMES = null;
 const loadNames = async () => (NAMES ||= await api("/api/names").catch(() => ({ drivers: [], teams: [] })));
+const wirePath = st => {
+  const qs = new URLSearchParams();
+  if (st.kind) qs.set("kind", st.kind);
+  qs.set("series", st.series || enabledSeries().join(","));
+  if (st.driver) qs.set("driver", st.driver);
+  if (st.team) qs.set("team", st.team);
+  if (st.mine) qs.set("mine", "1");
+  return `/api/wire?${qs}`;
+};
 
 const EVENT_LABEL = { caution: "Caution", red_flag: "Red flag", incident: "Incident", investigation: "Investigation",
   penalty: "Penalty", retired: "Out", lead: "Lead", stage: "Stage", result: "Result", start: "Start", restart: "Restart",
@@ -775,13 +863,7 @@ async function wireView() {
   setNav("wire");
   const st = { kind: "", series: "", driver: "", team: "", mine: false, ...local("wire", {}) };
   const save = next => { try { localStorage.setItem("wire", JSON.stringify(next)); } catch { /* fine */ } wireView(); };
-  const qs = new URLSearchParams();
-  if (st.kind) qs.set("kind", st.kind);
-  qs.set("series", st.series || enabledSeries().join(","));
-  if (st.driver) qs.set("driver", st.driver);
-  if (st.team) qs.set("team", st.team);
-  if (st.mine) qs.set("mine", "1");
-  const [items, dir] = await Promise.all([api(`/api/wire?${qs}`), loadNames()]);
+  const [items, dir] = await Promise.all([fast(wirePath(st)), loadNames()]);
   const shown = st.series ? [st.series] : enabledSeries();
   const inScope = x => x.series.some(id => shown.includes(id));
   view.innerHTML = `<h1>Wire</h1>
@@ -811,9 +893,9 @@ async function wireView() {
 // ---- driver and team pages ------------------------------------------------------------------
 async function personView(type, name) {
   setNav("wire");
-  view.innerHTML = `<div class="empty">Loading ${esc(name)}…</div>`;
+  showLoading(`Loading ${esc(name)}…`);
   // Wire items are tagged with the grid's spelling; a follow may be typed differently or be a team.
-  const [p, dir] = await Promise.all([api(`/api/person/${encodeURIComponent(name)}`).catch(() => null), loadNames()]);
+  const [p, dir] = await Promise.all([fast(`/api/person/${encodeURIComponent(name)}`).catch(() => null), loadNames()]);
   const asDriver = p?.rides?.find(r => normalise(r.name) === normalise(name))?.name;
   const tagged = type === "team" || (!asDriver && p?.rides?.length) ? "team" : "driver";
   const items = await api(`/api/wire?${tagged}=${encodeURIComponent(asDriver || (tagged === "team" ? (p?.rides?.[0]?.team || name) : name))}`).catch(() => []);
@@ -974,7 +1056,7 @@ function appView() {
   else if (d === "android") step1 = `<ol class="steps"><li>In Chrome, tap the menu ${DOTS_ICON} at the top right.</li>
       <li>Tap <b>Add to Home screen</b> (or <b>Install app</b>), then <b>Install</b>.</li><li>Open <b>Lights Out</b> from your home screen.</li></ol>`;
   else step1 = `<p class="small">Optional on a computer; alerts work in the browser. In Chrome or Edge, use the install icon at the right of the address bar.</p>`;
-  view.innerHTML = `<h1>Get the app</h1>
+  view.innerHTML = `${backLink("#/settings", "Settings")}<h1>Get the app</h1>
     <p class="muted">On your home screen, Lights Out opens like an app and can alert you about the drivers you follow.</p>
     <h2>1. Add it to your home screen</h2><div class="card"><div class="form">${step1}</div></div>
     <h2>2. Turn on alerts</h2><div class="card" id="notif"><div class="empty">Checking this device…</div></div>
@@ -1015,7 +1097,7 @@ function whatsNewView() {
   setNav("settings");
   const fresh = new Set(unseenChanges().map(c => c.id));
   const days = CHANGES.reduce((m, c) => ((m[c.date] ||= []).push(c), m), {});
-  view.innerHTML = `<h1>What's new</h1><p class="muted">Every update to Lights Out, newest first.</p>
+  view.innerHTML = `${backLink("#/settings", "Settings")}<h1>What's new</h1><p class="muted">Every update to Lights Out, newest first.</p>
     ${Object.entries(days).map(([d, list]) => `<h2>${esc(new Date(d + "T12:00").toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" }))}</h2>
       <div class="card">${list.map(c => `<div class="change${fresh.has(c.id) ? " fresh" : ""}">
         <div class="change-head"><span class="pill ${c.kind === "new" ? "ok" : ""}">${esc(KIND_NAME[c.kind] || c.kind)}</span>
@@ -1031,7 +1113,7 @@ function whatsNewView() {
 let ME = null;
 
 function gateView() {
-  document.getElementById("nav").hidden = true;
+  document.getElementById("tabs").hidden = true;
   const st = ME.status;
   let body;
   if (st === "signed-out") {
@@ -1080,7 +1162,7 @@ async function adminView() {
   const btn = (email, status, label, primary) => `<button class="${primary ? "btn primary" : "btn"}" data-email="${esc(email)}" data-status="${status}">${label}</button>`;
   const pending = people("pending"), approved = people("approved"), other = d.users.filter(u => ["denied", "revoked"].includes(u.status));
   const openInvites = d.invites.filter(i => i.uses.length < i.max_uses);
-  view.innerHTML = `<h1>Admin</h1>
+  view.innerHTML = `${backLink("#/settings", "Settings")}<h1>Admin</h1>
     <h2>Waiting for approval</h2>
     <div class="card">${pending.length ? pending.map(u => row(u, btn(u.email, "approved", "Approve", true) + btn(u.email, "denied", "Deny"))).join("") : `<div class="empty">Nobody waiting.</div>`}</div>
     <h2>Invite a friend</h2>
@@ -1161,7 +1243,7 @@ function reportView(kind = "bug") {
   setNav("");
   const page = reportFrom;
   view.innerHTML = `
-    <h1>Report a problem</h1>
+    ${backLink(reportFrom || "#/")}<h1>Report a problem</h1>
     <div class="tabs" role="group" aria-label="Kind">
       <a href="#/report" data-kind="bug" class="${kind === "bug" ? "active" : ""}">Something's wrong</a>
       <a href="#/report" data-kind="idea" class="${kind === "idea" ? "active" : ""}">I have an idea</a>
@@ -1209,24 +1291,77 @@ function reportView(kind = "bug") {
   showMyReports("myreports");
 }
 
-async function route() {
+// ---- page transitions ------------------------------------------------------------------------
+// "Slapshot": the old page goes at once and the new one flies in from the side already at speed, overshoots and
+// snaps back. Upcoming -> Wire -> Standings -> Series in tab order; deeper pages from the right, back from the left.
+// Plays once the new page's content is on screen; never for quiet redraws or the same page re-shown; off with
+// Settings > Display or the phone's Reduce Motion. Whole-pixel moves only, so text doesn't shift when it stops.
+const NAV_ORDER = { "": 0, wire: 1, standings: 2, series: 3, settings: 4, new: 5, app: 5, report: 5, admin: 5 };
+const DEEP = new Set(["event", "driver", "team", "story", "live"]);
+let QUIET_ROUTE = false, lastHash = null, lastPage = null, pendingShot = 0;
+const motionOn = () => SETTINGS?.animations !== false && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function shotFrom(prev, next, prevHash, nextHash) {
+  if (DEEP.has(next) || (next === "series" && nextHash.split("/").length > 2)) return 1;   // a series' own page is deeper too
+  if (DEEP.has(prev) || (prev === "series" && prevHash.split("/").length > 2)) return -1;
+  return (NAV_ORDER[next] ?? 0) >= (NAV_ORDER[prev] ?? 0) ? 1 : -1;
+}
+new MutationObserver(() => {
+  if (!pendingShot || !view.firstElementChild) return;
+  const d = pendingShot;
+  pendingShot = 0;
+  view.animate([
+    { transform: `translate3d(${56 * d}px, 0, 0)`, opacity: 0, offset: 0 },
+    { transform: `translate3d(${-7 * d}px, 0, 0)`, opacity: 1, offset: 0.55 },
+    { transform: `translate3d(${2 * d}px, 0, 0)`, offset: 0.8 },
+    { transform: "translate3d(0, 0, 0)", opacity: 1, offset: 1 },
+  ], { duration: 280, easing: "cubic-bezier(.12, .8, .3, 1)" });
+}).observe(view, { childList: true });
+
+// After the app opens (and every 90 s while it's visible): load the other tabs in the background, so switching tabs
+// draws straight from the phone's copy.
+async function prefetch() {
+  if (ME?.status !== "approved" || !SERIES.length) return;
+  const ids = enabledSeries();
+  const sid = store.get("standingsSeries") || SERIES.find(x => x.has_standings && ids.includes(x.id))?.id;
+  const paths = [`/api/sessions?series=${ids.join(",")}`, wirePath({ kind: "", series: "", driver: "", team: "", mine: false, ...local("wire", {}) }),
+    ...(sid ? [`/api/series/${sid}/standings`] : []), "/api/entries"];
+  for (const path of paths) {
+    if (document.hidden) return;
+    const hit = GET_CACHE.get(path);
+    if (!hit || Date.now() - hit.at > 60000) await api(path).catch(() => {});
+  }
+  loadNames();
+}
+setInterval(() => { if (!document.hidden) prefetch(); }, 90000);
+
+async function route(quiet = false) {
   const hash = location.hash.replace(/^#/, "") || "/";
+  const page = hash.split("/")[1] || "";
+  QUIET_ROUTE = quiet;
+  if (!quiet) {
+    const changed = lastHash !== null && location.hash !== lastHash;
+    pendingShot = changed && motionOn() && ME?.status === "approved" ? shotFrom(lastPage, page, lastHash || "", location.hash) : 0;
+    lastHash = location.hash; lastPage = page;
+    setCompact(false);
+  }
   try {
     if (!ME) ME = await api("/api/me");
     if (ME.status !== "approved") return gateView();
-    document.getElementById("nav").hidden = false;
-    document.getElementById("admin-tab").hidden = !ME.admin;
-    if (!SETTINGS) {
-      await loadSettings();
-      CHANGES = await api("/api/changes").catch(() => []);
+    document.getElementById("tabs").hidden = false;
+    if (!SETTINGS || !SERIES.length) {
+      // First load: settings, What's new and the series list all at once.
+      const [, changes, both] = await Promise.all([SETTINGS ? null : loadSettings(), api("/api/changes").catch(() => []),
+        SERIES.length ? null : Promise.all([api("/api/series"), api("/api/config")])]);
+      CHANGES = changes;
+      if (both) {
+        [SERIES, CONFIG] = both;
+        BY_ID = Object.fromEntries(SERIES.map(s => [s.id, s]));
+        switchOnNewSeries();
+        await loadFollowStatus();
+        setTimeout(prefetch, 2500);
+      }
     }
     updateNewDot();
-    if (!SERIES.length) {
-      [SERIES, CONFIG] = await Promise.all([api("/api/series"), api("/api/config")]);
-      BY_ID = Object.fromEntries(SERIES.map(s => [s.id, s]));
-      switchOnNewSeries();
-      await loadFollowStatus();
-    }
     const m = hash.match(/^\/series\/([\w-]+)(?:\/(\w+))?$/);
     const lv = hash.match(/^\/live\/([\w-]+)$/);
     const person = hash.match(/^\/(driver|team)\/(.+)$/);
@@ -1251,12 +1386,14 @@ async function route() {
     else await homeView();
   } catch (err) {
     view.innerHTML = `<div class="empty">Couldn't load data. ${esc(err.message)}</div>`;
+  } finally {
+    QUIET_ROUTE = false;
   }
 }
 
 window.addEventListener("hashchange", () => { CAME_FROM_APP = true; window.scrollTo(0, 0); route(); });
 route();
-// Keep live badges and "next up" fresh while the page is open.
-setInterval(() => { if ((location.hash || "#/") === "#/" && document.visibilityState === "visible") homeView(); }, 60000);
+// Keep live badges and "next up" fresh while the page is open (a quiet redraw: no animation).
+setInterval(() => { if ((location.hash || "#/") === "#/" && document.visibilityState === "visible") route(true); }, 60000);
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});

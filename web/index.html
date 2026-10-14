@@ -19,17 +19,16 @@
 <body>
   <header class="top">
     <a class="brand" href="#/"><span class="lights" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>Lights Out</a>
-    <nav id="nav">
-      <a href="#/" data-nav="home">Upcoming</a>
-      <a href="#/wire" data-nav="wire">Wire</a>
-      <a href="#/standings" data-nav="standings">Standings</a>
-      <a href="#/series" data-nav="series">Series</a>
-      <a href="#/settings" data-nav="settings" aria-label="Settings"><span class="nav-text">Settings</span><svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.4-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.7a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.4 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.7h4l.4-2.7a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></a>
-      <a href="#/admin" data-nav="admin" id="admin-tab" hidden>Admin</a>
-    </nav>
+    <a class="top-link" href="#/settings" data-nav="settings" aria-label="Settings"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="top-label">Settings</span></a>
   </header>
   <main id="view" aria-live="polite"></main>
   <footer class="foot" id="foot" hidden><a href="#/report">Something wrong? Report it</a></footer>
+  <nav class="tabbar" id="tabs" hidden>
+    <a href="#/" data-nav="home"><svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4M5 4.5h11l-2 3.5 2 3.5H5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Upcoming</span></a>
+    <a href="#/wire" data-nav="wire"><svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4.5" width="16" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 9h9M7.5 12.5h9M7.5 16h5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Wire</span></a>
+    <a href="#/standings" data-nav="standings"><svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5h10v4a5 5 0 0 1-10 0v-4zM7 6.5H4.5a2.5 2.5 0 0 0 2.6 3M17 6.5h2.5a2.5 2.5 0 0 1-2.6 3M12 13.5v3M8.5 19.5h7M10 16.5h4v3h-4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Standings</span></a>
+    <a href="#/series" data-nav="series"><svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="13" y="4" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="13" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="13" y="13" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Series</span></a>
+  </nav>
   <script type="module" src="app.js"></script>
 </body>
 </html>

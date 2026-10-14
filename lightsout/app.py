@@ -2,16 +2,19 @@
 from __future__ import annotations
 
 import asyncio
+import gzip
 import hashlib
 import logging
 import os
 import secrets
+import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from . import access, bugs, adapters, alerts, changes, follow, ics, news, refresh, tickets, watch, weather
@@ -223,6 +226,28 @@ REREQUEST_AFTER = timedelta(days=7)    # a denied or revoked person may ask agai
 RENOTIFY_AFTER = timedelta(hours=12)   # pressing Request twice doesn't ping the phone twice
 
 
+# Finished answers for the heavy GETs that are the same for everyone (the Wire: per person, it reads their follows).
+# Built and compressed once, reused for READY_TTL; live timing is never kept.
+READY_TTL = 30.0
+READY_PATHS = ("/api/series", "/api/sessions", "/api/names", "/api/entries", "/api/event/", "/api/stories/",
+               "/api/person/", "/api/wire", "/api/changes")  # not /api/live, /api/events/, /api/story/: those move during races
+_ready: dict[tuple, tuple] = {}
+
+
+def _ready_key(request: Request) -> tuple | None:
+    path = request.url.path
+    if request.method != "GET" or not path.startswith(READY_PATHS):
+        return None
+    return path, request.url.query, request.state.email if path == "/api/wire" else ""
+
+
+def _ready_response(hit: tuple, request: Request) -> Response:
+    _, raw, gz = hit
+    if gz and "gzip" in request.headers.get("accept-encoding", ""):
+        return Response(gz, media_type="application/json", headers={"Content-Encoding": "gzip", "Vary": "Accept-Encoding"})
+    return Response(raw, media_type="application/json")
+
+
 @app.middleware("http")
 async def gate(request: Request, call_next):
     path = request.url.path
@@ -240,11 +265,28 @@ async def gate(request: Request, call_next):
             return JSONResponse({"error": "not approved"}, status_code=403)
         if path.startswith("/api/admin") and not access.is_admin(email):
             return JSONResponse({"error": "admin only"}, status_code=403)
+    key = _ready_key(request)
+    if key and (hit := _ready.get(key)) and time.monotonic() - hit[0] < READY_TTL:
+        return _ready_response(hit, request)
+    started = time.perf_counter()
     response = await call_next(request)
+    if path.startswith("/api/") and (took := time.perf_counter() - started) > 0.5:
+        logging.getLogger("lightsout.app").warning("slow request: %s %s %.0f ms", request.method, path, took * 1000)
+    if key and response.status_code == 200:
+        raw = b"".join([chunk async for chunk in response.body_iterator])
+        if len(_ready) > 300:
+            _ready.clear()
+        _ready[key] = hit = (time.monotonic(), raw, gzip.compress(raw, 6) if len(raw) > 1500 else None)
+        return _ready_response(hit, request)
     if not path.startswith(("/api/", "/cal/")):
         # Without this, Cloudflare caches .js/.css for hours and new versions don't show up.
         response.headers.setdefault("Cache-Control", "no-cache")
     return response
+
+
+# Added after gate() so it wraps it: compresses what gate() hands back, and leaves the already-gzipped cached
+# answers alone (they carry Content-Encoding).
+app.add_middleware(GZipMiddleware, minimum_size=1500)  # JSON shrinks ~5x on the way out
 
 
 def _parse(value: str) -> datetime:
@@ -410,6 +452,8 @@ async def save_settings(request: Request):
         clean["dismissed"] = [str(x)[:200] for x in (body["dismissed"] or [])][-500:]
     if "notify" in body:
         clean["notify"] = {k: bool((body["notify"] or {}).get(k, True)) for k in alerts.KINDS}
+    if "animations" in body:
+        clean["animations"] = body["animations"] is not False  # page transitions (Settings > Display)
     store.save_settings(request.state.email, clean)
     return clean
 
