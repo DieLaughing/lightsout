@@ -20,6 +20,8 @@ indycar:
   - {badge: TV, label: FS1 / FS2, url: "https://www.foxsports.com/motor/indycar", note: "Cable, or stream on FOX One"}
 wec:
   - {badge: PAID, label: HBO Max, url: "https://www.hbomax.com", note: "Every session; Le Mans, São Paulo and Austin also on truTV"}
+imsa:
+  - {badge: PAID, label: Peacock, url: "https://www.peacocktv.com", note: "Every race flag to flag, plus qualifying; select races also on NBC"}
 gtwce:
   - {badge: FREE, label: GT World YouTube, url: "https://www.youtube.com/@GTWorld", note: "Every session streams free, in several languages"}
 igtc:
@@ -46,6 +48,10 @@ moto2:
   - {badge: TV, label: FOX networks, url: "https://www.foxsports.com/motor/motogp", note: "Selected races; check FOX listings"}
 moto3:
   - {badge: TV, label: FOX networks, url: "https://www.foxsports.com/motor/motogp", note: "Selected races; check FOX listings"}
+wsbk:
+  - {badge: PAID, label: WorldSBK VideoPass, url: "https://www.worldsbk.com/en/videopass", note: "Every session; MAVTV has carried races in past seasons"}
+fd:
+  - {badge: FREE, label: RACER+ / formulad.com, url: "https://www.formulad.com/live", note: "Qualifying and the Top 16 stream free; RACER Network on cable"}
 wrc:
   - {badge: PAID, label: Rally.TV (DAZN), url: "https://www.dazn.com/RallyTV", note: "Free live timing and maps on wrc.com"}
 ara:

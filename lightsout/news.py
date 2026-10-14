@@ -35,11 +35,14 @@ FEEDS = [
     (MS.format("motogp"), "Motorsport.com", ["motogp"], ["motogp"]),
     (MS.format("moto2"), "Motorsport.com", ["moto2"], ["moto2"]),
     (MS.format("moto3"), "Motorsport.com", ["moto3"], ["moto3"]),
+    (MS.format("imsa"), "Motorsport.com", ["imsa"], ["imsa"]),
+    (MS.format("wsbk"), "Motorsport.com", ["wsbk"], ["wsbk"]),
     (MS.format("dakar"), "Motorsport.com", ["w2rc"], ["w2rc"]),
     # All GT racing (GT4 America, IMSA GTD...): stories join a GT series only when they name someone on its grid.
     (MS.format("gt"), "Motorsport.com", None, None),
     # The series' own posts: no NLS grid to tag from, so names are looked up across every series (Verstappen in F1).
     ("https://www.nuerburgring-langstrecken-serie.de/language/en/feed/", "NLS", ["nls"], None),
+    ("https://news.formulad.com/feed/", "Formula DRIFT", ["fd"], ["fd"]),
     ("https://www.autosport.com/rss/feed/f1", "Autosport", ["f1"], ["f1"]),
     ("https://racer.com/feed/", "RACER", None, None),
     ("https://www.the-race.com/feed/", "The Race", None, None),

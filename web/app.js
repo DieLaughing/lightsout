@@ -386,7 +386,7 @@ async function homeView() {
 // ---- Upcoming filters (remembered per device) ------------------------------------
 const WHEN = [["all", "Any day"], ["today", "Today"], ["weekend", "This weekend"]];
 const SESSION_FILTERS = [["races", "Races"], ["qualifying", "Qualifying"], ["practice", "Practice"]];
-const TYPES = [["single", "Single seaters"], ["sportscar", "Sportscars & GT"], ["stock", "Stock cars"], ["rally", "Rally & off-road"], ["bikes", "Bikes"]];
+const TYPES = [["single", "Single seaters"], ["sportscar", "Sportscars & GT"], ["stock", "Stock cars"], ["rally", "Rally & off-road"], ["bikes", "Bikes"], ["drift", "Drifting"]];
 const RACE_KINDS = new Set(["race", "sprint", "rally_day", "event"]);
 const NO_FILTERS = { when: "all", sessions: [], types: [], free: false, near: false };
 
@@ -780,7 +780,10 @@ async function settingsView() {
   const ids = enabledSeries();
   const kinds = store.get("kinds", KINDS.map(k => k[0]));
   const allKinds = kinds.length === KINDS.length;
-  const https = `${location.origin}/cal/${CONFIG.cal_token}/${ids.join("+")}.ics${allKinds ? "" : `?kinds=${kinds.join(",")}`}`;
+  // Each series' "On Upcoming" level carries over to the calendar ("wec:qualifying,cup:races").
+  const levels = ids.filter(id => showLevel(id) !== "all").map(id => `${id}:${showLevel(id)}`).join(",");
+  const query = [!allKinds && `kinds=${kinds.join(",")}`, levels && `show=${levels}`].filter(Boolean).join("&");
+  const https = `${location.origin}/cal/${CONFIG.cal_token}/${ids.join("+")}.ics${query ? `?${query}` : ""}`;
   const webcal = https.replace(/^https?:/, "webcal:");
 
   view.innerHTML = `<h1>Settings</h1>
@@ -810,7 +813,7 @@ async function settingsView() {
 
     <h2>Calendar feed</h2>
     <div class="card"><div class="form">
-      <div class="small muted">Subscribe once and your calendar app keeps it updated, including reschedules. It covers the ${ids.length} series switched on in <a href="#/series">Series</a>; change those and subscribe again with the new link.</div>
+      <div class="small muted">Subscribe once and your calendar app keeps it updated, including reschedules. It covers the ${ids.length} series switched on in <a href="#/series">Series</a>, each showing what you picked for it there (all sessions, quali + races, or races only); change those and subscribe again with the new link.</div>
       <div class="checks">${KINDS.map(([k, label]) => `<label><input type="checkbox" data-kind="${k}" ${kinds.includes(k) ? "checked" : ""}> ${label}</label>`).join("")}</div>
       <div><a class="btn primary" href="${esc(webcal)}">Subscribe in Calendar</a> <button id="copy">Copy link</button></div>
       <code class="url">${esc(https)}</code>

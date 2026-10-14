@@ -5,6 +5,11 @@
 # A test checks every term is unique and every point is on the planet; add new tracks as series add them.
 
 # ---- North America ---------------------------------------------------------------------------------------
+- {name: Orlando Speed World, lat: 28.5844, lon: -81.0336, town: Orlando, region: FL, cc: us, match: [orlando speed world, speed world]}
+- {name: Stafford Motor Speedway, lat: 41.9775, lon: -72.3025, town: Stafford Springs, region: CT, cc: us, match: [stafford motor speedway, stafford]}
+- {name: Evergreen Speedway, lat: 47.8606, lon: -121.9897, town: Monroe, region: WA, cc: us, match: [evergreen speedway]}
+- {name: Virginia International Raceway, lat: 36.5689, lon: -79.2064, town: Alton, region: VA, cc: us, match: [virginia international raceway, vir]}
+- {name: Canadian Tire Motorsport Park, lat: 44.0517, lon: -78.6756, town: Bowmanville, region: "ON", cc: ca, match: [canadian tire motorsport park, mosport, ctmp]}
 - {name: Sebring International Raceway, lat: 27.4544, lon: -81.3486, town: Sebring, region: FL, cc: us, match: [sebring]}
 - {name: Circuit of the Americas, lat: 30.1328, lon: -97.6411, town: Austin, region: TX, cc: us, match: [circuit of the americas, circuit des ameriques, americas, austin, lone star]}
 - {name: Homestead-Miami Speedway, lat: 25.4517, lon: -80.4086, town: Homestead, region: FL, cc: us, match: [homestead]}
@@ -28,6 +33,7 @@
 - {name: Nashville Superspeedway, lat: 36.0465, lon: -86.4127, town: Lebanon, region: TN, cc: us, match: [nashville]}
 - {name: Michigan International Speedway, lat: 42.0661, lon: -84.2410, town: Brooklyn, region: MI, cc: us, match: [michigan]}
 - {name: Pocono Raceway, lat: 41.0553, lon: -75.5122, town: Long Pond, region: PA, cc: us, match: [pocono]}
+- {name: Lucas Oil Indianapolis Raceway Park, lat: 39.8117, lon: -86.3434, town: Brownsburg, region: IN, cc: us, match: [indianapolis raceway park, lucas oil indianapolis, brownsburg]}
 - {name: Indianapolis Motor Speedway, lat: 39.7950, lon: -86.2347, town: Speedway, region: IN, cc: us, match: [indianapolis, brickyard, indy 500]}
 - {name: Richmond Raceway, lat: 37.5925, lon: -77.4196, town: Richmond, region: VA, cc: us, match: [richmond]}
 - {name: Iowa Speedway, lat: 41.6773, lon: -93.0141, town: Newton, region: IA, cc: us, match: [iowa]}
@@ -48,7 +54,7 @@
 - {name: Mid-Ohio, lat: 40.6886, lon: -82.6363, town: Lexington, region: OH, cc: us, match: [mid-ohio]}
 - {name: WeatherTech Raceway Laguna Seca, lat: 36.5843, lon: -121.7535, town: Monterey, region: CA, cc: us, match: [laguna seca, monterey]}
 - {name: Portland International Raceway, lat: 45.5951, lon: -122.6935, town: Portland, region: OR, cc: us, match: [portland]}
-- {name: Exhibition Place Toronto, lat: 43.6346, lon: -79.4171, town: Toronto, region: ON, cc: ca, match: [toronto]}
+- {name: Exhibition Place Toronto, lat: 43.6346, lon: -79.4171, town: Toronto, region: "ON", cc: ca, match: [toronto]}
 - {name: Milwaukee Mile, lat: 43.0189, lon: -88.0103, town: West Allis, region: WI, cc: us, match: [milwaukee]}
 - {name: Arlington Street Circuit, lat: 32.7480, lon: -97.0830, town: Arlington, region: TX, cc: us, match: [arlington]}
 
@@ -60,6 +66,9 @@
 - {name: Rally del Paraguay (Encarnacion), lat: -27.3306, lon: -55.8667, town: Encarnación, cc: py, match: [paraguay]}
 
 # ---- Europe -----------------------------------------------------------------------------------------------
+- {name: Autodrom Most, lat: 50.5194, lon: 13.6083, town: Most, cc: cz, match: [autodrom most, czech round]}
+- {name: Cremona Circuit, lat: 45.0783, lon: 10.2775, town: San Martino del Lago, cc: it, match: [cremona]}
+- {name: Circuito Estoril, lat: 38.7506, lon: -9.3942, town: Estoril, cc: pt, match: [estoril]}
 - {name: Donington Park, lat: 52.8306, lon: -1.3797, town: Castle Donington, cc: gb, match: [donington]}
 - {name: Oulton Park, lat: 53.1797, lon: -2.6131, town: Little Budworth, cc: gb, match: [oulton park, oulton]}
 - {name: Snetterton, lat: 52.4636, lon: 0.9461, town: Snetterton, cc: gb, match: [snetterton]}
@@ -76,8 +85,8 @@
 - {name: Silverstone, lat: 52.0786, lon: -1.0169, town: Silverstone, cc: gb, match: [silverstone, british grand prix]}
 - {name: Brands Hatch, lat: 51.3569, lon: 0.2631, town: West Kingsdown, cc: gb, match: [brands hatch, london e-prix]}
 - {name: Monza, lat: 45.6156, lon: 9.2811, town: Monza, cc: it, match: [monza, italian grand prix]}
-- {name: Imola, lat: 44.3439, lon: 11.7167, town: Imola, cc: it, match: [imola, emilia romagna]}
 - {name: Misano, lat: 43.9614, lon: 12.6831, town: Misano Adriatico, cc: it, match: [misano]}
+- {name: Imola, lat: 44.3439, lon: 11.7167, town: Imola, cc: it, match: [imola, emilia romagna]}
 - {name: Rallye Monte-Carlo (Gap), lat: 44.5596, lon: 6.0786, town: Gap, cc: fr, match: [rallye monte-carlo]}
 - {name: Monaco, lat: 43.7347, lon: 7.4206, town: Monte Carlo, cc: mc, match: [monaco grand prix, monaco e-prix, monte carlo]}
 - {name: Circuit de Barcelona-Catalunya, lat: 41.5700, lon: 2.2611, town: Montmeló, cc: es, match: [barcelona, catalunya, montmelo]}
