@@ -86,6 +86,12 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
   badge once when every session shares it, else per line). Per-series "Show on Upcoming" = settings.show
   {series: qualifying|races} (absent = all), set on the series page (.show-bar) or the Series list select; applied by
   shows() in homeView. Series pages use the same compact lines (seriesRows).
+- Places (lightsout/places.py): venues.yaml also has town / region (US, Canada, Australia only) / cc, hand-checked;
+  places.label() = "Braselton, GA" or "Spielberg, Austria". /api/sessions, series events and event pages carry `place`
+  {slug, name, label, lat, lon}; weather.place_for is lru_cached. Track page #/track/<slug> (/api/track/<slug>: every
+  series' events there this season + next, sessions in the next 14 days). Near me: settings.home {label, lat, lon}
+  (US ZIP via /api/home -> zippopotam.us, or the device's location; rounded to 0.01°), settings.nearMiles; the Near me
+  filter chip uses the session's place, and /api/tracks lists tracks in range with their next race from ANY series.
 - Upcoming filters (web/app.js filterBar/passes): when / session type / racing type (Series.category) / free to watch,
   kept in localStorage. Series pages show season progress (seasonProgress) and official site/timing (Series.site/.timing).
 
