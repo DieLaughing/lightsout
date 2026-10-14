@@ -158,6 +158,8 @@ def test_settings_keep_only_what_was_sent(app_client):
     c.put("/api/settings", json={"follows": [{"name": "Lia Block"}], "series": ["f1", "nope"]})
     st = c.get("/api/me").json()["settings"]
     assert st == {"follows": [{"name": "Lia Block"}], "series": ["f1"]}  # no empty "kinds" overwriting defaults
+    c.put("/api/settings", json={"show": {"wec": "qualifying", "cup": "races", "nope": "races", "f1": "all", "f2": "x"}})
+    assert c.get("/api/me").json()["settings"]["show"] == {"wec": "qualifying", "cup": "races"}  # all = no entry
 
 
 def test_wire_filters(app_client):
