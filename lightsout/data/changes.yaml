@@ -4,6 +4,12 @@
 # and `.venv/bin/python tools/release.py` publishes the day's GitHub Release.
 
 - date: 2026-10-13
+  kind: new
+  title: GT World Challenge standings and results
+  text: GT World Challenge Europe now has standings and results like the other big series. The Drivers tab shows the overall championship by crew (the two or three drivers who share a car), with chips for the Endurance Cup, the Sprint Cup and the Gold, Silver and Bronze classes; Teams shows the teams' championship; Last race has the full finishing order with car number, team and class.
+  link: "#/standings/gtwce/drivers"
+
+- date: 2026-10-13
   kind: improved
   title: A new menu and faster tabs
   text: The menu has moved to the bottom of the screen with icons (Upcoming, Wire, Standings, Series), Settings is a gear button at the top, and both tuck away while you scroll down so the schedule gets the whole screen, then come back as soon as you scroll up. Switching tabs is much quicker too, because the app now keeps the other tabs ready in the background. Pages you reach from elsewhere have a Back button at the top.

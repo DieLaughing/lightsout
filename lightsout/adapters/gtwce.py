@@ -8,6 +8,11 @@ Pages:
   /calendar                     one card per round: dates, track, country, "Round N", Endurance or Sprint Cup
   /event/<id>/<slug>            timetable: a table per day, session / local time / GMT
   /entry-list/<year>/<slug>     car #, team, drivers 1-3, car, class
+  /standings?filter_standing_type=<cup>_<class>_<drivers|teams>   cup 0 overall, 42 Endurance, 43 Sprint;
+                                class 0 overall, 81 Gold, 82 Silver, 80 Bronze. Each driver of a crew has a row.
+  /results                      the season's rounds, oldest first; /results/<year>/<round>/<session> = a classification
+                                (Pos, Car #, Class, Drivers, Team, Car, Time, Laps, Gap). Races: race-1/race-2 (Sprint),
+                                main-race (Endurance, Spa's final classification)
 """
 from __future__ import annotations
 
@@ -15,7 +20,7 @@ import html
 import re
 from datetime import date, datetime, timedelta, timezone
 
-from ..models import RACE, AdapterResult, Entry, Event, Session, kind_from_name
+from ..models import RACE, AdapterResult, Entry, Event, ResultRow, Session, StandingRow, Standings, kind_from_name
 from .base import get_text, slugify, tidy_caps
 
 BASE = "https://www.gt-world-challenge-europe.com"
@@ -171,3 +176,147 @@ async def fetch(series_id: str, seasons: list[int]) -> AdapterResult:
                             venue=rd["name"], start_day=rd["start"], end_day=rd["end"],
                             url=BASE + rd["path"], sessions=sessions, entrants=entrants))
     return AdapterResult(events, sorted({e.season for e in events}), entries)
+
+
+# ---- standings and results ----------------------------------------------------------------------
+# (filter value, label) for the class picker on the Drivers tab; the overall championship is the main table.
+CLASS_TABLES = [("42_0_drivers", "Endurance Cup"), ("43_0_drivers", "Sprint Cup"), ("0_81_drivers", "Gold Cup"),
+                ("0_82_drivers", "Silver Cup"), ("0_80_drivers", "Bronze Cup")]
+RACE_SESSION = re.compile(r"^(race-\d+|race|main-race)$")
+
+
+def _num(text: str) -> float:
+    try:
+        return float(text)
+    except ValueError:
+        return 0.0
+
+
+def parse_standings(page: str, people: bool = True) -> list[tuple[int, str, float]]:
+    """(position, name, points) per row of the standings table; header rows are skipped. Driver names get the
+    'Max VERSTAPPEN' tidy-up; team names (people=False) are kept as written ('Team WRT')."""
+    table = re.search(r"<table[^>]*standing.*?</table>", page, re.S)
+    out = []
+    for row in re.findall(r"<tr[^>]*>(.*?)</tr>", table.group(0) if table else "", re.S):
+        cells = re.findall(r"<td[^>]*>(.*?)</td>", row, re.S)
+        if len(cells) < 3 or not _text(cells[0]).isdigit():
+            continue
+        out.append((int(_text(cells[0])), _person(cells[1]) if people else _text(cells[1]), _num(_text(cells[2]))))
+    return out
+
+
+def crews(rows: list[tuple[int, str, float]], known: dict[str, tuple[str, str]] | None = None) -> list[StandingRow]:
+    """Drivers who share a car share a position and points: one row per crew, 'A / B'. `known` maps a lower-case
+    name to (name as the results write it, team): standings write 'VAN DER LINDE', results 'van der Linde'."""
+    out: list[StandingRow] = []
+    for pos, name, pts in rows:
+        proper, team = (known or {}).get(name.lower(), (name, ""))
+        if out and out[-1].pos == pos and out[-1].points == pts:
+            out[-1].name += f" / {proper}"
+            out[-1].team = out[-1].team or team
+            continue
+        out.append(StandingRow(pos, proper, team, pts))
+    return out
+
+
+def parse_results_index(page: str, year: int) -> list[str]:
+    """The season's round pages in the order the site lists them (oldest first), test days left out."""
+    seen, out = set(), []
+    for path in re.findall(rf'href="(/results/{year}/[^"/#]+)"', page):
+        path = html.unescape(path)
+        if path not in seen and "test" not in path:
+            seen.add(path)
+            out.append(path)
+    return out
+
+
+def race_sessions(page: str, round_path: str) -> list[str]:
+    """A round's race classifications (not practice, qualifying or the Spa hourly snapshots), in race order."""
+    found = []
+    for slug in re.findall(rf'href="{re.escape(round_path)}/([^"/#]+)"', page):
+        if RACE_SESSION.match(slug) and slug not in found:
+            found.append(slug)
+    return sorted(found, key=lambda x: (x != "main-race", x))
+
+
+def round_name(page: str) -> str:
+    """The round's name as the site's round picker shows it ('Barcelona', 'CrowdStrike 24 Hours of Spa')."""
+    picker = re.search(r'<select[^>]*name="filter_meeting_id".*?</select>', page, re.S)
+    chosen = re.search(r"<option[^>]*selected[^>]*>(.*?)</option>", picker.group(0) if picker else "", re.S)
+    return _text(chosen.group(1)) if chosen else ""
+
+
+def parse_classification(page: str) -> list[dict]:
+    table = re.search(r'<table[^>]*class="table session".*?</table>', page, re.S)
+    out = []
+    for row in re.findall(r"<tr[^>]*>(.*?)</tr>", table.group(0) if table else "", re.S):
+        c = [_text(x) for x in re.findall(r"<td[^>]*>(.*?)</td>", row, re.S)]
+        if len(c) < 9:
+            continue
+        out.append({"pos": c[0], "car": c[1], "class": c[2], "drivers": [_person(d) for d in c[3].split(",") if d.strip()],
+                    "team": c[4], "model": c[5], "time": c[6], "laps": c[7], "gap": c[8]})
+    return out
+
+
+def result_rows(cls: list[dict]) -> list[ResultRow]:
+    rows = []
+    for i, r in enumerate(cls):
+        if not r["pos"].isdigit():
+            when = r["pos"]                                     # NC, DNF, DSQ: say so, not a meaningless gap
+        elif i == 0:
+            when = f"{r['laps']} laps" if r["laps"] else ""
+        elif r["gap"]:
+            when = r["gap"] if not re.match(r"^[\d:.]+$", r["gap"]) else f"+{r['gap']}"
+        else:
+            when = r["pos"] if not r["pos"].isdigit() else ""
+        team = " · ".join(x for x in (f"#{r['car']} {r['team']}".strip(), r["class"]) if x and x != "#")
+        rows.append(ResultRow(r["pos"], " / ".join(r["drivers"]), team, when))
+    return rows
+
+
+async def standings(series_id: str) -> Standings | None:
+    year = datetime.now().year
+    index = await get_text(f"{BASE}/results")
+    rounds = parse_results_index(index, year) or parse_results_index(index, year - 1)
+    if not rounds:
+        return None
+    season = int(rounds[0].split("/")[2])
+    # The latest round with a race classification gives "Last race". Teams for the standings come from the latest
+    # Sprint and the latest Endurance race (crews differ between the two Cups).
+    last_name, last_session, last_rows = "", "", []
+    known: dict[str, tuple[str, str]] = {}   # lower-case driver name -> (name as written, team)
+    seen_kinds: set[str] = set()
+    for path in reversed(rounds):
+        page = await get_text(BASE + path)
+        races = race_sessions(page, path)
+        if not races:
+            continue
+        kind = "endurance" if races[-1] == "main-race" else "sprint"
+        if kind in seen_kinds:
+            continue
+        cls = parse_classification(await get_text(f"{BASE}{path}/{races[-1]}"))
+        if not cls:
+            continue
+        seen_kinds.add(kind)
+        for r in cls:
+            for d in r["drivers"]:
+                known.setdefault(d.lower(), (d, r["team"]))
+        if not last_rows:
+            last_name = round_name(page) or path.rsplit("/", 1)[-1]
+            last_session = "Race" if races[-1] == "main-race" else races[-1].replace("-", " ").capitalize()
+            last_rows = result_rows(cls)
+        if len(seen_kinds) == 2:
+            break
+    drivers = crews(parse_standings(await get_text(f"{BASE}/standings?filter_standing_type=0_0_drivers")), known)
+    teams = [StandingRow(p, n, "", pts) for p, n, pts in
+             parse_standings(await get_text(f"{BASE}/standings?filter_standing_type=0_0_teams"), people=False)]
+    st = Standings(drivers=drivers, teams=teams, season_label=str(season), last_event=last_name,
+                   last_session=last_session, last_results=last_rows)
+    for flt, label in CLASS_TABLES:
+        try:
+            rows = crews(parse_standings(await get_text(f"{BASE}/standings?filter_standing_type={flt}")), known)
+        except Exception:
+            continue  # one missing table never costs the rest
+        if rows:
+            st.classes[label] = rows
+    return st
