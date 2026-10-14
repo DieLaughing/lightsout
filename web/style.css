@@ -285,11 +285,8 @@ input:disabled { opacity: .6; }
   .top nav a .nav-icon { display: inline-block; }
 }
 
-/* Upcoming filters */
+/* Wire filters (driver / team) */
 .filters { margin: 8px 0 4px; }
-.filters .chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 0 6px; }
-.filters .chips::-webkit-scrollbar { display: none; }
-.filters .chip-btn { flex: none; white-space: nowrap; }
 .filter-count { margin: 4px 0 0; }
 
 /* series page: official links and season progress */

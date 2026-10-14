@@ -234,8 +234,7 @@ function eventCard(g, followed) {
   const sameWatch = g.every(s => JSON.stringify(s.watch || null) === JSON.stringify(s0.watch || null));
   const name = s0.event_key && s0.series
     ? `<a class="ev-link" href="#/event/${s0.series}/${encodeURIComponent(s0.event_key)}">${esc(s0.event_name)}</a>` : esc(s0.event_name);
-  const venue = s0.venue && !norm(s0.event_name).includes(norm(s0.venue)) ? s0.venue : "";
-  const place = s0.place ? placeLine(s0.venue, s0.event_name, s0.place) : esc([venue, s0.country].filter(Boolean).join(", "));
+  const place = placeLine(s0.venue && !norm(s0.event_name).includes(norm(s0.venue)) ? s0.venue : "", s0.event_name, s0.place, s0.country);
   const tix = g.find(s => s.tickets && !isLive(s))?.tickets;
   return `<div class="card evc${followed.has(s0.series) ? " followed" : ""}">
     <div class="evc-head"><div class="evc-title"><div class="ev">${chip(s0.series)} ${name}</div>
@@ -605,8 +604,9 @@ async function eventView(id, key) {
     ${yours.length ? `<h2>Your drivers</h2><div class="card standings">${yours.map(driverRow).join("")}</div>` : ""}
     ${e.results?.rows?.length ? `<h2>Results</h2>${standingsBody(id, "last", { last_results: e.results.rows, last_event: e.name, last_session: e.results.session })}` : ""}
     <h2>Schedule</h2>
-    <div class="card">${e.sessions.map(x => sessionRow({ ...x, series: id, event_key: null, event_name: dayLabel(localDay(x)) }, new Set())).join("")
-      || `<div class="empty">No sessions published yet.</div>`}</div>
+    <div class="card">${e.sessions.length ? `${commonWatch(e.sessions) && e.sessions[0].watch
+      ? `<div class="evc-head"><span class="muted small">Where to watch</span>${badge(e.sessions[0].watch)}</div>` : ""}${seriesRows(e.sessions)}`
+      : `<div class="empty">No sessions published yet.</div>`}</div>
     ${e.news.length ? `<h2>News</h2><div class="card">${e.news.map(n => `<a class="item news-item" href="${esc(n.url)}" target="_blank" rel="noopener">
       <div><b>${esc(n.title)}</b><div class="muted small">${esc(n.source || "")} · ${esc(ago(n.time))}</div></div></a>`).join("")}</div>` : ""}
     ${e.drivers.length ? `<h2>${e.entry_list ? "Entry list" : "On the grid"} (${e.drivers.length})</h2>
@@ -621,7 +621,7 @@ async function trackView(slug) {
   const today = localDay({ start_utc: new Date().toISOString() });
   const ahead = t.events.filter(e => (e.end_day || e.start_day) >= today), done = t.events.filter(e => (e.end_day || e.start_day) < today);
   const dates = e => `${shortDate(e.start_day)}${e.end_day && e.end_day !== e.start_day ? ` – ${shortDate(e.end_day)}` : ""}`;
-  const row = e => `<a class="item" href="#/event/${e.series}/${encodeURIComponent(e.key)}"><div>${chip(e.series)} <b>${esc(e.name)}</b>
+  const row = e => `<a class="item" href="#/event/${e.series}/${encodeURIComponent(e.key)}"><div>${chip(e.series)} <b>${esc(e.name)}</b>${e.tickets ? ` <span class="tag tix">Tickets</span>` : ""}
     <div class="muted small">${esc(BY_ID[e.series]?.name || e.series)}</div></div><div class="small muted" style="text-align:right">${esc(dates(e))}</div></a>`;
   const mi = milesTo(t);
   const q = encodeURIComponent(t.name);
@@ -631,7 +631,7 @@ async function trackView(slug) {
     <div class="series-links"><a class="btn" href="https://maps.apple.com/?ll=${t.lat},${t.lon}&q=${q}" target="_blank" rel="noopener">Apple Maps ↗</a>
       <a class="btn" href="https://www.google.com/maps/search/?api=1&query=${t.lat}%2C${t.lon}" target="_blank" rel="noopener">Google Maps ↗</a></div>
     ${t.sessions.length ? `<h2>Next two weeks</h2><div class="evcs">${eventCards(t.sessions, followedSeries())}</div>` : ""}
-    <h2>Coming up here</h2>${ahead.length ? `<div class="card">${ahead.map(e => row(e).replace("</b>", `</b>${e.tickets ? ` <span class="tag tix">Tickets</span>` : ""}`)).join("")}</div>`
+    <h2>Coming up here</h2>${ahead.length ? `<div class="card">${ahead.map(row).join("")}</div>`
       : `<div class="card"><div class="empty">Nothing else scheduled here yet.</div></div>`}
     ${done.length ? `<h2>Earlier this season</h2><div class="card past">${done.map(row).join("")}</div>` : ""}`;
 }

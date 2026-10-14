@@ -269,7 +269,7 @@ def test_places_labels_and_every_track_has_a_town():
 
 
 def test_track_page_and_home_setting(app_client):
-    from datetime import date, datetime, timedelta, timezone
+    from datetime import datetime, timedelta, timezone
     from lightsout.models import AdapterResult, Event, Session
     c, mod = app_client
     soon = datetime.now(timezone.utc) + timedelta(days=3)
