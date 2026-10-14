@@ -82,6 +82,10 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
   session in the next 7 days, refreshed every 6 h (1 h when a session is < 36 h away), cached in /data/weather.json.
   Sessions get {c, rain, code} at the start hour or {hi, lo, rain, code} for untimed days; °C stored, user setting
   `units` (f/c). Unmatched venues are logged ("no weather place for ..."): add them to venues.yaml. W2RC skipped.
+- Upcoming is grouped per day, then one card per race weekend (eventCards/eventCard: series chip, event, place, watch
+  badge once when every session shares it, else per line). Per-series "Show on Upcoming" = settings.show
+  {series: qualifying|races} (absent = all), set on the series page (.show-bar) or the Series list select; applied by
+  shows() in homeView. Series pages use the same compact lines (seriesRows).
 - Upcoming filters (web/app.js filterBar/passes): when / session type / racing type (Series.category) / free to watch,
   kept in localStorage. Series pages show season progress (seasonProgress) and official site/timing (Series.site/.timing).
 

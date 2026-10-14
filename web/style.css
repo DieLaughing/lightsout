@@ -390,3 +390,27 @@ html, body { overflow-x: clip; }
 .board td { padding: 9px 10px; border-top: 1px solid var(--border); }
 .board tr.me td { background: var(--tv-bg); }
 .help + .card, .pick-status + .help { margin-top: 10px; }
+
+/* Upcoming: one card per race weekend per day, sessions as short lines under it */
+.evcs { display: flex; flex-direction: column; gap: 8px; }
+.evc.followed { box-shadow: inset 3px 0 0 var(--accent); }
+.evc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 11px 12px 8px; }
+.evc-title { min-width: 0; }
+.evc-title .ev { font-weight: 700; display: flex; align-items: center; gap: 6px; min-width: 0; }
+.evc-title .ev .ev-link { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.evc-title .small { margin-top: 2px; }
+.evc-row { display: grid; grid-template-columns: 76px 1fr auto; align-items: center; gap: 10px; padding: 7px 12px;
+  border-top: 1px solid var(--border); font-size: 14px; }
+.evc-row .time { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 14px; white-space: nowrap; }
+.evc-row .time.tba { color: var(--muted); font-weight: 500; font-size: 12px; }
+.evc-ses { color: var(--muted); min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; }
+.evc-row.race .evc-ses { color: var(--text); font-weight: 600; }
+.evc-row .wx { margin-left: 0; }
+.series-ctl { display: flex; align-items: center; gap: 8px; flex: none; }
+.show-sel { font-size: 12px; padding: 3px 4px; border-radius: 6px; }
+.show-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; margin: 8px 0 10px; }
+.show-bar .chips { margin: 0; }
+.evc-row .when-cell .small { font-size: 11px; line-height: 1.2; }
+.event-head { position: relative; }
+.evh-badge { position: absolute; top: 12px; right: 12px; }
+.event-head:has(.evh-badge) { padding-right: 120px; }

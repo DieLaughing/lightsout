@@ -5,7 +5,7 @@ import { matchName, normalise, splitNames } from "./match.js?v=2";
 
 const view = document.getElementById("view");
 
-const SYNCED = ["series", "follows", "kinds", "dismissed", "notify", "seenSeries", "seenChanges", "units", "animations", "nickname"];
+const SYNCED = ["series", "follows", "kinds", "dismissed", "notify", "seenSeries", "seenChanges", "units", "animations", "nickname", "show"];
 let SETTINGS = null;      // from /api/me once signed in
 let saveTimer = null;
 
@@ -191,6 +191,54 @@ function sessionRow(s, followed) {
   </div>`;
 }
 
+// Upcoming groups a day's sessions into one card per race weekend: the series, event and watch badge once, then
+// one short line per session. A badge that differs between sessions (F1 practice free, races paid) stays per line.
+function eventCards(rows, followed) {
+  const groups = new Map();
+  for (const s of rows) {
+    const k = `${s.series}|${s.event_key || s.event_name}`;
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(s);
+  }
+  return [...groups.values()].map(g => eventCard(g, followed)).join("");
+}
+
+function eventCard(g, followed) {
+  const s0 = g[0];
+  const sameWatch = g.every(s => JSON.stringify(s.watch || null) === JSON.stringify(s0.watch || null));
+  const name = s0.event_key && s0.series
+    ? `<a class="ev-link" href="#/event/${s0.series}/${encodeURIComponent(s0.event_key)}">${esc(s0.event_name)}</a>` : esc(s0.event_name);
+  const venue = s0.venue && !norm(s0.event_name).includes(norm(s0.venue)) ? s0.venue : "";
+  const place = [venue, s0.country].filter(Boolean).join(", ");
+  const tix = g.find(s => s.tickets && !isLive(s))?.tickets;
+  return `<div class="card evc${followed.has(s0.series) ? " followed" : ""}">
+    <div class="evc-head"><div class="evc-title"><div class="ev">${chip(s0.series)} ${name}</div>
+      ${place || tix ? `<div class="muted small">${esc(place)}${tix ? `${place ? " · " : ""}<a class="tag tix" href="${esc(tix.url)}" target="_blank" rel="noopener" title="${esc(tix.label)}">Tickets ↗</a>` : ""}</div>` : ""}</div>
+      ${sameWatch ? badge(s0.watch) : ""}</div>
+    ${g.map(s => {
+      const extra = s.kind === "event" && s.end_day ? ` · through ${esc(shortDate(s.end_day))}` : "";
+      return `<div class="evc-row${RACE_KINDS.has(s.kind) ? " race" : ""}">${timeCell(s)}
+        <div class="evc-ses">${esc(s.name)}${extra}${isLive(s) ? ' <span class="live">LIVE</span>' : ""}${weatherTag(s.weather)}</div>
+        ${sameWatch ? "" : badge(s.watch)}</div>`;
+    }).join("")}
+  </div>`;
+}
+const norm = t => (t || "").toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, " ").trim();
+
+// Per-series "Show on Upcoming" (Series page / Series list): everything, qualifying & races, or races only.
+const SHOW_LEVELS = [["all", "All sessions"], ["qualifying", "Quali + races"], ["races", "Races only"]];
+const showLevel = id => store.get("show", {})[id] || "all";
+function shows(s) {
+  const level = showLevel(s.series);
+  if (level === "all" || RACE_KINDS.has(s.kind)) return true;
+  return level === "qualifying" && s.kind === "qualifying";
+}
+function setShowLevel(id, level) {
+  const all = { ...store.get("show", {}) };
+  if (level === "all") delete all[id]; else all[id] = level;
+  store.set("show", all);
+}
+
 // "← Back" on pages you reach from somewhere else: goes back if you came from inside the app, else to `fallback`.
 let CAME_FROM_APP = false;
 const backLink = (fallback, label = "Back") => `<a class="back" href="${fallback}" data-back><svg class="back-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${esc(label)}</span></a>`;
@@ -272,7 +320,7 @@ async function homeView() {
   }
 
   if (live.length) {
-    html += `<h2>Live now</h2><div class="card">${live.map(s => sessionRow(s, followed)).join("")}</div>`;
+    html += `<h2>Live now</h2><div class="evcs">${eventCards(live, followed)}</div>`;
   }
 
   if (follows().length) {
@@ -292,7 +340,7 @@ async function homeView() {
   }
 
   const today = localDay({ start_utc: new Date().toISOString() });
-  const upcoming = sessions.filter(s => !isLive(s) && (s.start_utc ? Date.parse(s.end_utc) > Date.now() : (s.end_day || s.day) >= today));
+  const upcoming = sessions.filter(s => !isLive(s) && shows(s) && (s.start_utc ? Date.parse(s.end_utc) > Date.now() : (s.end_day || s.day) >= today));
   if (upcoming.length) html += filterBar(upcoming);
   html += `<div id="upcoming">${upcomingList(upcoming, followed, today)}</div>`;
   const banner = await getAppBanner().catch(() => "");
@@ -377,7 +425,7 @@ function upcomingList(upcoming, followed, today) {
   if (!upcoming.length) html += `<div class="empty">Nothing scheduled in the next 60 days for your series.</div>`;
   else if (!shown.length) html += `<div class="empty">Nothing matches these filters in the next 60 days.</div>`;
   for (const [d, rows] of [...groups].sort((a, b) => a[0].localeCompare(b[0]))) {
-    html += `<h2>${esc(dayLabel(d))}</h2><div class="card">${rows.map(s => sessionRow(s, followed)).join("")}</div>`;
+    html += `<h2>${esc(dayLabel(d))}</h2><div class="evcs">${eventCards(rows, followed)}</div>`;
   }
   return html;
 }
@@ -416,13 +464,23 @@ async function seriesListView() {
       <div class="item">
         <a href="#/series/${s.id}"><div>${chip(s.id)} <b>${esc(s.name)}</b></div>
         <div class="muted small">${statusText(s.status)}</div></a>
-        <label class="switch" aria-label="Show ${esc(s.name)}"><input type="checkbox" data-series="${s.id}" ${on.has(s.id) ? "checked" : ""}><span></span></label>
+        <div class="series-ctl">${showSelect(s, on.has(s.id))}
+        <label class="switch" aria-label="Show ${esc(s.name)}"><input type="checkbox" data-series="${s.id}" ${on.has(s.id) ? "checked" : ""}><span></span></label></div>
       </div>`).join("")}</div>`;
   view.querySelectorAll("input[data-series]").forEach(input => input.addEventListener("change", () => {
     const set = new Set(enabledSeries());
     input.checked ? set.add(input.dataset.series) : set.delete(input.dataset.series);
     store.set("series", SERIES.map(s => s.id).filter(id => set.has(id)));
+    const sel = view.querySelector(`select[data-show="${input.dataset.series}"]`);
+    if (sel) sel.hidden = !input.checked;
   }));
+  view.querySelectorAll("select[data-show]").forEach(sel => sel.addEventListener("change", () => setShowLevel(sel.dataset.show, sel.value)));
+}
+
+function showSelect(s, on) {
+  const level = showLevel(s.id);
+  return `<select class="show-sel" data-show="${s.id}" aria-label="What ${esc(s.name)} shows on Upcoming"${on ? "" : " hidden"}>${SHOW_LEVELS.map(([v, l]) =>
+    `<option value="${v}"${v === level ? " selected" : ""}>${l}</option>`).join("")}</select>`;
 }
 
 function statusText(st) {
@@ -472,6 +530,17 @@ async function eventView(id, key) {
 }
 
 // "7 of 24 rounds done": the season of the next round (or the last one, once it's over).
+// A series page's sessions: day + time, name, and the watch badge only when it differs within the weekend.
+const commonWatch = ss => ss.length && ss.every(x => JSON.stringify(x.watch || null) === JSON.stringify(ss[0].watch || null));
+function seriesRows(sessions) {
+  const same = commonWatch(sessions);
+  return sessions.map(x => {
+    const d = localDay(x);
+    return `<div class="evc-row${RACE_KINDS.has(x.kind) ? " race" : ""}"><div class="when-cell"><div class="small muted">${esc(dayLabel(d))}</div>${timeCell(x)}</div>
+      <div class="evc-ses">${esc(x.name)}${isLive(x) ? ' <span class="live">LIVE</span>' : ""}${weatherTag(x.weather)}</div>${same ? "" : badge(x.watch)}</div>`;
+  }).join("");
+}
+
 function seasonProgress(events, today) {
   const end = e => e.end_day || e.start_day;
   const season = (events.find(e => end(e) >= today) || events[events.length - 1])?.season;
@@ -503,7 +572,14 @@ async function seriesView(id, tab = "schedule") {
     `<a role="tab" href="#/series/${id}/${t}" class="${t === tab ? "active" : ""}" aria-selected="${t === tab}">${label}</a>`).join("")}</div>` : "";
   const links = [s.site && `<a class="btn" href="${esc(s.site)}" target="_blank" rel="noopener">Official site ↗</a>`,
     s.timing && `<a class="btn" href="${esc(s.timing)}" target="_blank" rel="noopener">Official timing ↗</a>`].filter(Boolean).join("");
-  const head = `${backLink("#/series")}<h1>${chip(id)} ${esc(s.name)}</h1>${links ? `<div class="series-links">${links}</div>` : ""}${tabs}`;
+  const level = showLevel(id);
+  const showBar = enabledSeries().includes(id) ? `<div class="show-bar"><span class="muted small">On Upcoming</span><div class="chips">${SHOW_LEVELS.map(([v, l]) =>
+    `<button class="chip-btn${v === level ? " active" : ""}" data-level="${v}" aria-pressed="${v === level}">${l}</button>`).join("")}</div></div>` : "";
+  const head = `${backLink("#/series")}<h1>${chip(id)} ${esc(s.name)}</h1>${links ? `<div class="series-links">${links}</div>` : ""}${showBar}${tabs}`;
+  const bindShow = () => view.querySelectorAll("[data-level]").forEach(b => b.addEventListener("click", () => {
+    setShowLevel(id, b.dataset.level);
+    view.querySelectorAll("[data-level]").forEach(x => { x.classList.toggle("active", x === b); x.setAttribute("aria-pressed", x === b); });
+  }));
   if (tab === "schedule") {
     const [events, storyKeys] = await Promise.all([fast(`/api/series/${id}/events`), fast(`/api/stories/${id}`).catch(() => [])]);
     const hasStory = new Set(storyKeys);
@@ -514,13 +590,15 @@ async function seriesView(id, tab = "schedule") {
         const past = e.end_day && e.end_day < today;
         return `<div class="card${past ? " past" : ""}">
           <div class="event-head"><div class="ev"><a class="ev-link" href="#/event/${id}/${encodeURIComponent(e.key)}">${esc(e.name)} ›</a>${hasStory.has(e.key) ? ` <a class="tag story" href="#/story/${id}/${encodeURIComponent(e.key)}">Race story →</a>` : ""}${!past && e.tickets ? ` <a class="tag tix" href="${esc(e.tickets.url)}" target="_blank" rel="noopener" title="${esc(e.tickets.label)}">Tickets ↗</a>` : ""}</div>
-          <div class="muted small">${esc([e.venue, e.country].filter(Boolean).join(", "))} · ${esc(shortDate(e.start_day))}${e.end_day && e.end_day !== e.start_day ? ` – ${esc(shortDate(e.end_day))}` : ""}</div></div>
-          ${e.sessions.map(x => sessionRow({ ...x, series: id, event_name: dayLabel(localDay(x)) }, followed)).join("")}
+          <div class="muted small">${esc([e.venue, e.country].filter(Boolean).join(", "))} · ${esc(shortDate(e.start_day))}${e.end_day && e.end_day !== e.start_day ? ` – ${esc(shortDate(e.end_day))}` : ""}</div>${commonWatch(e.sessions) ? `<div class="evh-badge">${badge(e.sessions[0].watch)}</div>` : ""}</div>
+          ${seriesRows(e.sessions)}
         </div>`;
       }).join("") || `<div class="empty">No events yet.</div>`}</div>`;
+    bindShow();
     return;
   }
   view.innerHTML = head + standingsBody(id, tab, st);
+  bindShow();
   wireClassPicker(() => seriesView(id, tab));
 }
 

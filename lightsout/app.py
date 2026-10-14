@@ -455,6 +455,8 @@ async def save_settings(request: Request):
         clean["notify"] = {k: bool((body["notify"] or {}).get(k, True)) for k in alerts.KINDS}
     if "animations" in body:
         clean["animations"] = body["animations"] is not False  # page transitions (Settings > Display)
+    if "show" in body:  # per-series "Show on Upcoming": absent = everything
+        clean["show"] = {k: v for k, v in (body["show"] or {}).items() if k in BY_ID and v in ("qualifying", "races")}
     if "nickname" in body:  # the name friends see on Pick'em; empty = the email's first part
         clean["nickname"] = " ".join("".join(c for c in str(body["nickname"] or "") if c.isprintable()).split())[:24]
     store.save_settings(request.state.email, clean)
