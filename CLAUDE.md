@@ -134,6 +134,20 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
   with end = start, so LENGTH sets 25/45 min), /riders (current_career_step), /results/* for standings + last race
   (no team table in the API). Next season's GPs show as "Race weekend" until timetables are out. Live timing is the
   paid TimingPass, so no timing link. Category `bikes`; only MotoGP on by default.
+- IMSA (`imsa`, lightsout/adapters/imsa.py): imsa.com. Season pages from the season picker on /weathertech/schedule/
+  (URLs irregular); event pages list the weekend in ET (.day-event-header + .event-time/.event-name, support series
+  mixed in): WeatherTech sessions say "WeatherTech Championship", the race is listed under the event's own name and the
+  24 is split at midnight (joined). Standings: POST /wp-admin/admin-ajax.php action=getImsaStandings per class (class
+  ids from dvw6yynr86g3k.cloudfront.net/galaxy/api/classes?series_id=1&season_id=); first class (GTP) = Drivers/Teams,
+  the rest = class picker; crews merged with gtwce.crews. Grid for follows = everyone in the standings. No Last race yet.
+- WorldSBK (`wsbk`, lightsout/adapters/wsbk.py): api.wsbk.pulselive.com (JSON:API; headers x-client FE + Referer).
+  Sessions per round (category SBK), end times empty (LENGTH), "Superpole Race" = sprint. Standings + last race;
+  results payloads lack rider names, so names come from the standings. Support classes not added. Off by default.
+- Formula DRIFT (`fd`, lightsout/adapters/formulad.py): formulad.com pages (its Payload events API is closed: 403).
+  Event pages' RSC strings: dates, "CITY, STATE, USA", Track, and a local-time schedule (zone from the state).
+  Keeps Practice / Qualifying / Top 32 / Top 16 (double-headers get "(Fri)"/"(Sat)"); warm-ups, box office etc. skipped.
+  Standings = the /standings/<year>/pro table. News: news.formulad.com/feed/. Category `drift`. Off by default.
+- Calendar feed: ?show=series:level,... carries each series' "On Upcoming" level (app.shows(), same rule as the web).
 - NLS (`nls`, lightsout/adapters/nls.py): WordPress /wp-json API. This year = page
   calendar-nurburgring-langstrecken-serie-<year> (one race per date; split at dates, "(2x4h)" beats "24h" in a name);
   next year until that page exists = the news post announcing the dates. No timetable or entry lists; drivers are

@@ -259,11 +259,15 @@ def test_places_labels_and_every_track_has_a_town():
     from lightsout import places, weather
     for p in weather.places():
         assert p.get("town") and str(p.get("cc")) in places.COUNTRIES, p["name"]
+        assert isinstance(p.get("region", ""), str), p["name"]  # YAML reads a bare ON / NO as true / false: quote them
     lab = {p["name"]: places.label(p) for p in weather.places()}
     assert lab["Michelin Raceway Road Atlanta"] == "Braselton, GA"
     assert lab["Phillip Island"] == "Phillip Island, VIC"
     assert lab["Red Bull Ring"] == "Spielberg, Austria"
     assert lab["Marina Bay"] == "Singapore"  # town = country: said once
+    assert lab["Canadian Tire Motorsport Park"] == "Bowmanville, ON"
+    assert places.for_event("Misano Circuit Sic 58", "Pirelli Emilia-Romagna Round")["name"] == "Misano"
+    assert places.for_event("Indianapolis Raceway Park", "Indianapolis: Midwest Mayhem")["name"].startswith("Lucas Oil")
     assert places.for_event("Road America", "Road America")["slug"] == "road-america"
     assert 590 < places.miles((33.75, -84.39), (30.13, -97.64)) < 860  # Atlanta to COTA, roughly
 
@@ -289,3 +293,18 @@ def test_track_page_and_home_setting(app_client):
     c.put("/api/settings", json={"home": {"lat": "x"}, "nearMiles": 7})
     st = c.get("/api/me").json()["settings"]
     assert st["home"] is None and st["nearMiles"] == 300
+
+
+def test_calendar_feed_follows_each_series_level(app_client):
+    from datetime import datetime, timedelta, timezone
+    from lightsout.models import AdapterResult, Event, Session
+    c, mod = app_client
+    soon = datetime.now(timezone.utc) + timedelta(days=3)
+    ev = Event(key="x", season=soon.year, name="Test GP", sessions=[
+        Session("p", "Practice 1", "practice", start=soon), Session("q", "Qualifying", "qualifying", start=soon + timedelta(hours=2)),
+        Session("r", "Race", "race", start=soon + timedelta(days=1))]).normalised()
+    mod.store.save("f1", AdapterResult([ev], [soon.year]))
+    url = f"/cal/{mod.CAL_TOKEN}/f1.ics"
+    count = lambda q="": c.get(url + q).text.count("BEGIN:VEVENT")
+    assert count() == 3 and count("?show=f1:qualifying") == 2 and count("?show=f1:races") == 1
+    assert count("?show=bogus") == 3

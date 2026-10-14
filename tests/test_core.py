@@ -368,7 +368,7 @@ def test_nls_next_season_from_announcement():
 def test_every_series_has_a_type_and_official_site():
     from lightsout.series import SERIES
     for s in SERIES:
-        assert s.category in {"single", "sportscar", "stock", "rally", "bikes"}, s.id
+        assert s.category in {"single", "sportscar", "stock", "rally", "bikes", "drift"}, s.id
         assert s.site.startswith("https://"), s.id
         assert not s.timing or s.timing.startswith("https://"), s.id
 
@@ -484,3 +484,46 @@ def test_sro_entry_list_matched_by_words():
     rd = {"path": "/event/115/michelin-raceway-road-atlanta", "name": "Michelin Raceway Road Atlanta"}
     assert gtwce.match_entry_list(rd, 2026, paths) == "/entry-list/2026/road-atlanta"
     assert gtwce.match_entry_list({"path": "/event/9/sonoma-raceway", "name": "Sonoma Raceway"}, 2026, paths) is None
+
+
+def test_imsa_weekend_keeps_weathertech_and_joins_the_24():
+    from lightsout.adapters import imsa
+    page = ('<div class="day-event-header">Saturday, January 24, 2026</div>'
+            "<div class='event-time'>9:05 AM to 9:45 AM ET</div><div class='event-name'>Practice 1 - Mazda MX-5 Cup</div>"
+            "<div class='event-time'>10:05 AM to 11:35 AM ET</div><div class='event-name'>Practice 3 - WeatherTech Championship</div>"
+            "<div class='event-time'>2:10 PM to 3:25 PM ET</div><div class='event-name'>WeatherTech Championship Qualifying</div>"
+            "<div class='event-time'>1:40 PM to 11:59 PM ET</div><div class='event-name'>Rolex 24 At Daytona</div>"
+            '<div class="day-event-header">Sunday, January 25, 2026</div>'
+            "<div class='event-time'>12:00 AM to 1:40 PM ET</div><div class='event-name'>Rolex 24 At Daytona</div>")
+    s = imsa.parse_weekend(page, "Rolex 24 At DAYTONA")
+    assert [x.name for x in s] == ["Practice 3", "Qualifying", "Race"]  # support series left out, the 24 joined
+    race = s[-1]
+    assert race.kind == "race" and race.start.hour == 13 and race.end - race.start == timedelta(hours=24)
+    assert imsa.race_length("12 Hours") == timedelta(hours=12) and imsa.race_length("N/A") is None
+
+
+def test_wsbk_session_kinds_and_results():
+    from lightsout.adapters import wsbk
+    assert [wsbk.kind(n) for n in ("Superpole", "Superpole Race", "Race 2", "Warm Up")] == ["qualifying", "sprint", "race", "practice"]
+    rider = lambda i: {"data": {"id": i}}
+    payload = {"data": [
+        {"attributes": {"position": 2, "laps": 21, "time": 3333058, "status": "Classified"}, "relationships": {"rider": rider("7"), "team": rider("T")}},
+        {"attributes": {"position": 1, "laps": 21, "time": 3328170, "status": "Classified"}, "relationships": {"rider": rider("11"), "team": rider("T")}},
+        {"attributes": {"position": 3, "laps": 7, "time": 1, "status": "Retired"}, "relationships": {"rider": rider("55"), "team": rider("T")}}]}
+    rows = wsbk.parse_results(payload, ({"11": "Nicolo Bulega", "7": "Iker Lecuona"}, {"T": "Ducati"}))
+    assert [(r.pos, r.name, r.time) for r in rows] == [("1", "Nicolo Bulega", "55:28.170"), ("2", "Iker Lecuona", "+4.888"),
+                                                       ("DNF", "Unknown rider", "7 laps")]
+
+
+def test_formula_drift_schedule_from_page_strings():
+    from zoneinfo import ZoneInfo
+    from lightsout.adapters import formulad
+    words = ["Schedule", "Friday, October 23, 2026", "1:00PM - 8:00PM", "BOX OFFICE: HOURS", "11:00AM - 12:30PM", "PRACTICE",
+             "6:15PM - 9:15PM", "LIVESTREAM: ", "https://www.formulad.com/live", " (QUALIFYING)",
+             "Saturday, October 24, 2026", "11:30AM - 1:00PM", "WARM UP", "1:30PM - 4:30PM", "LIVESTREAM: ",
+             "https://www.formulad.com/live", " (MAIN EVENT: TOP 32)", "5:15PM", "TRACK WALK EXPERIENCE",
+             "6:00PM - 9:00PM", "LIVESTREAM: ", "https://www.formulad.com/live", " (OPENING CEREMONY + MAIN EVENT: TOP 16)",
+             "Prohibited Items", "Schedule"]
+    s = formulad.parse_schedule(words, ZoneInfo("America/Los_Angeles"))
+    assert [(x.name, x.kind) for x in s] == [("Practice", "practice"), ("Qualifying", "qualifying"), ("Top 32", "race"), ("Top 16", "race")]
+    assert s[1].start.hour == 18 and s[1].start.utcoffset() == timedelta(hours=-7)

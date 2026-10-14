@@ -10,7 +10,7 @@ class Series:
     format: str      # laps | stages | heats
     color: str       # chip colour in the web app
     adapter: str     # module in lightsout.adapters
-    category: str = "single"  # single | sportscar | stock | rally | bikes: the type filter on Upcoming
+    category: str = "single"  # single | sportscar | stock | rally | bikes | drift: the type filter on Upcoming
     site: str = ""            # official site
     timing: str = ""          # official live timing page, where there is a public one
     default_on: bool = True
@@ -24,6 +24,7 @@ SERIES = [
     Series("fe", "Formula E", "FE", "laps", "#14b8d4", "formulae", category="single", site="https://www.fiaformulae.com/en"),
     Series("indycar", "IndyCar", "INDY", "laps", "#1f4fa3", "indycar", category="single", site="https://www.indycar.com", timing="https://www.indycar.com/leaderboard"),
     Series("wec", "FIA WEC", "WEC", "laps", "#00a19a", "wec", category="sportscar", site="https://www.fiawec.com", timing="https://fiawec.alkamelsystems.com/"),
+    Series("imsa", "IMSA WeatherTech SportsCar Championship", "IMSA", "laps", "#004b87", "imsa", category="sportscar", site="https://www.imsa.com/weathertech/", timing="https://imsa.alkamelcloud.com/"),
     Series("cup", "NASCAR Cup Series", "CUP", "laps", "#f4c000", "nascar", category="stock", site="https://www.nascar.com", timing="https://www.nascar.com/leaderboard"),
     Series("noaps", "NASCAR O'Reilly Auto Parts Series", "NOAPS", "laps", "#2b9348", "nascar", category="stock", site="https://www.nascar.com", timing="https://www.nascar.com/leaderboard"),
     Series("truck", "NASCAR Craftsman Truck Series", "TRUCK", "laps", "#c1121f", "nascar", category="stock", site="https://www.nascar.com", timing="https://www.nascar.com/leaderboard"),
@@ -40,6 +41,8 @@ SERIES = [
     Series("motogp", "MotoGP", "MGP", "laps", "#c8102e", "motogp", category="bikes", site="https://www.motogp.com"),
     Series("moto2", "Moto2", "MOTO2", "laps", "#5b6770", "motogp", category="bikes", site="https://www.motogp.com", default_on=False),
     Series("moto3", "Moto3", "MOTO3", "laps", "#e87722", "motogp", category="bikes", site="https://www.motogp.com", default_on=False),
+    Series("wsbk", "WorldSBK", "WSBK", "laps", "#b71c1c", "wsbk", category="bikes", site="https://www.worldsbk.com", default_on=False),
+    Series("fd", "Formula DRIFT", "FD", "heats", "#a21214", "formulad", category="drift", site="https://www.formulad.com", default_on=False),
     Series("wrc", "WRC", "WRC", "stages", "#ffcc00", "wrc", category="rally", site="https://www.wrc.com", timing="https://www.wrc.com/live-timing"),
     Series("ara", "ARA National", "ARA", "stages", "#b22234", "ara", category="rally", site="https://www.americanrallyassociation.org"),
     Series("erx", "Euro RX", "RX", "heats", "#5ab031", "erx", category="rally", site="https://www.fia-rallycross.com"),

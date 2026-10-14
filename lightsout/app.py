@@ -198,17 +198,26 @@ def health():
     return {"ok": True, "runs": store.runs()}
 
 
+RACE_KINDS = {RACE, SPRINT, RALLY_DAY, EVENT}  # what "Races only" keeps (web/app.js RACE_KINDS)
+
+
+def shows(kind: str, level: str | None) -> bool:
+    """A series' "On Upcoming" level (settings.show): absent = everything, qualifying = qualifying + races."""
+    return not level or kind in RACE_KINDS or (level == "qualifying" and kind == QUALIFYING)
+
+
 @app.get("/cal/{token}/{codes}.ics")
-def calendar(token: str, codes: str, request: Request, kinds: str | None = None):
+def calendar(token: str, codes: str, request: Request, kinds: str | None = None, show: str | None = None):
     if not secrets.compare_digest(token, CAL_TOKEN):
         raise HTTPException(404)
     ids = [c for c in codes.split("+") if c in BY_ID]
     if not ids:
         raise HTTPException(404)
     wanted = set(kinds.split(",")) & DEFAULT_KINDS if kinds else DEFAULT_KINDS
+    levels = dict(x.split(":", 1) for x in (show or "").split(",") if ":" in x)  # "wec:qualifying,cup:races"
     now = datetime.now(timezone.utc)
     rows = [r for r in store.sessions(_iso(now - timedelta(days=30)), _iso(now + timedelta(days=400)), ids)
-            if r["kind"] in wanted]
+            if r["kind"] in wanted and shows(r["kind"], levels.get(r["series"]))]
     base = os.environ.get("LIGHTSOUT_BASE_URL") or str(request.base_url).rstrip("/")
     return Response(ics.build(rows, base), media_type="text/calendar; charset=utf-8",
                     headers={"Cache-Control": "max-age=900"})
