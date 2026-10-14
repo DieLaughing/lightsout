@@ -32,8 +32,11 @@ FEEDS = [
     (MS.format("nascar-cup"), "Motorsport.com", ["cup"], NASCAR),
     (MS.format("nascar-truck"), "Motorsport.com", ["truck"], NASCAR),
     (MS.format("wrc"), "Motorsport.com", ["wrc"], ["wrc"]),
+    (MS.format("motogp"), "Motorsport.com", ["motogp"], ["motogp"]),
+    (MS.format("moto2"), "Motorsport.com", ["moto2"], ["moto2"]),
+    (MS.format("moto3"), "Motorsport.com", ["moto3"], ["moto3"]),
     (MS.format("dakar"), "Motorsport.com", ["w2rc"], ["w2rc"]),
-    # All GT racing (GT4 America, IMSA GTD...): stories join GT World Challenge only when they name someone on its grid.
+    # All GT racing (GT4 America, IMSA GTD...): stories join a GT series only when they name someone on its grid.
     (MS.format("gt"), "Motorsport.com", None, None),
     # The series' own posts: no NLS grid to tag from, so names are looked up across every series (Verstappen in F1).
     ("https://www.nuerburgring-langstrecken-serie.de/language/en/feed/", "NLS", ["nls"], None),

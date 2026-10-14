@@ -22,6 +22,16 @@ wec:
   - {badge: PAID, label: HBO Max, url: "https://www.hbomax.com", note: "Every session; Le Mans, São Paulo and Austin also on truTV"}
 gtwce:
   - {badge: FREE, label: GT World YouTube, url: "https://www.youtube.com/@GTWorld", note: "Every session streams free, in several languages"}
+igtc:
+  - {badge: FREE, label: GT World YouTube, url: "https://www.youtube.com/@GTWorld", note: "Every round streams free"}
+gtwcam:
+  - {badge: FREE, label: GT World YouTube, url: "https://www.youtube.com/@GTWorld", note: "Every session streams free"}
+gtwcasia:
+  - {badge: FREE, label: GT World YouTube, url: "https://www.youtube.com/@GTWorld", note: "Every session streams free"}
+gtwcau:
+  - {badge: FREE, label: GT World YouTube, url: "https://www.youtube.com/@GTWorld", note: "Every session streams free"}
+britgt:
+  - {badge: FREE, label: GT World YouTube, url: "https://www.youtube.com/@GTWorld", note: "UK rounds stream free; Spa has not been live in past seasons"}
 nls:
   - {badge: FREE, label: NLS YouTube, url: "https://www.youtube.com/c/VLNOFFICIAL", note: "Every race streams free on the series' own channel"}
 gtwc:
@@ -30,6 +40,12 @@ frwc:
   - {badge: FREE, label: FIA YouTube, url: "https://www.youtube.com/results?search_query=FIA+Macau+World+Cup+live", note: "Free in 2025; 2026 not yet confirmed"}
 f4wc:
   - {badge: FREE, label: FIA YouTube, url: "https://www.youtube.com/results?search_query=FIA+Macau+World+Cup+live", note: "Free in 2025; 2026 not yet confirmed"}
+motogp:
+  - {badge: TV, label: FS1 / FS2, url: "https://www.foxsports.com/motor/motogp", note: "Cable, or stream on FOX One; Austin on FOX"}
+moto2:
+  - {badge: TV, label: FOX networks, url: "https://www.foxsports.com/motor/motogp", note: "Selected races; check FOX listings"}
+moto3:
+  - {badge: TV, label: FOX networks, url: "https://www.foxsports.com/motor/motogp", note: "Selected races; check FOX listings"}
 wrc:
   - {badge: PAID, label: Rally.TV (DAZN), url: "https://www.dazn.com/RallyTV", note: "Free live timing and maps on wrc.com"}
 ara:

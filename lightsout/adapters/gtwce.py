@@ -36,12 +36,32 @@ def _person(name: str) -> str:
     return " ".join(w if not w.isupper() or len(w) <= 1 else w.capitalize() for w in _text(name).split())
 
 
-def race_length(name: str, cup: str) -> timedelta:
-    if "24 Hours" in name or "24 Hours" in cup:
-        return timedelta(hours=24)
+# Sister SRO championships on the same site template: (site, usual race length). Their standings pages differ from
+# GTWCE's (other tables, other columns), so only GTWCE has standings; the others have calendars, timetables and entry lists.
+SITES = {
+    "gtwce": (BASE, timedelta(hours=1)),
+    "igtc": ("https://www.intercontinentalgtchallenge.com", timedelta(hours=8)),
+    "gtwcam": ("https://www.gt-world-challenge-america.com", timedelta(minutes=90)),
+    "gtwcasia": ("https://www.gt-world-challenge-asia.com", timedelta(hours=1)),
+    "gtwcau": ("https://www.gt-world-challenge-australia.com", timedelta(hours=1)),
+    "britgt": ("https://www.britishgt.com", timedelta(hours=2)),
+}
+HOURS = re.compile(r"\b(\d{1,2}) ?(?:h\b|hours?\b)", re.I)
+
+
+def race_length(name: str, cup: str, usual: timedelta = timedelta(hours=1)) -> timedelta:
+    """From the event's name when it says ('24 Hours of Spa', 'Bathurst 12 Hour', 'Suzuka 1000km', 'Silverstone 500'),
+    else the Cup (GTWCE Endurance 3 h), else the series' usual length."""
+    m = HOURS.search(f"{name} {cup}")
+    if m:
+        return timedelta(hours=int(m.group(1)))
+    if "1000km" in name.replace(" ", "").lower():
+        return timedelta(hours=6)
+    if re.search(r"\b500\b", name):
+        return timedelta(hours=3)
     if "Endurance" in cup:
         return timedelta(hours=3)  # the standard Endurance Cup race; Spa is the 24-hour one
-    return timedelta(hours=1)      # Sprint Cup races
+    return usual
 
 
 # ---- calendar ---------------------------------------------------------------------------------
@@ -57,8 +77,8 @@ def parse_calendar(page: str) -> list[dict]:
         texts = [_text(t) for t in re.findall(r'calendar__race-text">(.*?)</span>', card, re.S)]
         rnd = next((t for t in texts if t.startswith("Round")), "")
         cup = next((t for t in texts if "Cup" in t), "")
-        if not (nums and months and years and name and link and rnd):
-            continue  # official test days have no round number
+        if not (nums and months and years and name and link and re.search(r"Round \d", rnd)):
+            continue  # official test days and the end-of-season gala have no round number
         start = date(int(years[0]), MONTHS[months[0]], int(nums[0]))
         end = date(int(years[-1]), MONTHS[months[-1]], int(nums[-1]))
         country = re.search(r'calendar__race-subheading-text">(.*?)</span>', card, re.S)
@@ -82,7 +102,7 @@ def parse_past(page: str) -> list[dict]:
         dates = next((PAST_DATES.search(x) for x in spans if PAST_DATES.search(x)), None)
         rnd = next((x for x in spans if x.startswith("Round")), "")
         strong = re.search(r"<strong>(.*?)</strong>\s*([^<]*)", body, re.S)
-        if not (dates and rnd and strong):
+        if not (dates and re.search(r"Round \d", rnd) and strong):
             continue  # test days
         d1, m1, d2, m2, year = dates.groups()
         start = datetime.strptime(f"{d1} {(m1 or m2)[:3]} {year}", "%d %b %Y").date()
@@ -99,8 +119,22 @@ def cup_from_event(page: str) -> str:
     return ""
 
 
+OFF_TRACK = re.compile(r"autograph|signing|pit ?walk|track ?walk|fan zone|parade|press conference|gala", re.I)
+
+
+def _clock(text: str) -> tuple[int, int] | None:
+    """'14:05' or (America's site) '02:05 pm' -> (14, 5)."""
+    m = re.match(r"(\d{1,2}):(\d{2})(?:\s*([ap])\.?m\.?)?$", text.strip(), re.I)
+    if not m:
+        return None
+    h, mins, half = int(m.group(1)), int(m.group(2)), (m.group(3) or "").lower()
+    if half:
+        h = h % 12 + (12 if half == "p" else 0)
+    return h, mins
+
+
 # ---- one event: timetable and entry list -----------------------------------------------------------
-def parse_timetable(page: str, year: int, cup: str, event_name: str) -> list[Session]:
+def parse_timetable(page: str, year: int, cup: str, event_name: str, usual: timedelta = timedelta(hours=1)) -> list[Session]:
     sessions = []
     for table in re.findall(r'<table class="timetable__table">(.*?)</table>', page, re.S):
         caption = _text((re.search(r"<caption[^>]*>(.*?)</caption>", table, re.S) or [None, ""])[1])
@@ -110,14 +144,14 @@ def parse_timetable(page: str, year: int, cup: str, event_name: str) -> list[Ses
         day = datetime.strptime(f"{m.group(1)} {m.group(2)[:3]} {year}", "%d %b %Y").date()
         for row in re.findall(r"<tr>(.*?)</tr>", table, re.S):
             cells = [_text(c) for c in re.findall(r"<td[^>]*>(.*?)</td>", row, re.S)]
-            if len(cells) < 3 or not re.match(r"\d{1,2}:\d{2}$", cells[2]):
+            if len(cells) < 3 or not _clock(cells[2]):
                 continue
             name, local, gmt = cells[0], cells[1], cells[2]
-            if "Bronze" in name:
+            if not name or "Bronze" in name or OFF_TRACK.search(name):
                 continue  # a test only for bronze-rated (amateur) drivers: noise on everyone's schedule
             # GMT is UTC; the local time tells us whether GMT fell on the day before or after.
-            lh, lm = map(int, local.split(":")) if re.match(r"\d{1,2}:\d{2}$", local) else (None, None)
-            gh, gm = map(int, gmt.split(":"))
+            lh, lm = _clock(local) or (None, None)
+            gh, gm = _clock(gmt)
             start = datetime(day.year, day.month, day.day, gh, gm, tzinfo=timezone.utc)
             if lh is not None:
                 diff = (lh * 60 + lm) - (gh * 60 + gm)
@@ -126,7 +160,7 @@ def parse_timetable(page: str, year: int, cup: str, event_name: str) -> list[Ses
                 elif diff > 14 * 60:
                     start += timedelta(days=1)
             kind = kind_from_name(name)
-            end = start + race_length(event_name, cup) if kind == RACE else None
+            end = start + race_length(event_name, cup, usual) if kind == RACE else None
             sessions.append(Session(key=slugify(f"{day.isoformat()} {name}"), name=name, kind=kind,
                                     start=start, end=end, day=day))
     return sessions
@@ -145,24 +179,52 @@ def parse_entry_list(page: str) -> list[dict]:
     return out
 
 
+def entry_list_paths(page: str) -> list[str]:
+    """Links on /entry-lists: '/entry-list/<year>/<slug>'. Their slugs don't always match the event's
+    (America's 'indianpolis-8-hour'), so rounds are matched to them by the words they share."""
+    return list(dict.fromkeys(html.unescape(p) for p in re.findall(r'href="(/entry-list/\d{4}/[^"#]+)"', page)))
+
+
+def _words(text: str) -> set[str]:
+    return {w for w in slugify(text).split("-") if len(w) > 2 and not w.isdigit()} - {"circuit", "raceway", "international", "park", "the"}
+
+
+def match_entry_list(rd: dict, season: int, paths: list[str]) -> str | None:
+    slug = rd["path"].rsplit("/", 1)[-1]
+    exact = f"/entry-list/{season}/{slug}"
+    if exact in paths:
+        return exact
+    want = _words(slug) | _words(rd["name"])
+    scored = [(len(want & _words(p.rsplit("/", 1)[-1])), p) for p in paths if p.startswith(f"/entry-list/{season}/")]
+    best = max(scored, default=(0, None))
+    return best[1] if best[0] else None
+
+
 async def fetch(series_id: str, seasons: list[int]) -> AdapterResult:
-    page = await get_text(f"{BASE}/calendar")
+    base, usual = SITES[series_id]
+    page = await get_text(f"{base}/calendar")
     rounds = parse_past(page) + parse_calendar(page)
+    try:
+        lists = entry_list_paths(await get_text(f"{base}/entry-lists"))
+    except Exception:
+        lists = []
     events, entries, seen = [], [], set()
     for rd in rounds:
         season = rd["start"].year
         slug = rd["path"].rsplit("/", 1)[-1]
         sessions, entrants = [], None
         try:
-            event_page = await get_text(BASE + rd["path"])
+            event_page = await get_text(base + rd["path"])
             rd["cup"] = rd["cup"] or cup_from_event(event_page)
-            sessions = parse_timetable(event_page, season, rd["cup"], rd["name"])
+            sessions = parse_timetable(event_page, season, rd["cup"], rd["name"], usual)
         except Exception:
             pass  # the timetable isn't up yet: the round still shows, with its dates
         if not sessions:
-            sessions = [Session(key="weekend", name=f"{rd['cup']} weekend", kind=RACE, day=rd["start"], end_day=rd["end"])]
+            label = f"{rd['cup']} weekend" if rd["cup"] else "Race weekend"
+            sessions = [Session(key="weekend", name=label, kind=RACE, day=rd["start"], end_day=rd["end"])]
+        path = f"/entry-list/{season}/{slug}" if series_id == "gtwce" else match_entry_list(rd, season, lists)
         try:
-            rows = parse_entry_list(await get_text(f"{BASE}/entry-list/{season}/{slug}"))
+            rows = parse_entry_list(await get_text(base + path)) if path else []
             entrants = [d for r in rows for d in r["drivers"]] or None
             for r in rows:
                 for d in r["drivers"]:
@@ -174,7 +236,7 @@ async def fetch(series_id: str, seasons: list[int]) -> AdapterResult:
         name = f"{rd['name']} ({rd['cup'].replace(' Cup', '')})" if rd["cup"] else rd["name"]
         events.append(Event(key=f"{season}-{slugify(rd['name'])}", season=season, name=name, country=rd["country"],
                             venue=rd["name"], start_day=rd["start"], end_day=rd["end"],
-                            url=BASE + rd["path"], sessions=sessions, entrants=entrants))
+                            url=base + rd["path"], sessions=sessions, entrants=entrants))
     return AdapterResult(events, sorted({e.season for e in events}), entries)
 
 
