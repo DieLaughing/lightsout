@@ -5,7 +5,7 @@ import { matchName, normalise, splitNames } from "./match.js?v=2";
 
 const view = document.getElementById("view");
 
-const SYNCED = ["series", "follows", "kinds", "dismissed", "notify", "seenSeries", "seenChanges", "units", "animations"];
+const SYNCED = ["series", "follows", "kinds", "dismissed", "notify", "seenSeries", "seenChanges", "units", "animations", "nickname"];
 let SETTINGS = null;      // from /api/me once signed in
 let saveTimer = null;
 
@@ -624,6 +624,10 @@ async function settingsView() {
     <h2>Following</h2>
     <div class="card" id="following"></div>
 
+    <h2>Pick'em</h2>
+    <div class="card"><label class="item"><span>Name friends see<span class="small muted" style="display:block">On the Pick'em tables. Empty = "${esc(ME.email.split("@")[0])}". Your email is never shown.</span></span>
+      <input type="text" id="nickname" maxlength="24" autocomplete="nickname" placeholder="${esc(ME.email.split("@")[0])}" value="${esc(store.get("nickname", ""))}" style="max-width:11em"></label></div>
+
     <h2>Display</h2>
     <div class="card"><label class="item"><span>Animations between pages<span class="small muted" style="display:block">Quick slides between tabs and pages. Off for instant switching; also off when your phone's Reduce Motion is on.</span></span>
       <input type="checkbox" id="animations" ${SETTINGS?.animations !== false ? "checked" : ""}></label></div>
@@ -635,6 +639,10 @@ async function settingsView() {
     <p class="small muted">Where-to-watch info is for the US, ${esc(CONFIG.watch_season)} season.</p>`;
 
   view.querySelector("#animations").addEventListener("change", e => store.set("animations", e.target.checked));
+  view.querySelector("#nickname").addEventListener("change", e => {
+    store.set("nickname", e.target.value.trim().slice(0, 24));
+    for (const k of GET_CACHE.keys()) if (k.startsWith("/api/pickem")) GET_CACHE.delete(k);
+  });
   view.querySelectorAll("[data-units]").forEach(b => b.addEventListener("click", () => {
     store.set("units", b.dataset.units); settingsView();
   }));
@@ -651,6 +659,122 @@ async function settingsView() {
   showNotifications(view.querySelector("#notif"));
   bindAlertToggles();
   showMyReports("myreports");
+}
+
+// ---- Pick'em ----------------------------------------------------------------------------------
+// Per race: five Duels (pick who finishes ahead; ★ = your lock, 2 points or nothing) and a Podium call (1 point per
+// driver who makes the podium, 2 for the exact spot). Picks close at lights out, when friends' picks appear.
+// One table per series. Server side: lightsout/picks.py.
+const PICK_SERIES = ["f1", "cup", "indycar"];
+const raceWhen = iso => new Date(iso).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+const finishText = f => f == null ? "" : /^\d+$/.test(f) ? `Finished P${f}` : f === "R" ? "Retired" : esc(f);
+
+async function pickemView(series, eventKey, quiet = false) {
+  setNav("picks");
+  const choices = PICK_SERIES.filter(id => BY_ID[id]);
+  if (!choices.includes(series)) series = choices.includes(store.get("pickSeries")) ? store.get("pickSeries") : choices[0];
+  store.set("pickSeries", series);
+  const path = `/api/pickem?series=${series}${eventKey ? `&event=${encodeURIComponent(eventKey)}` : ""}`;
+  if (!quiet) showLoading("Loading Pick'em…");
+  const d = await fast(path);
+  const r = d.race, sl = d.slate;
+  const here = `#/picks/${series}`;
+  const head = `<h1>Pick'em</h1>
+    <div class="series-pick" role="tablist" aria-label="Series">${choices.map(id =>
+      `<a role="tab" href="#/picks/${id}" class="${id === series ? "active" : ""}" aria-selected="${id === series}">${esc(BY_ID[id].short)}</a>`).join("")}</div>`;
+  if (!r) { view.innerHTML = `${head}<div class="empty">No ${esc(BY_ID[series].name)} races on the schedule yet.</div>`; return; }
+
+  const status = !sl ? "" : sl.graded ? `<span class="pill ok">Scored</span>` : sl.started ? `<span class="pill warn">Picks closed</span>`
+    : `<span class="pill">Open until lights out</span>`;
+  const racebar = `<div class="racebar">
+      ${d.prev ? `<a href="${here}/${encodeURIComponent(d.prev)}" aria-label="Previous race">←</a>` : "<span></span>"}
+      <div><b><a class="ev-link" href="#/event/${series}/${encodeURIComponent(r.event_key)}">${esc(r.name)}</a></b>
+        <div class="small muted">Round ${r.round} of ${r.rounds} · ${esc(raceWhen(r.start))}</div></div>
+      ${d.next ? `<a href="${here}/${encodeURIComponent(d.next)}" aria-label="Next race">→</a>` : "<span></span>"}
+    </div>`;
+
+  let body, bindPicks = null;
+  if (!sl) {
+    const future = Date.parse(r.start) > Date.now();
+    body = `<div class="card"><div class="empty">${future
+      ? `Duels for this race appear ${esc(new Date(r.opens).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" }))}, 10 days before it starts.`
+      : "There was no Pick'em for this race."}</div></div>`;
+  } else {
+    const closed = sl.started;
+    const myPts = [...sl.duels.map(x => x.points), ...sl.podium.points].filter(x => x != null);
+    const duelRows = sl.duels.map(x => {
+      const side = drv => {
+        const on = x.mine === drv.name;
+        const res = on && x.outcome ? ` ${x.outcome === "won" ? "won" : x.outcome === "lost" ? "lost" : "void"}` : "";
+        const sub = drv.finish != null ? finishText(drv.finish) : `${drv.pos && drv.pos < 999 ? `P${drv.pos} · ` : ""}${esc(drv.team)}`;
+        return `<button class="pk${on ? " on" : ""}${res}" data-duel="${x.slot}" data-name="${esc(drv.name)}" ${closed ? "disabled" : ""}>
+          <span class="pk-nm">${esc(drv.name)}</span><span class="pk-sub">${sub}</span></button>`;
+      };
+      const friends = x.everyone || [];
+      const others = x.count - (x.mine ? 1 : 0);
+      return `<div class="pick-row">
+        <div class="pick-line">${side(x.drivers[0])}<div class="pick-mid">vs</div>${side(x.drivers[1])}
+          <button class="lockbtn${x.lock ? " on" : ""}" data-lock="${x.slot}" ${closed ? "disabled" : ""} aria-pressed="${x.lock}" title="Lock: 2 points if right, nothing if wrong">★</button></div>
+        ${x.outcome === "void" ? `<div class="pick-friends">No winner (one didn't start, or both retired): doesn't count.</div>` : ""}
+        ${closed && friends.length ? `<div class="pick-friends">${friends.map(p => `${esc(p.name)}: ${esc(p.pick.split(" ").slice(-1)[0])}${p.lock ? " ★" : ""}`).join(" · ")}</div>`
+          : !closed && others > 0 ? `<div class="pick-friends">${others} friend${others > 1 ? "s have" : " has"} picked</div>` : ""}
+      </div>`;
+    }).join("");
+    const P = sl.podium;
+    const podRows = [1, 2, 3].map(n => {
+      const mine = P.mine[n - 1], pts = P.points[n - 1];
+      const res = pts == null ? "" : `<span class="pill ${pts ? "ok" : ""}">${pts ? `+${pts}` : "0"}</span>`;
+      return `<label class="podium-row"><span class="podium-pos">P${n}</span>
+        <select data-podium="${n}" ${closed ? "disabled" : ""}><option value="">Pick a driver…</option>${sl.field.map(f =>
+          `<option value="${esc(f.name)}" ${f.name === mine ? "selected" : ""}>${esc(f.name)}${f.team ? ` (${esc(f.team)})` : ""}</option>`).join("")}</select>${res}</label>`;
+    }).join("");
+    const podFriends = (P.everyone || []).filter(p => p.picks.some(Boolean));
+    body = `<h2>Duels</h2>
+      <div class="card picks">${duelRows}</div>
+      <h2>Podium</h2>
+      <div class="card pad16">${podRows}
+        ${P.actual ? `<p class="small" style="margin:10px 0 0"><b>Actual podium:</b> ${P.actual.map((n, i) => `P${i + 1} ${esc(n)}`).join(" · ")}</p>` : ""}
+        ${closed && podFriends.length ? `<p class="small muted" style="margin:8px 0 0">${podFriends.map(p => `${esc(p.name)}: ${p.picks.map(n => n ? esc(n.split(" ").slice(-1)[0]) : "–").join(", ")}`).join("<br>")}</p>`
+          : !closed && P.count ? `<p class="small muted" style="margin:8px 0 0">${P.count} friend${P.count > 1 ? "s have" : " has"} called the podium</p>` : ""}
+      </div>
+      ${sl.graded && myPts.length ? `<p class="small"><b>You scored ${myPts.reduce((a, b) => a + b, 0)}</b> this race.</p>` : ""}
+      <p class="small muted" id="pickmsg" role="status"></p>`;
+    bindPicks = () => {
+      const msg = t => { const m = document.getElementById("pickmsg"); if (m) m.textContent = t; };
+      const send = async pick => {
+        try { await postJSON("/api/pickem", { series, event: r.event_key, ...pick }); }
+        catch (e) { msg(e.detail || "Couldn't save that pick. Try again."); }
+        await api(path).catch(() => {});
+        pickemView(series, eventKey, true);
+      };
+      view.querySelectorAll("[data-duel]").forEach(b => b.addEventListener("click", () => {
+        const x = sl.duels[+b.dataset.duel], name = x.mine === b.dataset.name ? null : b.dataset.name;  // tap again to clear
+        b.closest(".pick-line").querySelectorAll(".pk").forEach(o => o.classList.toggle("on", o === b && !!name));
+        send({ kind: "duel", slot: x.slot, name, lock: name ? x.lock : false });
+      }));
+      view.querySelectorAll("[data-lock]").forEach(b => b.addEventListener("click", () => {
+        const x = sl.duels[+b.dataset.lock];
+        if (!x.mine) { msg("Pick a driver in that duel first, then lock it."); return; }
+        view.querySelectorAll(".lockbtn").forEach(o => o.classList.toggle("on", o === b && !x.lock));
+        send({ kind: "duel", slot: x.slot, name: x.mine, lock: !x.lock });
+      }));
+      view.querySelectorAll("[data-podium]").forEach(sel => sel.addEventListener("change", () =>
+        send({ kind: "podium", slot: +sel.dataset.podium, name: sel.value || null })));
+    };
+  }
+
+  const table = list => list?.length ? `<div class="card"><table class="board"><tr><th></th><th>Name</th><th>Pts</th><th>Duels</th><th>Podium</th></tr>
+    ${list.map((p, i) => `<tr class="${p.me ? "me" : ""}"><td class="muted">${i + 1}</td><td>${esc(p.name)}${p.me ? " (you)" : ""}</td><td><b>${p.pts}</b></td><td>${p.w}–${p.l}</td><td>${p.podium}</td></tr>`).join("")}</table></div>`
+    : `<div class="card"><div class="empty">No scored races yet this season.</div></div>`;
+  const b = d.board;
+  view.innerHTML = `${head}${racebar}
+    ${status ? `<div class="pick-status">${status}</div>` : ""}
+    <p class="help small muted">Tap who finishes ahead in each duel: <b>1 point</b> each. Tap ★ on one duel to make it your lock, worth <b>2</b> (nothing if it's wrong). Call the podium too: <b>1 point</b> for each driver who makes it, <b>2</b> for the exact spot. Picks close at lights out.</p>
+    ${body}
+    ${b?.last ? `<h2>Last scored race · ${esc(b.last.race)}</h2>${table(b.last.table)}` : ""}
+    <h2>${esc(BY_ID[series].short)} season ${esc(b?.season ?? "")}</h2>${table(b?.table)}
+    <p class="help small muted">You show up as <b>${esc(d.name)}</b>. <a href="#/settings">Change your name in Settings</a>.</p>`;
+  bindPicks?.();
 }
 
 // ---- following ----------------------------------------------------------------
@@ -1302,7 +1426,7 @@ function reportView(kind = "bug") {
 // snaps back. Upcoming -> Wire -> Standings -> Series in tab order; deeper pages from the right, back from the left.
 // Plays once the new page's content is on screen; never for quiet redraws or the same page re-shown; off with
 // Settings > Display or the phone's Reduce Motion. Whole-pixel moves only, so text doesn't shift when it stops.
-const NAV_ORDER = { "": 0, wire: 1, standings: 2, series: 3, settings: 4, new: 5, app: 5, report: 5, admin: 5 };
+const NAV_ORDER = { "": 0, wire: 1, picks: 2, standings: 3, series: 4, settings: 5, new: 6, app: 6, report: 6, admin: 6 };
 const DEEP = new Set(["event", "driver", "team", "story", "live"]);
 let QUIET_ROUTE = false, lastHash = null, lastPage = null, pendingShot = 0;
 const motionOn = () => SETTINGS?.animations !== false && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1374,6 +1498,7 @@ async function route(quiet = false) {
     const story = hash.match(/^\/story\/([\w-]+)\/(.+)$/);
     const evp = hash.match(/^\/event\/([\w-]+)\/(.+)$/);
     const sd = hash.match(/^\/standings(?:\/([\w-]+)(?:\/(\w+))?)?$/);
+    const pk = hash.match(/^\/picks(?:\/([\w-]+)(?:\/(.+))?)?$/);
     if (hash !== "/report") reportFrom = location.hash || "#/";
     document.getElementById("foot").hidden = hash === "/report";
     if (hash === "/report") reportView();
@@ -1386,6 +1511,7 @@ async function route(quiet = false) {
     else if (lv) await liveView(lv[1]);
     else if (m) await seriesView(m[1], m[2]);
     else if (sd) await standingsView(sd[1], sd[2]);
+    else if (pk) await pickemView(pk[1], pk[2] && decodeURIComponent(pk[2]));
     else if (evp) await eventView(evp[1], decodeURIComponent(evp[2]));
     else if (hash === "/series") await seriesListView();
     else if (hash === "/settings") await settingsView();
