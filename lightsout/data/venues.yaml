@@ -5,134 +5,134 @@
 # A test checks every term is unique and every point is on the planet; add new tracks as series add them.
 
 # ---- North America ---------------------------------------------------------------------------------------
-- {name: Sebring International Raceway, lat: 27.4544, lon: -81.3486, match: [sebring]}
-- {name: Circuit of the Americas, lat: 30.1328, lon: -97.6411, match: [circuit of the americas, circuit des ameriques, americas, austin, lone star]}
-- {name: Homestead-Miami Speedway, lat: 25.4517, lon: -80.4086, match: [homestead]}
-- {name: Miami International Autodrome, lat: 25.9581, lon: -80.2389, match: [miami international autodrome, miami ia, hard rock, miami]}
-- {name: Las Vegas Motor Speedway, lat: 36.2719, lon: -115.0102, match: [las vegas motor speedway]}
-- {name: Las Vegas Strip Circuit, lat: 36.1147, lon: -115.1728, match: [las vegas]}
-- {name: Autodromo Hermanos Rodriguez, lat: 19.4042, lon: -99.0907, match: [hermanos rodriguez, mexico city]}
-- {name: Circuit Gilles Villeneuve, lat: 45.5000, lon: -73.5228, match: [gilles villeneuve, montreal, canadian grand prix]}
-- {name: Charlotte Motor Speedway, lat: 35.3520, lon: -80.6827, match: [charlotte]}
-- {name: Phoenix Raceway, lat: 33.3747, lon: -112.3112, match: [phoenix]}
-- {name: Talladega Superspeedway, lat: 33.5670, lon: -86.0656, match: [talladega]}
-- {name: Martinsville Speedway, lat: 36.6343, lon: -79.8516, match: [martinsville]}
-- {name: Daytona International Speedway, lat: 29.1852, lon: -81.0705, match: [daytona]}
-- {name: Michelin Raceway Road Atlanta, lat: 34.1469, lon: -83.8158, match: [road atlanta, michelin raceway]}
-- {name: EchoPark Speedway Atlanta, lat: 33.3839, lon: -84.3164, match: [atlanta]}
-- {name: Texas Motor Speedway, lat: 33.0372, lon: -97.2817, match: [texas motor speedway]}
-- {name: Bristol Motor Speedway, lat: 36.5157, lon: -82.2570, match: [bristol]}
-- {name: Kansas Speedway, lat: 39.1157, lon: -94.8311, match: [kansas]}
-- {name: Darlington Raceway, lat: 34.2950, lon: -79.9054, match: [darlington]}
-- {name: Dover Motor Speedway, lat: 39.1897, lon: -75.5302, match: [dover]}
-- {name: Nashville Superspeedway, lat: 36.0465, lon: -86.4127, match: [nashville]}
-- {name: Michigan International Speedway, lat: 42.0661, lon: -84.2410, match: [michigan]}
-- {name: Pocono Raceway, lat: 41.0553, lon: -75.5122, match: [pocono]}
-- {name: Indianapolis Motor Speedway, lat: 39.7950, lon: -86.2347, match: [indianapolis, brickyard, indy 500]}
-- {name: Richmond Raceway, lat: 37.5925, lon: -77.4196, match: [richmond]}
-- {name: Iowa Speedway, lat: 41.6773, lon: -93.0141, match: [iowa]}
-- {name: Watkins Glen International, lat: 42.3369, lon: -76.9272, match: [watkins glen]}
-- {name: World Wide Technology Raceway, lat: 38.6507, lon: -90.1361, match: [world wide technology, gateway]}
-- {name: Chicago Street Course, lat: 41.8730, lon: -87.6170, match: [chicago]}
-- {name: Sonoma Raceway, lat: 38.1611, lon: -122.4547, match: [sonoma]}
-- {name: New Hampshire Motor Speedway, lat: 43.3628, lon: -71.4605, match: [new hampshire, loudon]}
-- {name: North Wilkesboro Speedway, lat: 36.1426, lon: -81.0731, match: [north wilkesboro]}
-- {name: Rockingham Speedway, lat: 34.9746, lon: -79.6131, match: [rockingham]}
-- {name: Bowman Gray Stadium, lat: 36.0880, lon: -80.2347, match: [bowman gray]}
-- {name: Grand Prix of St. Petersburg, lat: 27.7676, lon: -82.6286, match: [st. petersburg, st petersburg]}
-- {name: The Thermal Club, lat: 33.6416, lon: -116.1606, match: [thermal]}
-- {name: Long Beach Street Circuit, lat: 33.7650, lon: -118.1890, match: [long beach]}
-- {name: Barber Motorsports Park, lat: 33.5323, lon: -86.6195, match: [barber]}
-- {name: Detroit Street Circuit, lat: 42.3300, lon: -83.0430, match: [detroit]}
-- {name: Road America, lat: 43.7983, lon: -87.9895, match: [road america, elkhart lake]}
-- {name: Mid-Ohio, lat: 40.6886, lon: -82.6363, match: [mid-ohio]}
-- {name: WeatherTech Raceway Laguna Seca, lat: 36.5843, lon: -121.7535, match: [laguna seca, monterey]}
-- {name: Portland International Raceway, lat: 45.5951, lon: -122.6935, match: [portland]}
-- {name: Exhibition Place Toronto, lat: 43.6346, lon: -79.4171, match: [toronto]}
-- {name: Milwaukee Mile, lat: 43.0189, lon: -88.0103, match: [milwaukee]}
-- {name: Arlington Street Circuit, lat: 32.7480, lon: -97.0830, match: [arlington]}
+- {name: Sebring International Raceway, lat: 27.4544, lon: -81.3486, town: Sebring, region: FL, cc: us, match: [sebring]}
+- {name: Circuit of the Americas, lat: 30.1328, lon: -97.6411, town: Austin, region: TX, cc: us, match: [circuit of the americas, circuit des ameriques, americas, austin, lone star]}
+- {name: Homestead-Miami Speedway, lat: 25.4517, lon: -80.4086, town: Homestead, region: FL, cc: us, match: [homestead]}
+- {name: Miami International Autodrome, lat: 25.9581, lon: -80.2389, town: Miami Gardens, region: FL, cc: us, match: [miami international autodrome, miami ia, hard rock, miami]}
+- {name: Las Vegas Motor Speedway, lat: 36.2719, lon: -115.0102, town: Las Vegas, region: NV, cc: us, match: [las vegas motor speedway]}
+- {name: Las Vegas Strip Circuit, lat: 36.1147, lon: -115.1728, town: Las Vegas, region: NV, cc: us, match: [las vegas]}
+- {name: Autodromo Hermanos Rodriguez, lat: 19.4042, lon: -99.0907, town: Mexico City, cc: mx, match: [hermanos rodriguez, mexico city]}
+- {name: Circuit Gilles Villeneuve, lat: 45.5000, lon: -73.5228, town: Montreal, region: QC, cc: ca, match: [gilles villeneuve, montreal, canadian grand prix]}
+- {name: Charlotte Motor Speedway, lat: 35.3520, lon: -80.6827, town: Concord, region: NC, cc: us, match: [charlotte]}
+- {name: Phoenix Raceway, lat: 33.3747, lon: -112.3112, town: Avondale, region: AZ, cc: us, match: [phoenix]}
+- {name: Talladega Superspeedway, lat: 33.5670, lon: -86.0656, town: Talladega, region: AL, cc: us, match: [talladega]}
+- {name: Martinsville Speedway, lat: 36.6343, lon: -79.8516, town: Martinsville, region: VA, cc: us, match: [martinsville]}
+- {name: Daytona International Speedway, lat: 29.1852, lon: -81.0705, town: Daytona Beach, region: FL, cc: us, match: [daytona]}
+- {name: Michelin Raceway Road Atlanta, lat: 34.1469, lon: -83.8158, town: Braselton, region: GA, cc: us, match: [road atlanta, michelin raceway]}
+- {name: EchoPark Speedway Atlanta, lat: 33.3839, lon: -84.3164, town: Hampton, region: GA, cc: us, match: [atlanta]}
+- {name: Texas Motor Speedway, lat: 33.0372, lon: -97.2817, town: Fort Worth, region: TX, cc: us, match: [texas motor speedway]}
+- {name: Bristol Motor Speedway, lat: 36.5157, lon: -82.2570, town: Bristol, region: TN, cc: us, match: [bristol]}
+- {name: Kansas Speedway, lat: 39.1157, lon: -94.8311, town: Kansas City, region: KS, cc: us, match: [kansas]}
+- {name: Darlington Raceway, lat: 34.2950, lon: -79.9054, town: Darlington, region: SC, cc: us, match: [darlington]}
+- {name: Dover Motor Speedway, lat: 39.1897, lon: -75.5302, town: Dover, region: DE, cc: us, match: [dover]}
+- {name: Nashville Superspeedway, lat: 36.0465, lon: -86.4127, town: Lebanon, region: TN, cc: us, match: [nashville]}
+- {name: Michigan International Speedway, lat: 42.0661, lon: -84.2410, town: Brooklyn, region: MI, cc: us, match: [michigan]}
+- {name: Pocono Raceway, lat: 41.0553, lon: -75.5122, town: Long Pond, region: PA, cc: us, match: [pocono]}
+- {name: Indianapolis Motor Speedway, lat: 39.7950, lon: -86.2347, town: Speedway, region: IN, cc: us, match: [indianapolis, brickyard, indy 500]}
+- {name: Richmond Raceway, lat: 37.5925, lon: -77.4196, town: Richmond, region: VA, cc: us, match: [richmond]}
+- {name: Iowa Speedway, lat: 41.6773, lon: -93.0141, town: Newton, region: IA, cc: us, match: [iowa]}
+- {name: Watkins Glen International, lat: 42.3369, lon: -76.9272, town: Watkins Glen, region: NY, cc: us, match: [watkins glen]}
+- {name: World Wide Technology Raceway, lat: 38.6507, lon: -90.1361, town: Madison, region: IL, cc: us, match: [world wide technology, gateway]}
+- {name: Chicago Street Course, lat: 41.8730, lon: -87.6170, town: Chicago, region: IL, cc: us, match: [chicago]}
+- {name: Sonoma Raceway, lat: 38.1611, lon: -122.4547, town: Sonoma, region: CA, cc: us, match: [sonoma]}
+- {name: New Hampshire Motor Speedway, lat: 43.3628, lon: -71.4605, town: Loudon, region: NH, cc: us, match: [new hampshire, loudon]}
+- {name: North Wilkesboro Speedway, lat: 36.1426, lon: -81.0731, town: North Wilkesboro, region: NC, cc: us, match: [north wilkesboro]}
+- {name: Rockingham Speedway, lat: 34.9746, lon: -79.6131, town: Rockingham, region: NC, cc: us, match: [rockingham]}
+- {name: Bowman Gray Stadium, lat: 36.0880, lon: -80.2347, town: Winston-Salem, region: NC, cc: us, match: [bowman gray]}
+- {name: Grand Prix of St. Petersburg, lat: 27.7676, lon: -82.6286, town: St. Petersburg, region: FL, cc: us, match: [st. petersburg, st petersburg]}
+- {name: The Thermal Club, lat: 33.6416, lon: -116.1606, town: Thermal, region: CA, cc: us, match: [thermal]}
+- {name: Long Beach Street Circuit, lat: 33.7650, lon: -118.1890, town: Long Beach, region: CA, cc: us, match: [long beach]}
+- {name: Barber Motorsports Park, lat: 33.5323, lon: -86.6195, town: Birmingham, region: AL, cc: us, match: [barber]}
+- {name: Detroit Street Circuit, lat: 42.3300, lon: -83.0430, town: Detroit, region: MI, cc: us, match: [detroit]}
+- {name: Road America, lat: 43.7983, lon: -87.9895, town: Elkhart Lake, region: WI, cc: us, match: [road america, elkhart lake]}
+- {name: Mid-Ohio, lat: 40.6886, lon: -82.6363, town: Lexington, region: OH, cc: us, match: [mid-ohio]}
+- {name: WeatherTech Raceway Laguna Seca, lat: 36.5843, lon: -121.7535, town: Monterey, region: CA, cc: us, match: [laguna seca, monterey]}
+- {name: Portland International Raceway, lat: 45.5951, lon: -122.6935, town: Portland, region: OR, cc: us, match: [portland]}
+- {name: Exhibition Place Toronto, lat: 43.6346, lon: -79.4171, town: Toronto, region: ON, cc: ca, match: [toronto]}
+- {name: Milwaukee Mile, lat: 43.0189, lon: -88.0103, town: West Allis, region: WI, cc: us, match: [milwaukee]}
+- {name: Arlington Street Circuit, lat: 32.7480, lon: -97.0830, town: Arlington, region: TX, cc: us, match: [arlington]}
 
 # ---- South America --------------------------------------------------------------------------------------
-- {name: Autodromo Internacional de Goiania, lat: -16.7181, lon: -49.1936, match: [goiania]}
-- {name: Autodromo Oscar y Juan Galvez, lat: -34.6943, lon: -58.4593, match: [oscar y juan galvez, galvez, grand prix of argentina]}
-- {name: Interlagos, lat: -23.7036, lon: -46.6997, match: [interlagos, jose carlos pace, sao paulo, brazilian grand prix]}
-- {name: Rally Chile (Concepcion), lat: -36.8270, lon: -73.0503, match: [rally chile, biobio]}
-- {name: Rally del Paraguay (Encarnacion), lat: -27.3306, lon: -55.8667, match: [paraguay]}
+- {name: Autodromo Internacional de Goiania, lat: -16.7181, lon: -49.1936, town: Goiânia, cc: br, match: [goiania]}
+- {name: Autodromo Oscar y Juan Galvez, lat: -34.6943, lon: -58.4593, town: Buenos Aires, cc: ar, match: [oscar y juan galvez, galvez, grand prix of argentina]}
+- {name: Interlagos, lat: -23.7036, lon: -46.6997, town: São Paulo, cc: br, match: [interlagos, jose carlos pace, sao paulo, brazilian grand prix]}
+- {name: Rally Chile (Concepcion), lat: -36.8270, lon: -73.0503, town: Concepción, cc: cl, match: [rally chile, biobio]}
+- {name: Rally del Paraguay (Encarnacion), lat: -27.3306, lon: -55.8667, town: Encarnación, cc: py, match: [paraguay]}
 
 # ---- Europe -----------------------------------------------------------------------------------------------
-- {name: Donington Park, lat: 52.8306, lon: -1.3797, match: [donington]}
-- {name: Oulton Park, lat: 53.1797, lon: -2.6131, match: [oulton park, oulton]}
-- {name: Snetterton, lat: 52.4636, lon: 0.9461, match: [snetterton]}
-- {name: TT Circuit Assen, lat: 52.9617, lon: 6.5236, match: [assen]}
-- {name: Sachsenring, lat: 50.7914, lon: 12.6878, match: [sachsenring]}
-- {name: Automotodrom Brno, lat: 49.2031, lon: 16.4444, match: [brno]}
-- {name: Balaton Park, lat: 47.0330, lon: 18.2000, match: [balaton park, balaton]}
-- {name: Mugello, lat: 43.9975, lon: 11.3719, match: [mugello]}
-- {name: Circuito de Jerez, lat: 36.7086, lon: -6.0342, match: [jerez]}
-- {name: MotorLand Aragon, lat: 41.0811, lon: -0.2006, match: [motorland, grand prix of aragon]}
-- {name: Nurburgring, lat: 50.3356, lon: 6.9475, match: [nurburgring, nordschleife]}
-- {name: Spa-Francorchamps, lat: 50.4372, lon: 5.9714, match: [spa-francorchamps, francorchamps, spa, belgian grand prix]}
-- {name: Circuit de la Sarthe, lat: 47.9560, lon: 0.2071, match: [24 heures du mans, le mans]}
-- {name: Silverstone, lat: 52.0786, lon: -1.0169, match: [silverstone, british grand prix]}
-- {name: Brands Hatch, lat: 51.3569, lon: 0.2631, match: [brands hatch, london e-prix]}
-- {name: Monza, lat: 45.6156, lon: 9.2811, match: [monza, italian grand prix]}
-- {name: Imola, lat: 44.3439, lon: 11.7167, match: [imola, emilia romagna]}
-- {name: Misano, lat: 43.9614, lon: 12.6831, match: [misano]}
-- {name: Rallye Monte-Carlo (Gap), lat: 44.5596, lon: 6.0786, match: [rallye monte-carlo]}
-- {name: Monaco, lat: 43.7347, lon: 7.4206, match: [monaco grand prix, monaco e-prix, monte carlo]}
-- {name: Circuit de Barcelona-Catalunya, lat: 41.5700, lon: 2.2611, match: [barcelona, catalunya, montmelo]}
-- {name: Madring, lat: 40.4644, lon: -3.6163, match: [madring, ifema, spanish grand prix]}
-- {name: Jarama, lat: 40.6170, lon: -3.5858, match: [jarama, madrid]}
-- {name: Valencia Ricardo Tormo, lat: 39.4886, lon: -0.6306, match: [ricardo tormo, valencia]}
-- {name: Portimao, lat: 37.2270, lon: -8.6267, match: [portimao, algarve]}
-- {name: Paul Ricard, lat: 43.2506, lon: 5.7917, match: [paul ricard, le castellet]}
-- {name: Magny-Cours, lat: 46.8642, lon: 3.1636, match: [magny-cours, magny cours]}
-- {name: Hockenheim, lat: 49.3278, lon: 8.5656, match: [hockenheim]}
-- {name: Zandvoort, lat: 52.3888, lon: 4.5409, match: [zandvoort, dutch grand prix]}
-- {name: Red Bull Ring, lat: 47.2197, lon: 14.7647, match: [red bull ring, spielberg, austrian grand prix]}
-- {name: Hungaroring, lat: 47.5789, lon: 19.2486, match: [hungaroring, hungarian grand prix]}
-- {name: Tempelhof, lat: 52.4730, lon: 13.4039, match: [tempelhof, berlin]}
-- {name: Baku City Circuit, lat: 40.3725, lon: 49.8533, match: [baku, azerbaijan]}
-- {name: Rally Sweden (Umea), lat: 63.8258, lon: 20.2630, match: [rally sweden]}
-- {name: Croatia Rally (Zagreb), lat: 45.8150, lon: 15.9819, match: [croatia rally]}
-- {name: Rally Islas Canarias (Las Palmas), lat: 28.1235, lon: -15.4363, match: [canarias]}
-- {name: Rally de Portugal (Matosinhos), lat: 41.1820, lon: -8.6890, match: [rally de portugal, vodafone rally]}
-- {name: Rally Italia Sardegna (Olbia), lat: 40.9233, lon: 9.4964, match: [sardegna]}
-- {name: Acropolis Rally (Lamia), lat: 38.8990, lon: 22.4342, match: [acropolis]}
-- {name: Rally Estonia (Tartu), lat: 58.3780, lon: 26.7290, match: [rally estonia]}
-- {name: Rally Finland (Jyvaskyla), lat: 62.2426, lon: 25.7473, match: [rally finland]}
-- {name: Rally Latvia (Liepaja), lat: 56.5047, lon: 21.0108, match: [rally latvia]}
-- {name: Rally Poland (Mikolajki), lat: 53.8030, lon: 21.5730, match: [rally poland, orlen]}
+- {name: Donington Park, lat: 52.8306, lon: -1.3797, town: Castle Donington, cc: gb, match: [donington]}
+- {name: Oulton Park, lat: 53.1797, lon: -2.6131, town: Little Budworth, cc: gb, match: [oulton park, oulton]}
+- {name: Snetterton, lat: 52.4636, lon: 0.9461, town: Snetterton, cc: gb, match: [snetterton]}
+- {name: TT Circuit Assen, lat: 52.9617, lon: 6.5236, town: Assen, cc: nl, match: [assen]}
+- {name: Sachsenring, lat: 50.7914, lon: 12.6878, town: Hohenstein-Ernstthal, cc: de, match: [sachsenring]}
+- {name: Automotodrom Brno, lat: 49.2031, lon: 16.4444, town: Brno, cc: cz, match: [brno]}
+- {name: Balaton Park, lat: 47.0330, lon: 18.2000, town: Balatonfőkajár, cc: hu, match: [balaton park, balaton]}
+- {name: Mugello, lat: 43.9975, lon: 11.3719, town: Scarperia, cc: it, match: [mugello]}
+- {name: Circuito de Jerez, lat: 36.7086, lon: -6.0342, town: Jerez, cc: es, match: [jerez]}
+- {name: MotorLand Aragon, lat: 41.0811, lon: -0.2006, town: Alcañiz, cc: es, match: [motorland, grand prix of aragon]}
+- {name: Nurburgring, lat: 50.3356, lon: 6.9475, town: Nürburg, cc: de, match: [nurburgring, nordschleife]}
+- {name: Spa-Francorchamps, lat: 50.4372, lon: 5.9714, town: Francorchamps, cc: be, match: [spa-francorchamps, francorchamps, spa, belgian grand prix]}
+- {name: Circuit de la Sarthe, lat: 47.9560, lon: 0.2071, town: Le Mans, cc: fr, match: [24 heures du mans, le mans]}
+- {name: Silverstone, lat: 52.0786, lon: -1.0169, town: Silverstone, cc: gb, match: [silverstone, british grand prix]}
+- {name: Brands Hatch, lat: 51.3569, lon: 0.2631, town: West Kingsdown, cc: gb, match: [brands hatch, london e-prix]}
+- {name: Monza, lat: 45.6156, lon: 9.2811, town: Monza, cc: it, match: [monza, italian grand prix]}
+- {name: Imola, lat: 44.3439, lon: 11.7167, town: Imola, cc: it, match: [imola, emilia romagna]}
+- {name: Misano, lat: 43.9614, lon: 12.6831, town: Misano Adriatico, cc: it, match: [misano]}
+- {name: Rallye Monte-Carlo (Gap), lat: 44.5596, lon: 6.0786, town: Gap, cc: fr, match: [rallye monte-carlo]}
+- {name: Monaco, lat: 43.7347, lon: 7.4206, town: Monte Carlo, cc: mc, match: [monaco grand prix, monaco e-prix, monte carlo]}
+- {name: Circuit de Barcelona-Catalunya, lat: 41.5700, lon: 2.2611, town: Montmeló, cc: es, match: [barcelona, catalunya, montmelo]}
+- {name: Madring, lat: 40.4644, lon: -3.6163, town: Madrid, cc: es, match: [madring, ifema, spanish grand prix]}
+- {name: Jarama, lat: 40.6170, lon: -3.5858, town: San Sebastián de los Reyes, cc: es, match: [jarama, madrid]}
+- {name: Valencia Ricardo Tormo, lat: 39.4886, lon: -0.6306, town: Cheste, cc: es, match: [ricardo tormo, valencia]}
+- {name: Portimao, lat: 37.2270, lon: -8.6267, town: Portimão, cc: pt, match: [portimao, algarve]}
+- {name: Paul Ricard, lat: 43.2506, lon: 5.7917, town: Le Castellet, cc: fr, match: [paul ricard, le castellet]}
+- {name: Magny-Cours, lat: 46.8642, lon: 3.1636, town: Magny-Cours, cc: fr, match: [magny-cours, magny cours]}
+- {name: Hockenheim, lat: 49.3278, lon: 8.5656, town: Hockenheim, cc: de, match: [hockenheim]}
+- {name: Zandvoort, lat: 52.3888, lon: 4.5409, town: Zandvoort, cc: nl, match: [zandvoort, dutch grand prix]}
+- {name: Red Bull Ring, lat: 47.2197, lon: 14.7647, town: Spielberg, cc: at, match: [red bull ring, spielberg, austrian grand prix]}
+- {name: Hungaroring, lat: 47.5789, lon: 19.2486, town: Mogyoród, cc: hu, match: [hungaroring, hungarian grand prix]}
+- {name: Tempelhof, lat: 52.4730, lon: 13.4039, town: Berlin, cc: de, match: [tempelhof, berlin]}
+- {name: Baku City Circuit, lat: 40.3725, lon: 49.8533, town: Baku, cc: az, match: [baku, azerbaijan]}
+- {name: Rally Sweden (Umea), lat: 63.8258, lon: 20.2630, town: Umeå, cc: se, match: [rally sweden]}
+- {name: Croatia Rally (Zagreb), lat: 45.8150, lon: 15.9819, town: Zagreb, cc: hr, match: [croatia rally]}
+- {name: Rally Islas Canarias (Las Palmas), lat: 28.1235, lon: -15.4363, town: Las Palmas, cc: es, match: [canarias]}
+- {name: Rally de Portugal (Matosinhos), lat: 41.1820, lon: -8.6890, town: Matosinhos, cc: pt, match: [rally de portugal, vodafone rally]}
+- {name: Rally Italia Sardegna (Olbia), lat: 40.9233, lon: 9.4964, town: Olbia, cc: it, match: [sardegna]}
+- {name: Acropolis Rally (Lamia), lat: 38.8990, lon: 22.4342, town: Lamia, cc: gr, match: [acropolis]}
+- {name: Rally Estonia (Tartu), lat: 58.3780, lon: 26.7290, town: Tartu, cc: ee, match: [rally estonia]}
+- {name: Rally Finland (Jyvaskyla), lat: 62.2426, lon: 25.7473, town: Jyväskylä, cc: fi, match: [rally finland]}
+- {name: Rally Latvia (Liepaja), lat: 56.5047, lon: 21.0108, town: Liepāja, cc: lv, match: [rally latvia]}
+- {name: Rally Poland (Mikolajki), lat: 53.8030, lon: 21.5730, town: Mikołajki, cc: pl, match: [rally poland, orlen]}
 
 # ---- Middle East and Africa -------------------------------------------------------------------------------
-- {name: Lusail, lat: 25.4900, lon: 51.4542, match: [lusail, qatar]}
-- {name: Yas Marina, lat: 24.4672, lon: 54.6031, match: [yas marina, abu dhabi grand prix]}
-- {name: Bahrain International Circuit, lat: 26.0325, lon: 50.5106, match: [sakhir, bahrain]}
-- {name: Jeddah Corniche Circuit, lat: 21.6319, lon: 39.1044, match: [jeddah, saudi arabian grand prix, rally saudi]}
-- {name: Safari Rally (Naivasha), lat: -0.7167, lon: 36.4333, match: [safari rally kenya, kenya]}
-- {name: Sun City, lat: -25.3346, lon: 27.0927, match: [sun city]}
+- {name: Lusail, lat: 25.4900, lon: 51.4542, town: Lusail, cc: qa, match: [lusail, qatar]}
+- {name: Yas Marina, lat: 24.4672, lon: 54.6031, town: Abu Dhabi, cc: ae, match: [yas marina, abu dhabi grand prix]}
+- {name: Bahrain International Circuit, lat: 26.0325, lon: 50.5106, town: Sakhir, cc: bh, match: [sakhir, bahrain]}
+- {name: Jeddah Corniche Circuit, lat: 21.6319, lon: 39.1044, town: Jeddah, cc: sa, match: [jeddah, saudi arabian grand prix, rally saudi]}
+- {name: Safari Rally (Naivasha), lat: -0.7167, lon: 36.4333, town: Naivasha, cc: ke, match: [safari rally kenya, kenya]}
+- {name: Sun City, lat: -25.3346, lon: 27.0927, town: Sun City, cc: za, match: [sun city]}
 
 # ---- Asia and Oceania --------------------------------------------------------------------------------------
-- {name: Sepang International Circuit, lat: 2.7608, lon: 101.7382, match: [sepang]}
-- {name: Pertamina Mandalika Circuit, lat: -8.8969, lon: 116.3047, match: [mandalika]}
-- {name: Chang International Circuit, lat: 14.9586, lon: 103.0844, match: [chang international, buriram]}
-- {name: Beijing Street Circuit, lat: 39.9042, lon: 116.4074, match: [beijing]}
-- {name: Okayama International Circuit, lat: 34.9156, lon: 134.2211, match: [okayama]}
-- {name: Mobility Resort Motegi, lat: 36.5328, lon: 140.2275, match: [motegi]}
-- {name: Phillip Island, lat: -38.5017, lon: 145.2308, match: [phillip island]}
-- {name: Adelaide Street Circuit, lat: -34.9278, lon: 138.6170, match: [adelaide]}
-- {name: Mount Panorama Bathurst, lat: -33.4469, lon: 149.5572, match: [mount panorama, bathurst]}
-- {name: Hidden Valley Darwin, lat: -12.4436, lon: 130.9108, match: [hidden valley, darwin]}
-- {name: Queensland Raceway, lat: -27.6906, lon: 152.6544, match: [queensland raceway, gt festival queensland]}
-- {name: Sydney Motorsport Park, lat: -33.8031, lon: 150.8708, match: [sydney motorsport park, gt festival sydney]}
-- {name: The Bend Motorsport Park, lat: -35.2611, lon: 139.4964, match: [the bend, tailem bend]}
-- {name: Guia Circuit, lat: 22.1960, lon: 113.5580, match: [guia, macau]}
-- {name: Albert Park, lat: -37.8497, lon: 144.9680, match: [albert park, melbourne, australian grand prix]}
-- {name: Shanghai International Circuit, lat: 31.3389, lon: 121.2197, match: [shanghai, chinese grand prix]}
-- {name: Suzuka, lat: 34.8431, lon: 136.5407, match: [suzuka, japanese grand prix]}
-- {name: Fuji Speedway, lat: 35.3717, lon: 138.9256, match: [fuji]}
-- {name: Tokyo Street Circuit, lat: 35.6298, lon: 139.7946, match: [tokyo]}
-- {name: Rally Japan (Toyota City), lat: 35.0824, lon: 137.1563, match: [rally japan]}
-- {name: Marina Bay, lat: 1.2914, lon: 103.8640, match: [marina bay, singapore]}
-- {name: Sanya, lat: 18.2528, lon: 109.5119, match: [sanya]}
-- {name: Jakarta, lat: -6.1250, lon: 106.8450, match: [jakarta]}
+- {name: Sepang International Circuit, lat: 2.7608, lon: 101.7382, town: Sepang, cc: my, match: [sepang]}
+- {name: Pertamina Mandalika Circuit, lat: -8.8969, lon: 116.3047, town: Lombok, cc: id, match: [mandalika]}
+- {name: Chang International Circuit, lat: 14.9586, lon: 103.0844, town: Buriram, cc: th, match: [chang international, buriram]}
+- {name: Beijing Street Circuit, lat: 39.9042, lon: 116.4074, town: Beijing, cc: cn, match: [beijing]}
+- {name: Okayama International Circuit, lat: 34.9156, lon: 134.2211, town: Mimasaka, cc: jp, match: [okayama]}
+- {name: Mobility Resort Motegi, lat: 36.5328, lon: 140.2275, town: Motegi, cc: jp, match: [motegi]}
+- {name: Phillip Island, lat: -38.5017, lon: 145.2308, town: Phillip Island, region: VIC, cc: au, match: [phillip island]}
+- {name: Adelaide Street Circuit, lat: -34.9278, lon: 138.6170, town: Adelaide, region: SA, cc: au, match: [adelaide]}
+- {name: Mount Panorama Bathurst, lat: -33.4469, lon: 149.5572, town: Bathurst, region: NSW, cc: au, match: [mount panorama, bathurst]}
+- {name: Hidden Valley Darwin, lat: -12.4436, lon: 130.9108, town: Darwin, region: NT, cc: au, match: [hidden valley, darwin]}
+- {name: Queensland Raceway, lat: -27.6906, lon: 152.6544, town: Ipswich, region: QLD, cc: au, match: [queensland raceway, gt festival queensland]}
+- {name: Sydney Motorsport Park, lat: -33.8031, lon: 150.8708, town: Sydney, region: NSW, cc: au, match: [sydney motorsport park, gt festival sydney]}
+- {name: The Bend Motorsport Park, lat: -35.2611, lon: 139.4964, town: Tailem Bend, region: SA, cc: au, match: [the bend, tailem bend]}
+- {name: Guia Circuit, lat: 22.1960, lon: 113.5580, town: Macau, cc: mo, match: [guia, macau]}
+- {name: Albert Park, lat: -37.8497, lon: 144.9680, town: Melbourne, region: VIC, cc: au, match: [albert park, melbourne, australian grand prix]}
+- {name: Shanghai International Circuit, lat: 31.3389, lon: 121.2197, town: Shanghai, cc: cn, match: [shanghai, chinese grand prix]}
+- {name: Suzuka, lat: 34.8431, lon: 136.5407, town: Suzuka, cc: jp, match: [suzuka, japanese grand prix]}
+- {name: Fuji Speedway, lat: 35.3717, lon: 138.9256, town: Oyama, cc: jp, match: [fuji]}
+- {name: Tokyo Street Circuit, lat: 35.6298, lon: 139.7946, town: Tokyo, cc: jp, match: [tokyo]}
+- {name: Rally Japan (Toyota City), lat: 35.0824, lon: 137.1563, town: Toyota City, cc: jp, match: [rally japan]}
+- {name: Marina Bay, lat: 1.2914, lon: 103.8640, town: Singapore, cc: sg, match: [marina bay, singapore]}
+- {name: Sanya, lat: 18.2528, lon: 109.5119, town: Sanya, cc: cn, match: [sanya]}
+- {name: Jakarta, lat: -6.1250, lon: 106.8450, town: Jakarta, cc: id, match: [jakarta]}

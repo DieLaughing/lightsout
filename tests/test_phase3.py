@@ -253,3 +253,39 @@ def test_nascar_timing_results_fill_last_race_until_official_results():
         ("3", "Kyle Larson", "#5 · Chevrolet", "Out (lap 76)"),
         ("4", "Ryan Blaney", "#12 · Ford", "+4.900"),
     ]
+
+
+def test_places_labels_and_every_track_has_a_town():
+    from lightsout import places, weather
+    for p in weather.places():
+        assert p.get("town") and str(p.get("cc")) in places.COUNTRIES, p["name"]
+    lab = {p["name"]: places.label(p) for p in weather.places()}
+    assert lab["Michelin Raceway Road Atlanta"] == "Braselton, GA"
+    assert lab["Phillip Island"] == "Phillip Island, VIC"
+    assert lab["Red Bull Ring"] == "Spielberg, Austria"
+    assert lab["Marina Bay"] == "Singapore"  # town = country: said once
+    assert places.for_event("Road America", "Road America")["slug"] == "road-america"
+    assert 590 < places.miles((33.75, -84.39), (30.13, -97.64)) < 860  # Atlanta to COTA, roughly
+
+
+def test_track_page_and_home_setting(app_client):
+    from datetime import date, datetime, timedelta, timezone
+    from lightsout.models import AdapterResult, Event, Session
+    c, mod = app_client
+    soon = datetime.now(timezone.utc) + timedelta(days=3)
+    for sid, name in (("indycar", "Grand Prix of Road America"), ("gtwcam", "Road America")):
+        ev = Event(key=f"{soon.year}-ra", season=soon.year, name=name, venue="Road America",
+                   sessions=[Session("race", "Race", "race", start=soon)]).normalised()
+        mod.store.save(sid, AdapterResult([ev], [soon.year]))
+    t = c.get("/api/track/road-america").json()
+    assert t["label"] == "Elkhart Lake, WI" and {e["series"] for e in t["events"]} == {"indycar", "gtwcam"}
+    assert len(t["sessions"]) == 2 and t["sessions"][0]["place"]["slug"] == "road-america"
+    tracks = c.get("/api/tracks").json()
+    assert any(x["slug"] == "road-america" and x["next"] for x in tracks)
+    assert c.get("/api/track/nowhere").status_code == 404
+    c.put("/api/settings", json={"home": {"label": "Ocala, FL", "lat": 29.18765, "lon": -82.1401}, "nearMiles": 500})
+    st = c.get("/api/me").json()["settings"]
+    assert st["home"] == {"label": "Ocala, FL", "lat": 29.19, "lon": -82.14} and st["nearMiles"] == 500
+    c.put("/api/settings", json={"home": {"lat": "x"}, "nearMiles": 7})
+    st = c.get("/api/me").json()["settings"]
+    assert st["home"] is None and st["nearMiles"] == 300

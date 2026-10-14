@@ -414,3 +414,13 @@ html, body { overflow-x: clip; }
 .event-head { position: relative; }
 .evh-badge { position: absolute; top: 12px; right: 12px; }
 .event-head:has(.evh-badge) { padding-right: 120px; }
+
+/* Places */
+.place-link { color: inherit; text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 2px; }
+.dist { white-space: nowrap; }
+.home-now { display: flex; align-items: center; gap: 8px; }
+.home-set { display: flex; flex-wrap: wrap; gap: 6px; }
+.home-set input { width: 8.5em; }
+.chip-btn.ghost { text-decoration: none; color: var(--muted); border-style: dashed; }
+h2.muted-h { margin-top: 18px; }
+a.item { text-decoration: none; color: inherit; }

@@ -5,7 +5,7 @@ import { matchName, normalise, splitNames } from "./match.js?v=2";
 
 const view = document.getElementById("view");
 
-const SYNCED = ["series", "follows", "kinds", "dismissed", "notify", "seenSeries", "seenChanges", "units", "animations", "nickname", "show"];
+const SYNCED = ["series", "follows", "kinds", "dismissed", "notify", "seenSeries", "seenChanges", "units", "animations", "nickname", "show", "home", "nearMiles"];
 let SETTINGS = null;      // from /api/me once signed in
 let saveTimer = null;
 
@@ -203,17 +203,43 @@ function eventCards(rows, followed) {
   return [...groups.values()].map(g => eventCard(g, followed)).join("");
 }
 
+// ---- Places: "Braselton, GA", track pages, distance from home ("Near me") -----------------------------
+const home = () => store.get("home", null);
+const nearMiles = () => store.get("nearMiles", 300);
+function milesTo(p) {
+  const h = home();
+  if (!h || !p) return null;
+  const r = x => x * Math.PI / 180, dLat = r(p.lat - h.lat), dLon = r(p.lon - h.lon);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(r(h.lat)) * Math.cos(r(p.lat)) * Math.sin(dLon / 2) ** 2;
+  return 3958.8 * 2 * Math.asin(Math.sqrt(a));
+}
+const km = () => store.get("units", "f") === "c";
+const distLabel = mi => km() ? `${Math.round(mi * 1.609).toLocaleString()} km` : `${Math.round(mi).toLocaleString()} mi`;
+// Distance only where it helps (a drive, not an ocean away).
+function distTag(p) {
+  const mi = milesTo(p);
+  return mi != null && mi <= 1000 ? ` · <span class="dist">${mi < 15 ? "nearby" : `${distLabel(mi)} away`}</span>` : "";
+}
+const placeLink = p => `<a class="place-link" href="#/track/${esc(p.slug)}">${esc(p.label)}</a>`;
+// "Michelin Raceway Road Atlanta · Braselton, GA": the venue when it adds something, then the town as a link.
+function placeLine(venue, eventName, p, fallbackCountry) {
+  if (!p) return esc([venue, fallbackCountry].filter(Boolean).join(", "));
+  const town = norm(p.label.split(",")[0]);
+  const showVenue = venue && !norm(eventName).includes(norm(venue)) && !norm(venue).includes(town);
+  return `${showVenue ? `${esc(venue)} · ` : ""}${placeLink(p)}${distTag(p)}`;
+}
+
 function eventCard(g, followed) {
   const s0 = g[0];
   const sameWatch = g.every(s => JSON.stringify(s.watch || null) === JSON.stringify(s0.watch || null));
   const name = s0.event_key && s0.series
     ? `<a class="ev-link" href="#/event/${s0.series}/${encodeURIComponent(s0.event_key)}">${esc(s0.event_name)}</a>` : esc(s0.event_name);
   const venue = s0.venue && !norm(s0.event_name).includes(norm(s0.venue)) ? s0.venue : "";
-  const place = [venue, s0.country].filter(Boolean).join(", ");
+  const place = s0.place ? placeLine(s0.venue, s0.event_name, s0.place) : esc([venue, s0.country].filter(Boolean).join(", "));
   const tix = g.find(s => s.tickets && !isLive(s))?.tickets;
   return `<div class="card evc${followed.has(s0.series) ? " followed" : ""}">
     <div class="evc-head"><div class="evc-title"><div class="ev">${chip(s0.series)} ${name}</div>
-      ${place || tix ? `<div class="muted small">${esc(place)}${tix ? `${place ? " · " : ""}<a class="tag tix" href="${esc(tix.url)}" target="_blank" rel="noopener" title="${esc(tix.label)}">Tickets ↗</a>` : ""}</div>` : ""}</div>
+      ${place || tix ? `<div class="muted small">${place}${tix ? `${place ? " · " : ""}<a class="tag tix" href="${esc(tix.url)}" target="_blank" rel="noopener" title="${esc(tix.label)}">Tickets ↗</a>` : ""}</div>` : ""}</div>
       ${sameWatch ? badge(s0.watch) : ""}</div>
     ${g.map(s => {
       const extra = s.kind === "event" && s.end_day ? ` · through ${esc(shortDate(s.end_day))}` : "";
@@ -363,7 +389,7 @@ const WHEN = [["all", "Any day"], ["today", "Today"], ["weekend", "This weekend"
 const SESSION_FILTERS = [["races", "Races"], ["qualifying", "Qualifying"], ["practice", "Practice"]];
 const TYPES = [["single", "Single seaters"], ["sportscar", "Sportscars & GT"], ["stock", "Stock cars"], ["rally", "Rally & off-road"], ["bikes", "Bikes"]];
 const RACE_KINDS = new Set(["race", "sprint", "rally_day", "event"]);
-const NO_FILTERS = { when: "all", sessions: [], types: [], free: false };
+const NO_FILTERS = { when: "all", sessions: [], types: [], free: false, near: false };
 
 function upFilters() {
   try { return { ...NO_FILTERS, ...JSON.parse(localStorage.getItem("upFilters") || "{}") }; } catch { return { ...NO_FILTERS }; }
@@ -371,7 +397,7 @@ function upFilters() {
 function saveUpFilters(f) {
   try { localStorage.setItem("upFilters", JSON.stringify(f)); } catch { /* fine */ }
 }
-const filtersOn = f => f.when !== "all" || f.sessions.length || f.types.length || f.free;
+const filtersOn = f => f.when !== "all" || f.sessions.length || f.types.length || f.free || (f.near && home());
 
 const addDays = (day, n) => {
   const d = new Date(`${day}T12:00:00`);
@@ -396,6 +422,7 @@ function passes(s, f, today) {
   if (f.sessions.length && !f.sessions.includes(RACE_KINDS.has(s.kind) ? "races" : s.kind)) return false;
   if (f.types.length && !f.types.includes(BY_ID[s.series]?.category)) return false;
   if (f.free && s.watch?.badge !== "FREE") return false;
+  if (f.near && home() && !(s.place && milesTo(s.place) <= nearMiles())) return false;
   return true;
 }
 
@@ -405,7 +432,8 @@ function filterBar(upcoming) {
   const btn = (group, value, label, on) =>
     `<button class="chip-btn${on ? " active" : ""}" data-f="${group}" data-v="${value}" aria-pressed="${on}">${label}</button>`;
   return `<div class="filters" id="filters">
-    <div class="chips">${WHEN.map(([v, l]) => btn("when", v, l, f.when === v)).join("")}${btn("free", "1", "Free to watch", f.free)}</div>
+    <div class="chips">${WHEN.map(([v, l]) => btn("when", v, l, f.when === v)).join("")}${btn("free", "1", "Free to watch", f.free)}${home()
+      ? btn("near", "1", `Near me · ${distLabel(nearMiles())}`, f.near) : `<a class="chip-btn ghost" href="#/settings/near">Near me…</a>`}</div>
     <div class="chips">${SESSION_FILTERS.map(([v, l]) => btn("sessions", v, l, f.sessions.includes(v))).join("")}</div>
     ${present.size > 1 ? `<div class="chips">${TYPES.filter(([v]) => present.has(v)).map(([v, l]) => btn("types", v, l, f.types.includes(v))).join("")}</div>` : ""}
   </div>`;
@@ -420,7 +448,8 @@ function upcomingList(upcoming, followed, today) {
     if (!groups.has(d)) groups.set(d, []);
     groups.get(d).push(s);
   }
-  let html = filtersOn(f) ? `<p class="muted small filter-count">Showing ${shown.length} of ${upcoming.length} sessions ·
+  let html = f.near && home() ? `<div id="near-tracks"></div>` : "";
+  html += filtersOn(f) ? `<p class="muted small filter-count">Showing ${shown.length} of ${upcoming.length} sessions ·
     <button class="link" id="f-clear">Clear filters</button></p>` : "";
   if (!upcoming.length) html += `<div class="empty">Nothing scheduled in the next 60 days for your series.</div>`;
   else if (!shown.length) html += `<div class="empty">Nothing matches these filters in the next 60 days.</div>`;
@@ -435,11 +464,12 @@ function wireFilters(upcoming, followed, today) {
   const redraw = () => {
     const f = upFilters();
     bar.querySelectorAll("[data-f]").forEach(b => {
-      const on = b.dataset.f === "when" ? f.when === b.dataset.v : b.dataset.f === "free" ? f.free : f[b.dataset.f].includes(b.dataset.v);
+      const on = b.dataset.f === "when" ? f.when === b.dataset.v : b.dataset.f === "free" || b.dataset.f === "near" ? f[b.dataset.f] : f[b.dataset.f].includes(b.dataset.v);
       b.classList.toggle("active", on);
       b.setAttribute("aria-pressed", on);
     });
     list.innerHTML = upcomingList(upcoming, followed, today);
+    nearTracks(list);
     list.querySelector("#f-clear")?.addEventListener("click", () => { saveUpFilters({ ...NO_FILTERS }); redraw(); });
   };
   bar?.addEventListener("click", e => {
@@ -447,12 +477,28 @@ function wireFilters(upcoming, followed, today) {
     if (!b) return;
     const f = upFilters(), g = b.dataset.f, v = b.dataset.v;
     if (g === "when") f.when = v;
-    else if (g === "free") f.free = !f.free;
+    else if (g === "free" || g === "near") f[g] = !f[g];
     else f[g] = f[g].includes(v) ? f[g].filter(x => x !== v) : [...f[g], v];
     saveUpFilters(f);
     redraw();
   });
   list.querySelector("#f-clear")?.addEventListener("click", () => { saveUpFilters({ ...NO_FILTERS }); redraw(); });
+  nearTracks(list);
+}
+
+// With Near me on: every track in range with its next race, from ANY series (not just the ones switched on),
+// because "what can I drive to?" shouldn't depend on what you follow.
+async function nearTracks(list) {
+  const box = list.querySelector("#near-tracks");
+  if (!box) return;
+  const tracks = (await fast("/api/tracks").catch(() => [])).map(t => ({ ...t, mi: milesTo(t) }))
+    .filter(t => t.next && t.mi <= nearMiles()).sort((a, b) => a.next.start_day.localeCompare(b.next.start_day));
+  const h = home();
+  box.innerHTML = `<h2>Tracks within ${distLabel(nearMiles())} of ${esc(h.label)}</h2>${tracks.length ? `<div class="card">${tracks.map(t => `
+    <a class="item" href="#/track/${esc(t.slug)}"><div><b>${esc(t.name)}</b><div class="muted small">${esc(t.label)} · ${t.mi < 15 ? "nearby" : `${distLabel(t.mi)} away`}</div></div>
+      <div class="small" style="text-align:right">${chip(t.next.series)}<div class="muted">${esc(shortDate(t.next.start_day))}</div></div></a>`).join("")}</div>`
+    : `<div class="card"><div class="empty">No races at tracks within ${distLabel(nearMiles())} for the rest of the season. <a href="#/settings/near">Change the distance</a>.</div></div>`}
+    <h2 class="muted-h">Your series near you</h2>`;
 }
 
 async function seriesListView() {
@@ -512,7 +558,7 @@ async function eventView(id, key) {
     <span class="who"><a class="who-link" href="#/driver/${encodeURIComponent(d.name)}"><b>${esc(d.name)}</b></a><span class="muted">${esc(d.team || "")}</span></span></div>`;
   view.innerHTML = `${backLink(`#/series/${id}`)}
     <h1>${chip(id)} ${esc(e.name)}</h1>
-    <p class="muted event-meta">${esc([e.venue, e.country].filter(Boolean).join(", "))} · ${esc(dates)} · Round ${e.round} of ${e.rounds}</p>
+    <p class="muted event-meta">${placeLine(e.venue, e.name, e.place, e.country)} · ${esc(dates)} · Round ${e.round} of ${e.rounds}</p>
     ${buttons ? `<div class="series-links">${buttons}</div>` : ""}
     ${e.weekend.length ? `<p class="small">Also racing here: ${e.weekend.map(w =>
       `<a href="#/event/${w.series}/${encodeURIComponent(w.key)}">${chip(w.series)}</a>`).join(" ")}</p>` : ""}
@@ -527,6 +573,27 @@ async function eventView(id, key) {
       <details class="card entry-list"${e.drivers.length <= 30 ? " open" : ""}><summary class="small muted">${e.entry_list
         ? "Everyone entered for this event" : "The series' regular drivers; this event has no separate entry list"}</summary>
         <div class="standings">${e.drivers.map(driverRow).join("")}</div></details>` : ""}`;
+}
+
+async function trackView(slug) {
+  setNav("series");
+  const t = await fast(`/api/track/${encodeURIComponent(slug)}`);
+  const today = localDay({ start_utc: new Date().toISOString() });
+  const ahead = t.events.filter(e => (e.end_day || e.start_day) >= today), done = t.events.filter(e => (e.end_day || e.start_day) < today);
+  const dates = e => `${shortDate(e.start_day)}${e.end_day && e.end_day !== e.start_day ? ` – ${shortDate(e.end_day)}` : ""}`;
+  const row = e => `<a class="item" href="#/event/${e.series}/${encodeURIComponent(e.key)}"><div>${chip(e.series)} <b>${esc(e.name)}</b>
+    <div class="muted small">${esc(BY_ID[e.series]?.name || e.series)}</div></div><div class="small muted" style="text-align:right">${esc(dates(e))}</div></a>`;
+  const mi = milesTo(t);
+  const q = encodeURIComponent(t.name);
+  view.innerHTML = `${backLink("#/")}
+    <h1>${esc(t.name)}</h1>
+    <p class="muted event-meta">${esc(t.label)}${mi != null ? ` · ${mi < 15 ? "nearby" : `${distLabel(mi)} from ${esc(home().label)}`}` : ""}</p>
+    <div class="series-links"><a class="btn" href="https://maps.apple.com/?ll=${t.lat},${t.lon}&q=${q}" target="_blank" rel="noopener">Apple Maps ↗</a>
+      <a class="btn" href="https://www.google.com/maps/search/?api=1&query=${t.lat}%2C${t.lon}" target="_blank" rel="noopener">Google Maps ↗</a></div>
+    ${t.sessions.length ? `<h2>Next two weeks</h2><div class="evcs">${eventCards(t.sessions, followedSeries())}</div>` : ""}
+    <h2>Coming up here</h2>${ahead.length ? `<div class="card">${ahead.map(e => row(e).replace("</b>", `</b>${e.tickets ? ` <span class="tag tix">Tickets</span>` : ""}`)).join("")}</div>`
+      : `<div class="card"><div class="empty">Nothing else scheduled here yet.</div></div>`}
+    ${done.length ? `<h2>Earlier this season</h2><div class="card past">${done.map(row).join("")}</div>` : ""}`;
 }
 
 // "7 of 24 rounds done": the season of the next round (or the last one, once it's over).
@@ -590,7 +657,7 @@ async function seriesView(id, tab = "schedule") {
         const past = e.end_day && e.end_day < today;
         return `<div class="card${past ? " past" : ""}">
           <div class="event-head"><div class="ev"><a class="ev-link" href="#/event/${id}/${encodeURIComponent(e.key)}">${esc(e.name)} ›</a>${hasStory.has(e.key) ? ` <a class="tag story" href="#/story/${id}/${encodeURIComponent(e.key)}">Race story →</a>` : ""}${!past && e.tickets ? ` <a class="tag tix" href="${esc(e.tickets.url)}" target="_blank" rel="noopener" title="${esc(e.tickets.label)}">Tickets ↗</a>` : ""}</div>
-          <div class="muted small">${esc([e.venue, e.country].filter(Boolean).join(", "))} · ${esc(shortDate(e.start_day))}${e.end_day && e.end_day !== e.start_day ? ` – ${esc(shortDate(e.end_day))}` : ""}</div>${commonWatch(e.sessions) ? `<div class="evh-badge">${badge(e.sessions[0].watch)}</div>` : ""}</div>
+          <div class="muted small">${placeLine(e.venue, e.name, e.place, e.country)} · ${esc(shortDate(e.start_day))}${e.end_day && e.end_day !== e.start_day ? ` – ${esc(shortDate(e.end_day))}` : ""}</div>${commonWatch(e.sessions) ? `<div class="evh-badge">${badge(e.sessions[0].watch)}</div>` : ""}</div>
           ${seriesRows(e.sessions)}
         </div>`;
       }).join("") || `<div class="empty">No events yet.</div>`}</div>`;
@@ -690,6 +757,17 @@ async function settingsView() {
       <div class="chips" style="margin:0">${[["f", "°F"], ["c", "°C"]].map(([u, l]) =>
         `<button class="chip-btn${store.get("units", "f") === u ? " active" : ""}" data-units="${u}">${l}</button>`).join("")}</div></div></div>
 
+    <h2 id="near">Near me</h2>
+    <div class="card"><div class="form">
+      <div class="small muted">Set home once: races show how far away they are, and Upcoming gets a Near me filter with every track in range. Only a rounded point (about 1 km) is saved, never your exact location.</div>
+      ${home() ? `<div class="home-now"><span>Home: <b>${esc(home().label)}</b></span> <button class="link" id="home-clear">Clear</button></div>` : ""}
+      <div class="home-set"><input type="text" id="zip" inputmode="numeric" maxlength="5" placeholder="US ZIP code" aria-label="US ZIP code">
+        <button id="zip-go">Set</button><button id="geo">Use my location</button></div>
+      <div class="small muted" id="home-msg" role="status"></div>
+      <div><div class="small muted" style="margin-bottom:4px">Near means within</div><div class="chips" style="margin:0">${[100, 200, 300, 500, 1000].map(m =>
+        `<button class="chip-btn${nearMiles() === m ? " active" : ""}" data-near="${m}">${distLabel(m)}</button>`).join("")}</div></div>
+    </div></div>
+
     <h2>Calendar feed</h2>
     <div class="card"><div class="form">
       <div class="small muted">Subscribe once and your calendar app keeps it updated, including reschedules. It covers the ${ids.length} series switched on in <a href="#/series">Series</a>; change those and subscribe again with the new link.</div>
@@ -716,6 +794,24 @@ async function settingsView() {
     <div class="card">${SERIES.map(s => `<div class="item"><div>${chip(s.id)} ${esc(s.name)}</div><div class="small muted" style="text-align:right">${statusText(s.status)}</div></div>`).join("")}</div>
     <p class="small muted">Where-to-watch info is for the US, ${esc(CONFIG.watch_season)} season.</p>`;
 
+  const msg = view.querySelector("#home-msg");
+  const setHome = h => { store.set("home", h); for (const k of GET_CACHE.keys()) if (k === "/api/tracks") GET_CACHE.delete(k); settingsView(); };
+  view.querySelector("#home-clear")?.addEventListener("click", () => setHome(null));
+  view.querySelector("#zip-go").addEventListener("click", async () => {
+    msg.textContent = "Looking it up…";
+    try { setHome(await api(`/api/home?zip=${encodeURIComponent(view.querySelector("#zip").value.trim())}`)); }
+    catch { msg.textContent = "That ZIP code wasn't found. Five digits, US only (or use your location)."; }
+  });
+  view.querySelector("#zip").addEventListener("keydown", e => { if (e.key === "Enter") view.querySelector("#zip-go").click(); });
+  view.querySelector("#geo").addEventListener("click", () => {
+    if (!navigator.geolocation) { msg.textContent = "This browser can't share a location."; return; }
+    msg.textContent = "Asking your device…";
+    navigator.geolocation.getCurrentPosition(
+      pos => setHome({ label: "My location", lat: Math.round(pos.coords.latitude * 100) / 100, lon: Math.round(pos.coords.longitude * 100) / 100 }),
+      () => { msg.textContent = "Location wasn't shared. You can type a ZIP code instead."; }, { maximumAge: 3600000, timeout: 15000 });
+  });
+  view.querySelectorAll("[data-near]").forEach(b => b.addEventListener("click", () => { store.set("nearMiles", Number(b.dataset.near)); settingsView(); }));
+  if (location.hash === "#/settings/near") view.querySelector("#near")?.scrollIntoView();
   view.querySelector("#animations").addEventListener("change", e => store.set("animations", e.target.checked));
   view.querySelector("#nickname").addEventListener("change", e => {
     store.set("nickname", e.target.value.trim().slice(0, 24));
@@ -1575,6 +1671,7 @@ async function route(quiet = false) {
     const person = hash.match(/^\/(driver|team)\/(.+)$/);
     const story = hash.match(/^\/story\/([\w-]+)\/(.+)$/);
     const evp = hash.match(/^\/event\/([\w-]+)\/(.+)$/);
+    const trk = hash.match(/^\/track\/([\w-]+)$/);
     const sd = hash.match(/^\/standings(?:\/([\w-]+)(?:\/(\w+))?)?$/);
     const pk = hash.match(/^\/picks(?:\/([\w-]+)(?:\/(.+))?)?$/);
     if (hash !== "/report") reportFrom = location.hash || "#/";
@@ -1584,6 +1681,7 @@ async function route(quiet = false) {
     else if (hash === "/wire") await wireView();
     else if (hash === "/new") whatsNewView();
     else if (hash === "/app") appView();
+    else if (trk) await trackView(trk[1]);
     else if (person) await personView(person[1], decodeURIComponent(person[2]));
     else if (story) await storyView(story[1], decodeURIComponent(story[2]));
     else if (lv) await liveView(lv[1]);
@@ -1592,7 +1690,7 @@ async function route(quiet = false) {
     else if (pk) await pickemView(pk[1], pk[2] && decodeURIComponent(pk[2]));
     else if (evp) await eventView(evp[1], decodeURIComponent(evp[2]));
     else if (hash === "/series") await seriesListView();
-    else if (hash === "/settings") await settingsView();
+    else if (hash === "/settings" || hash === "/settings/near") await settingsView();
     else await homeView();
   } catch (err) {
     view.innerHTML = `<div class="empty">Couldn't load data. ${esc(err.message)}</div>`;
