@@ -368,7 +368,7 @@ def test_nls_next_season_from_announcement():
 def test_every_series_has_a_type_and_official_site():
     from lightsout.series import SERIES
     for s in SERIES:
-        assert s.category in {"single", "sportscar", "stock", "rally"}, s.id
+        assert s.category in {"single", "sportscar", "stock", "rally", "bikes"}, s.id
         assert s.site.startswith("https://"), s.id
         assert not s.timing or s.timing.startswith("https://"), s.id
 
@@ -436,3 +436,51 @@ def test_gtwce_standings_and_results():
     res = g.result_rows(g.parse_classification(page))
     assert res[0].pos == "1" and res[0].time.endswith("laps") and res[0].team.startswith("#69 ")
     assert res[1].time.startswith("+") and res[-1].pos == res[-1].time == "NC"
+
+
+def test_motogp_calendar_per_class():
+    import json
+    from pathlib import Path
+    from lightsout.adapters import motogp
+    data = json.loads((Path(__file__).parent / "fixtures" / "motogp_events.json").read_text())
+    ev = motogp.parse_events(data, "motogp")
+    assert len(ev) == 1 and ev[0].key == "2026-aus" and ev[0].name == "Grand Prix of Australia"  # tests left out
+    kinds = [s.kind for s in ev[0].sessions]
+    assert "sprint" in kinds and kinds[-1] == "race"
+    race = ev[0].sessions[-1]
+    assert race.end > race.start  # the feed lists races with end = start
+    moto3 = motogp.parse_events(data, "moto3")[0]
+    assert "sprint" not in [s.kind for s in moto3.sessions] and moto3.sessions[0].start.tzinfo
+    assert motogp.gp_name("RED BULL GRAND PRIX OF THE UNITED STATES ") == "Grand Prix of the United States"
+
+
+def test_motogp_classification():
+    import json
+    from pathlib import Path
+    from lightsout.adapters import motogp
+    rows = motogp.parse_classification(json.loads((Path(__file__).parent / "fixtures" / "motogp_classification.json").read_text()))
+    assert rows[0].pos == "1" and rows[0].time and rows[1].time.startswith("+")
+    assert rows[-1].pos == "DNF" and "lap" in rows[-1].time
+
+
+def test_sro_twelve_hour_clock_and_race_lengths():
+    from datetime import timedelta
+    from lightsout.adapters import gtwce
+    page = ('<table class="timetable__table"><caption><span>Friday, 25 September</span></caption><tbody>'
+            '<tr><td>Practice 1</td><td>04:45 pm</td><td>09:45 pm</td></tr>'
+            '<tr><td>Driver Autograph Session</td><td>05:45 pm</td><td>10:45 pm</td></tr>'
+            '<tr><td>Race</td><td>11:30 pm</td><td>04:30 am</td></tr></tbody></table>')
+    s = gtwce.parse_timetable(page, 2026, "", "Barber Motorsports Park", timedelta(minutes=90))
+    assert [x.name for x in s] == ["Practice 1", "Race"]  # off-track rows dropped
+    assert s[0].start.hour == 21 and s[1].start.day == 26 and s[1].end - s[1].start == timedelta(minutes=90)
+    assert gtwce.race_length("Meguiar's Bathurst 12 Hour", "") == timedelta(hours=12)
+    assert gtwce.race_length("Suzuka 1000km", "") == timedelta(hours=6)
+    assert gtwce.race_length("Portimao", "Endurance Cup") == timedelta(hours=3)
+
+
+def test_sro_entry_list_matched_by_words():
+    from lightsout.adapters import gtwce
+    paths = ["/entry-list/2026/indianpolis-8-hour", "/entry-list/2026/road-atlanta", "/entry-list/2025/road-atlanta"]
+    rd = {"path": "/event/115/michelin-raceway-road-atlanta", "name": "Michelin Raceway Road Atlanta"}
+    assert gtwce.match_entry_list(rd, 2026, paths) == "/entry-list/2026/road-atlanta"
+    assert gtwce.match_entry_list({"path": "/event/9/sonoma-raceway", "name": "Sonoma Raceway"}, 2026, paths) is None

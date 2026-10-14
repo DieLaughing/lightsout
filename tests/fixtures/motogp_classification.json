@@ -1,0 +1,89 @@
+{
+ "classification": [
+  {
+   "position": 1,
+   "rider": {
+    "full_name": "Marco Bezzecchi"
+   },
+   "team": {
+    "name": "Aprilia Racing"
+   },
+   "gap": {
+    "first": "0.000",
+    "lap": "0"
+   },
+   "total_laps": 27,
+   "time": "40:46.582",
+   "points": 25,
+   "status": "INSTND"
+  },
+  {
+   "position": 2,
+   "rider": {
+    "full_name": "Raul Fernandez"
+   },
+   "team": {
+    "name": "SuperFile Trackhouse MotoGP Team"
+   },
+   "gap": {
+    "first": "4.260",
+    "lap": "0"
+   },
+   "total_laps": 27,
+   "time": "40:50.842",
+   "points": 20,
+   "status": "INSTND"
+  },
+  {
+   "position": 3,
+   "rider": {
+    "full_name": "Jorge Martin"
+   },
+   "team": {
+    "name": "Aprilia Racing"
+   },
+   "gap": {
+    "first": "6.890",
+    "lap": "0"
+   },
+   "total_laps": 27,
+   "time": "40:53.472",
+   "points": 16,
+   "status": "INSTND"
+  },
+  {
+   "position": null,
+   "rider": {
+    "full_name": "Francesco Bagnaia"
+   },
+   "team": {
+    "name": "Ducati Lenovo Team"
+   },
+   "gap": {
+    "first": "0.000",
+    "lap": "22"
+   },
+   "total_laps": 5,
+   "time": "07:42.948",
+   "points": 0,
+   "status": "OUTSTND"
+  },
+  {
+   "position": null,
+   "rider": {
+    "full_name": "Fermin Aldeguer"
+   },
+   "team": {
+    "name": "BK8 Gresini Racing MotoGP"
+   },
+   "gap": {
+    "first": "0.000",
+    "lap": "26"
+   },
+   "total_laps": 1,
+   "time": "01:35.719",
+   "points": 0,
+   "status": "OUTSTND"
+  }
+ ]
+}

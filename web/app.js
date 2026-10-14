@@ -313,7 +313,7 @@ async function homeView() {
 // ---- Upcoming filters (remembered per device) ------------------------------------
 const WHEN = [["all", "Any day"], ["today", "Today"], ["weekend", "This weekend"]];
 const SESSION_FILTERS = [["races", "Races"], ["qualifying", "Qualifying"], ["practice", "Practice"]];
-const TYPES = [["single", "Single seaters"], ["sportscar", "Sportscars & GT"], ["stock", "Stock cars"], ["rally", "Rally & off-road"]];
+const TYPES = [["single", "Single seaters"], ["sportscar", "Sportscars & GT"], ["stock", "Stock cars"], ["rally", "Rally & off-road"], ["bikes", "Bikes"]];
 const RACE_KINDS = new Set(["race", "sprint", "rally_day", "event"]);
 const NO_FILTERS = { when: "all", sessions: [], types: [], free: false };
 
