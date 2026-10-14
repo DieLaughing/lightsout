@@ -14,7 +14,9 @@ in the same feed as soon as it is announced.
 """
 from __future__ import annotations
 
+import asyncio
 import re
+import time
 from datetime import timedelta
 
 from ..models import PRACTICE, QUALIFYING, RACE, SPRINT, AdapterResult, Entry, Event, ResultRow, Session, StandingRow, Standings
@@ -31,6 +33,25 @@ SESSION = {  # shortname -> (name, kind)
 }
 LENGTH = {SPRINT: timedelta(minutes=25), RACE: timedelta(minutes=45)}
 SMALL = {"of", "the", "and", "de", "di", "del"}
+
+
+# MotoGP, Moto2 and Moto3 refresh side by side and read the same feeds (the season's events are ~1 MB): one download
+# serves all three. Concurrent callers share the request in flight; answers are kept for SHARE_FOR seconds.
+SHARE_FOR = 600
+_shared: dict[str, tuple[float, asyncio.Task]] = {}
+
+
+async def _get(url: str):
+    hit = _shared.get(url)
+    loop = asyncio.get_running_loop()
+    if not hit or time.monotonic() - hit[0] > SHARE_FOR or hit[1].get_loop() is not loop or \
+            (hit[1].done() and hit[1].exception()):
+        now = time.monotonic()
+        for k in [k for k, (t, _) in _shared.items() if now - t > SHARE_FOR]:
+            del _shared[k]  # don't keep a megabyte of old calendar around between refreshes
+        hit = (now, loop.create_task(get_json(url)))
+        _shared[url] = hit
+    return await asyncio.shield(hit[1])
 
 
 def gp_name(raw: str) -> str:
@@ -86,7 +107,7 @@ async def fetch(series_id: str, seasons: list[int]) -> AdapterResult:
     events, covered = [], []
     for year in seasons:
         try:
-            found = parse_events(await get_json(f"{API}/events?seasonYear={year}"), series_id)
+            found = parse_events(await _get(f"{API}/events?seasonYear={year}"), series_id)
         except Exception:
             if year == seasons[0]:
                 raise
@@ -94,7 +115,7 @@ async def fetch(series_id: str, seasons: list[int]) -> AdapterResult:
         if found:
             events += found
             covered.append(year)
-    entries = parse_riders(await get_json(f"{API}/riders"), series_id, seasons[0])
+    entries = parse_riders(await _get(f"{API}/riders"), series_id, seasons[0])
     return AdapterResult(events, covered, entries)
 
 
@@ -128,11 +149,11 @@ def parse_classification(data: dict) -> list[ResultRow]:
 
 
 async def standings(series_id: str) -> Standings | None:
-    seasons = await get_json(f"{API}/results/seasons")
+    seasons = await _get(f"{API}/results/seasons")
     season = next((s for s in seasons if s.get("current")), None)
     if not season:
         return None
-    cats = await get_json(f"{API}/results/categories?seasonUuid={season['id']}")
+    cats = await _get(f"{API}/results/categories?seasonUuid={season['id']}")
     want = CLASS[series_id][1]
     cat = next((c for c in cats if re.sub(r"[^\w]", "", c["name"]) == want), None)
     if not cat:
@@ -140,7 +161,7 @@ async def standings(series_id: str) -> Standings | None:
     st = Standings(drivers=parse_standings(
         await get_json(f"{API}/results/standings?seasonUuid={season['id']}&categoryUuid={cat['id']}")),
         season_label=f"{season['year']} {want} World Championship")
-    finished = [e for e in await get_json(f"{API}/results/events?seasonUuid={season['id']}&isFinished=true")
+    finished = [e for e in await _get(f"{API}/results/events?seasonUuid={season['id']}&isFinished=true")
                 if not e.get("test")]
     finished.sort(key=lambda e: e.get("date_start") or "")
     for e in reversed(finished):

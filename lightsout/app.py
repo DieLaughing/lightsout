@@ -629,14 +629,16 @@ def track_page(slug: str):
     if not p:
         raise HTTPException(404)
     year = datetime.now(timezone.utc).year
-    f1_events = _f1_calendar()
+    f1_events = None  # read only when an F1-family weekend is here (its ticket links come from the F1 calendar)
     events = []
     for e in store.conn.execute("SELECT series, key, name, venue, country, start_day, end_day, season FROM event "
                                 "WHERE season >= ? ORDER BY start_day", (year,)):
         e = dict(e)
         if e["series"] in BY_ID and (weather.place_for(e["venue"], e["name"]) or {}).get("name") == p["name"]:
             if (e.get("end_day") or e.get("start_day") or "") >= _iso(datetime.now(timezone.utc))[:10]:
-                e["tickets"] = tickets.for_event(e["series"], e, f1_events)
+                if f1_events is None and e["series"] in tickets.F1_FAMILY:
+                    f1_events = _f1_calendar()
+                e["tickets"] = tickets.for_event(e["series"], e, f1_events or [])
             events.append(e)
     now = datetime.now(timezone.utc)
     soon = [r for r in store.sessions(_iso(now - timedelta(hours=12)), _iso(now + timedelta(days=14)))
