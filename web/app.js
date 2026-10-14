@@ -525,6 +525,11 @@ async function seriesView(id, tab = "schedule") {
 }
 
 // Drivers / Teams / Last race for one series (shared by the series page and the Standings tab).
+// Series whose official teams' table leaves out some entries people will look for.
+const TEAMS_NOTE = {
+  gtwce: "Only teams entered for the teams' championship are listed. Some cars, like Mercedes-AMG Team Verstappen Racing, score only in the drivers' standings.",
+};
+
 function standingsBody(id, tab, st) {
   const s = BY_ID[id];
   const mine = new Set(follows().map(f => normalise(f.name)));
@@ -547,7 +552,8 @@ function standingsBody(id, tab, st) {
   return rows?.length ? `${picker}<p class="muted small">${esc(st.season_label)} · ${updated}</p>
     <div class="card standings">${rows.map(r => `<div class="srow${isMine(r.name, tab === "teams" ? r.name : null) ? " followed" : ""}">
       <span class="pos">${r.pos}</span><span class="who"><b>${esc(r.name)}</b><span class="muted">${esc(r.team)}</span></span>
-      <span class="num muted">${r.pos > 1 ? `−${pts(lead - r.points)}` : ""}</span><span class="num pts">${pts(r.points)}</span></div>`).join("")}</div>`
+      <span class="num muted">${r.pos > 1 ? `−${pts(lead - r.points)}` : ""}</span><span class="num pts">${pts(r.points)}</span></div>`).join("")}</div>
+    ${tab === "teams" && TEAMS_NOTE[id] ? `<p class="muted small">${esc(TEAMS_NOTE[id])}</p>` : ""}`
     : `<div class="empty">${tab === "teams" ? "This series doesn't publish a team championship we can read." : "No standings yet."}</div>`;
 }
 
