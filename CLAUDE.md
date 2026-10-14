@@ -82,7 +82,18 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
   session in the next 7 days, refreshed every 6 h (1 h when a session is < 36 h away), cached in /data/weather.json.
   Sessions get {c, rain, code} at the start hour or {hi, lo, rain, code} for untimed days; °C stored, user setting
   `units` (f/c). Unmatched venues are logged ("no weather place for ..."): add them to venues.yaml. W2RC skipped.
-- Upcoming filters (web/app.js filterBar/passes): when / session type / racing type (Series.category) / free to watch,
+- Upcoming is grouped per day, then one card per race weekend (eventCards/eventCard: series chip, event, place, watch
+  badge once when every session shares it, else per line). Per-series "Show on Upcoming" = settings.show
+  {series: qualifying|races} (absent = all), set on the series page (.show-bar) or the Series list select; applied by
+  shows() in homeView. Series pages use the same compact lines (seriesRows).
+- Places (lightsout/places.py): venues.yaml also has town / region (US, Canada, Australia only) / cc, hand-checked;
+  places.label() = "Braselton, GA" or "Spielberg, Austria". /api/sessions, series events and event pages carry `place`
+  {slug, name, label, lat, lon}; weather.place_for is lru_cached. Track page #/track/<slug> (/api/track/<slug>: every
+  series' events there this season + next, sessions in the next 14 days). Near me: settings.home {label, lat, lon}
+  (US ZIP via /api/home -> zippopotam.us, or the device's location; rounded to 0.01°), settings.nearMiles; the Near me
+  filter chip uses the session's place, and /api/tracks lists tracks in range with their next race from ANY series.
+- Upcoming filters (web/app.js filterBar/passes): day = .seg switch; Filters button (count, localStorage filtersOpen) opens
+  #fpanel with groups Watch (free, near) / Sessions / Racing type (Series.category); closed = #factive removable chips;
   kept in localStorage. Series pages show season progress (seasonProgress) and official site/timing (Series.site/.timing).
 
 - Event pages (#/event/<series>/<event_key>, /api/event/...): sessions with watch/tickets/weather, round N of M,
@@ -114,6 +125,15 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
   Overall = drivers/teams, Endurance/Sprint/Gold/Silver/Bronze = classes. Last race = the newest round's last race
   classification (/results -> round page -> race-1|race-2|main-race); teams and name spellings for the crews come from
   the newest Sprint and Endurance classifications (standings write 'VAN DER LINDE').
+- Other SRO championships (`igtc`, `gtwcam`, `gtwcasia`, `gtwcau`, `britgt`; adapter `sro` = gtwce.fetch, sites in
+  gtwce.SITES): calendar + timetables (America prints 12-hour clocks; autograph/pit-walk rows dropped by OFF_TRACK) +
+  entry lists from /entry-lists, matched to rounds by shared words (slugs differ). Asia/Australia/British GT publish
+  entry lists only as PDFs, so no grids there yet. No standings: each site's tables differ. Off by default.
+- MotoGP / Moto2 / Moto3 (`motogp`, `moto2`, `moto3`; lightsout/adapters/motogp.py): api.motogp.pulselive.com.
+  /events?seasonYear= (kind GP; sessions = broadcasts of type SESSION per class acronym MGP/MT2/MT3; races listed
+  with end = start, so LENGTH sets 25/45 min), /riders (current_career_step), /results/* for standings + last race
+  (no team table in the API). Next season's GPs show as "Race weekend" until timetables are out. Live timing is the
+  paid TimingPass, so no timing link. Category `bikes`; only MotoGP on by default.
 - NLS (`nls`, lightsout/adapters/nls.py): WordPress /wp-json API. This year = page
   calendar-nurburgring-langstrecken-serie-<year> (one race per date; split at dates, "(2x4h)" beats "24h" in a name);
   next year until that page exists = the news post announcing the dates. No timetable or entry lists; drivers are

@@ -46,6 +46,7 @@ def places() -> list[dict]:
     return out
 
 
+@lru_cache(maxsize=4096)  # every session asks; the answer only changes with venues.yaml (a deploy)
 def place_for(venue: str | None, event_name: str | None) -> dict | None:
     text = norm(f"{venue or ''} {event_name or ''}")
     return next((p for p in places() if p["rx"].search(text)), None)
