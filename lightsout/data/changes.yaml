@@ -4,6 +4,12 @@
 # and `.venv/bin/python tools/release.py` publishes the day's GitHub Release.
 
 - date: 2026-10-14
+  kind: improved
+  title: Tidier filters on Upcoming
+  text: The filters on Upcoming are easier to read. The day is now one switch (Any day, Today, This weekend) so it's clear you pick one. Everything else sits behind a Filters button that shows how many are on, grouped as Watch (free to watch, Near me), Sessions and Racing type. With the panel closed, the filters you have on show as small chips under the switch, and tapping ✕ removes one.
+  link: "#/"
+
+- date: 2026-10-14
   kind: new
   title: Where every race is, track pages, and Near me
   text: Races now say where they are in words you'd use, like Braselton, GA, Elkhart Lake, WI, Phillip Island, VIC or Spielberg, Austria. Tap the place to open the track's page. It shows every series racing there this season and next (not just the ones you follow), what's on in the next two weeks with the forecast, and Apple Maps and Google Maps buttons. Set a home ZIP code (or use your location) in Settings → Near me and races show how far away they are. A new Near me filter on Upcoming lists every track in range with its next race, from any series, so you can see what's worth the drive.
