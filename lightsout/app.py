@@ -17,7 +17,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Red
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from . import access, bugs, adapters, alerts, changes, follow, ics, news, picks, refresh, tickets, watch, weather
+from . import access, bugs, adapters, alerts, changes, follow, ics, news, picks, places, refresh, tickets, watch, weather
 from .db import Store
 from .live.hub import LiveHub
 from .push import Pusher
@@ -129,7 +129,7 @@ def list_sessions(start: str | None = None, end: str | None = None, series: str 
     start = start or _iso(now - timedelta(hours=12))
     end = end or _iso(now + timedelta(days=60))
     ids = [s for s in series.split(",") if s in BY_ID] if series else None
-    return weather.attach(_with_watch(store.sessions(start, end, ids)))
+    return places.tag(weather.attach(_with_watch(store.sessions(start, end, ids))))
 
 
 @app.get("/api/series/{series_id}/events")
@@ -143,7 +143,7 @@ def series_events(series_id: str):
         for s in e["sessions"]:
             s["watch"] = watch.watch_for(series_id, s["kind"], s.get("tv"))
         weather.attach([{**s, "venue": e.get("venue"), "event_name": e.get("name"), "_s": s} for s in e["sessions"]])
-    return events
+    return places.tag(events)
 
 
 @app.get("/api/series/{series_id}/standings")
@@ -230,7 +230,7 @@ RENOTIFY_AFTER = timedelta(hours=12)   # pressing Request twice doesn't ping the
 # Finished answers for the heavy GETs that are the same for everyone (the Wire: per person, it reads their follows).
 # Built and compressed once, reused for READY_TTL; live timing is never kept.
 READY_TTL = 30.0
-READY_PATHS = ("/api/series", "/api/sessions", "/api/names", "/api/entries", "/api/event/", "/api/stories/",
+READY_PATHS = ("/api/series", "/api/sessions", "/api/names", "/api/entries", "/api/event/", "/api/stories/", "/api/track",
                "/api/person/", "/api/wire", "/api/changes")  # not /api/live, /api/events/, /api/story/: those move during races
 _ready: dict[tuple, tuple] = {}
 
@@ -455,6 +455,18 @@ async def save_settings(request: Request):
         clean["notify"] = {k: bool((body["notify"] or {}).get(k, True)) for k in alerts.KINDS}
     if "animations" in body:
         clean["animations"] = body["animations"] is not False  # page transitions (Settings > Display)
+    if "show" in body:  # per-series "Show on Upcoming": absent = everything
+        clean["show"] = {k: v for k, v in (body["show"] or {}).items() if k in BY_ID and v in ("qualifying", "races")}
+    if "home" in body:  # "Near me": {label, lat, lon}, rounded to ~1 km; null clears it
+        h = body["home"]
+        try:
+            lat, lon = round(float(h["lat"]), 2), round(float(h["lon"]), 2)
+            clean["home"] = {"label": str(h.get("label") or "Home")[:40], "lat": lat, "lon": lon} \
+                if -90 <= lat <= 90 and -180 <= lon <= 180 else None
+        except (TypeError, KeyError, ValueError):
+            clean["home"] = None
+    if "nearMiles" in body:
+        clean["nearMiles"] = body["nearMiles"] if body["nearMiles"] in (100, 200, 300, 500, 1000) else 300
     if "nickname" in body:  # the name friends see on Pick'em; empty = the email's first part
         clean["nickname"] = " ".join("".join(c for c in str(body["nickname"] or "") if c.isprintable()).split())[:24]
     store.save_settings(request.state.email, clean)
@@ -573,6 +585,7 @@ def event_page(series_id: str, event_key: str):
     for x in ev["sessions"]:
         x["watch"] = watch.watch_for(series_id, x["kind"], x.get("tv"))
     weather.attach([{**x, "venue": ev.get("venue"), "event_name": ev.get("name"), "_s": x} for x in ev["sessions"]])
+    places.tag([ev])
     season = [e for e in events if e["season"] == ev["season"]]
     ev["round"], ev["rounds"] = season.index(ev) + 1, len(season)
 
@@ -607,6 +620,57 @@ def event_page(series_id: str, event_key: str):
     ev["news"] = [n for n in store.news() if series_id in n["series"] and lo <= n["time"][:10] <= hi[:10]
                   and words & set(weather.norm(f"{n['title']} {n.get('text') or ''}").split())][:8]
     return ev
+
+
+@app.get("/api/track/{slug}")
+def track_page(slug: str):
+    """One track: where it is, every series racing there this season and next, and its sessions in the next 2 weeks."""
+    p = places.by_slug(slug)
+    if not p:
+        raise HTTPException(404)
+    year = datetime.now(timezone.utc).year
+    f1_events = None  # read only when an F1-family weekend is here (its ticket links come from the F1 calendar)
+    events = []
+    for e in store.conn.execute("SELECT series, key, name, venue, country, start_day, end_day, season FROM event "
+                                "WHERE season >= ? ORDER BY start_day", (year,)):
+        e = dict(e)
+        if e["series"] in BY_ID and (weather.place_for(e["venue"], e["name"]) or {}).get("name") == p["name"]:
+            if (e.get("end_day") or e.get("start_day") or "") >= _iso(datetime.now(timezone.utc))[:10]:
+                if f1_events is None and e["series"] in tickets.F1_FAMILY:
+                    f1_events = _f1_calendar()
+                e["tickets"] = tickets.for_event(e["series"], e, f1_events or [])
+            events.append(e)
+    now = datetime.now(timezone.utc)
+    soon = [r for r in store.sessions(_iso(now - timedelta(hours=12)), _iso(now + timedelta(days=14)))
+            if (weather.place_for(r["venue"], r["event_name"]) or {}).get("name") == p["name"]]
+    return {**places.info(p), "events": events, "sessions": places.tag(weather.attach(_with_watch(soon)))}
+
+
+@app.get("/api/tracks")
+def track_list():
+    """Every track with a race this season or later: where it is and its next event (any series), for "Near me"."""
+    today = _iso(datetime.now(timezone.utc))[:10]
+    out: dict[str, dict] = {}
+    for e in store.conn.execute("SELECT series, key, name, venue, start_day, end_day FROM event WHERE season >= ? "
+                                "ORDER BY start_day", (datetime.now(timezone.utc).year,)):
+        p = weather.place_for(e["venue"], e["name"])
+        if not p or e["series"] not in BY_ID:
+            continue
+        t = out.setdefault(p["name"], {**places.info(p), "next": None, "series": []})
+        if e["series"] not in t["series"]:
+            t["series"].append(e["series"])
+        if not t["next"] and (e["end_day"] or e["start_day"] or "") >= today:
+            t["next"] = {k: e[k] for k in ("series", "key", "name", "start_day", "end_day")}
+    return list(out.values())
+
+
+@app.get("/api/home")
+async def home_lookup(zip: str = ""):
+    """A US ZIP code -> {label, lat, lon} for "Near me" (rounded; the app saves it in the person's settings)."""
+    found = await places.zip_home(zip)
+    if not found:
+        raise HTTPException(404, "Unknown ZIP code")
+    return found
 
 
 @app.get("/api/story/{series_id}/{event_key}")

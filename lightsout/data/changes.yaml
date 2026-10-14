@@ -4,6 +4,30 @@
 # and `.venv/bin/python tools/release.py` publishes the day's GitHub Release.
 
 - date: 2026-10-14
+  kind: improved
+  title: Tidier filters on Upcoming
+  text: The filters on Upcoming are easier to read. The day is now one switch (Any day, Today, This weekend) so it's clear you pick one. Everything else sits behind a Filters button that shows how many are on, grouped as Watch (free to watch, Near me), Sessions and Racing type. With the panel closed, the filters you have on show as small chips under the switch, and tapping ✕ removes one.
+  link: "#/"
+
+- date: 2026-10-14
+  kind: new
+  title: Where every race is, track pages, and Near me
+  text: Races now say where they are in words you'd use, like Braselton, GA, Elkhart Lake, WI, Phillip Island, VIC or Spielberg, Austria. Tap the place to open the track's page. It shows every series racing there this season and next (not just the ones you follow), what's on in the next two weeks with the forecast, and Apple Maps and Google Maps buttons. Set a home ZIP code (or use your location) in Settings → Near me and races show how far away they are. A new Near me filter on Upcoming lists every track in range with its next race, from any series, so you can see what's worth the drive.
+  link: "#/settings/near"
+
+- date: 2026-10-14
+  kind: improved
+  title: A calmer Upcoming, and pick what each series shows
+  text: Upcoming now puts each race weekend in its own card. The series, event and where to watch appear once at the top, with one short line per session underneath, and races stand out in bold. You also choose how much of each series you see. On a series page (or next to its switch in Series), pick All sessions, Quali + races, or Races only. Follow a series casually, set it to Races only, and its practice and test sessions stop filling your list. Series pages use the same tidier layout.
+  link: "#/series"
+
+- date: 2026-10-14
+  kind: new
+  title: MotoGP, Moto2, Moto3 and five more GT championships
+  text: Bikes have arrived. MotoGP is on the schedule with every practice, qualifying, sprint and race in your time zone, plus standings, last race results, news and weather at the track, and next year's calendar is already in. Moto2 and Moto3 are there too with the same detail; switch them on in Settings. There's a new Bikes chip in the Upcoming filters. For sportscar fans there are five more SRO championships, off by default so your schedule stays tidy. The Intercontinental GT Challenge (Bathurst 12 Hour, Spa 24 Hours, Indianapolis 8 Hour), GT World Challenge America, Asia and Australia, and British GT all come with full timetables. Entry lists for the Intercontinental GT Challenge and GT World Challenge America are included, so following a driver finds them there too, and all five stream free on GT World's YouTube channel.
+  link: "#/series"
+
+- date: 2026-10-14
   kind: new
   title: Pick'em for F1, NASCAR Cup and IndyCar
   text: A new Pick'em tab. Each race has five Duels, two drivers who usually finish close (teammates, or neighbours in the championship), and you pick who ends up ahead. That's 1 point each, and tap ★ on one duel to make it your lock, worth 2 (nothing if it's wrong). You can also call the podium, P1 to P3, for 1 point per driver who makes it and 2 for the exact spot. Duels appear 10 days before each race and picks close at lights out, which is when you see what your friends picked. Every series has its own season table. Settings → Pick'em sets the name friends see.
