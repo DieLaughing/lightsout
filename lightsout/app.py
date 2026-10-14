@@ -17,7 +17,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Red
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from . import access, bugs, adapters, alerts, changes, follow, ics, news, refresh, tickets, watch, weather
+from . import access, bugs, adapters, alerts, changes, follow, ics, news, picks, refresh, tickets, watch, weather
 from .db import Store
 from .live.hub import LiveHub
 from .push import Pusher
@@ -44,6 +44,7 @@ def _cal_token() -> str:
 
 store = Store(DATA_DIR / "lightsout.db")
 bugs.init(store.conn)
+picks.init(store.conn)
 CAL_TOKEN = _cal_token()
 live = LiveHub(store)
 pusher = Pusher(DATA_DIR, access.ADMIN)
@@ -454,6 +455,8 @@ async def save_settings(request: Request):
         clean["notify"] = {k: bool((body["notify"] or {}).get(k, True)) for k in alerts.KINDS}
     if "animations" in body:
         clean["animations"] = body["animations"] is not False  # page transitions (Settings > Display)
+    if "nickname" in body:  # the name friends see on Pick'em; empty = the email's first part
+        clean["nickname"] = " ".join("".join(c for c in str(body["nickname"] or "") if c.isprintable()).split())[:24]
     store.save_settings(request.state.email, clean)
     return clean
 
@@ -619,6 +622,58 @@ def stories(series_id: str):
     rows = store.conn.execute("SELECT DISTINCT event_key FROM race_event WHERE series=? AND event_key IS NOT NULL",
                               (series_id,))
     return [r[0] for r in rows]
+
+
+# ---- Pick'em (lightsout/picks.py) -------------------------------------------------------------------
+def friend_names() -> dict[str, str]:
+    """Everyone approved: email -> the name friends see. Emails never leave the server."""
+    return {e: (st.get("nickname") or e.split("@")[0]) for e, st in store.approved_settings().items()}
+
+
+@app.get("/api/pickem")
+def pickem(request: Request, series: str = "f1", event: str | None = None):
+    if series not in picks.SERIES:
+        raise HTTPException(404)
+    me, names = request.state.email, friend_names()
+    picks.grade(store, series)
+    races = picks.races(store, series)
+    race = picks.choose(races, event)
+    out = {"series": series, "choices": list(picks.SERIES), "name": names.get(me, me.split("@")[0]),
+           "race": None, "slate": None, "board": None, "prev": None, "next": None}
+    if not race:
+        return out
+    i = races.index(race)
+    out["prev"] = races[i - 1]["event_key"] if i else None
+    out["next"] = races[i + 1]["event_key"] if i + 1 < len(races) else None
+    season = [r for r in races if r["season"] == race["season"]]
+    out["race"] = {**race, "round": season.index(race) + 1, "rounds": len(season),
+                   "opens": picks._iso(picks._parse(race["start"]) - timedelta(days=picks.OPEN_DAYS))}
+    sl = picks.slate(store, series, race)
+    out["slate"] = picks.view(store, me, sl, names) if sl else None
+    out["board"] = picks.board(store, series, race["season"], names, me)
+    return out
+
+
+@app.post("/api/pickem")
+async def pickem_save(request: Request):
+    body = await request.json()
+    series = body.get("series")
+    if series not in picks.SERIES:
+        raise HTTPException(400, "Unknown series.")
+    race = picks.choose(picks.races(store, series), str(body.get("event") or "")) if body.get("event") else None
+    sl = picks.slate(store, series, race) if race else None
+    if not sl:
+        raise HTTPException(400, "Picks aren't open for this race.")
+    try:
+        slot = int(body.get("slot"))
+    except (TypeError, ValueError):
+        raise HTTPException(400, "Unknown pick.")
+    try:
+        picks.set_pick(store, request.state.email, sl, str(body.get("kind")), slot,
+                       str(body["name"])[:80] if body.get("name") else None, bool(body.get("lock")))
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
+    return {"ok": True}
 
 
 # ---- web push ---------------------------------------------------------------------------

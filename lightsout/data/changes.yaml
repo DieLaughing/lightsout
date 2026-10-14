@@ -3,6 +3,12 @@
 # After editing: `.venv/bin/python tools/changelog.py` rewrites CHANGELOG.md (a test checks they match),
 # and `.venv/bin/python tools/release.py` publishes the day's GitHub Release.
 
+- date: 2026-10-14
+  kind: new
+  title: Pick'em for F1, NASCAR Cup and IndyCar
+  text: A new Pick'em tab. Each race has five Duels, two drivers who usually finish close (teammates, or neighbours in the championship), and you pick who ends up ahead. That's 1 point each, and tap ★ on one duel to make it your lock, worth 2 (nothing if it's wrong). You can also call the podium, P1 to P3, for 1 point per driver who makes it and 2 for the exact spot. Duels appear 10 days before each race and picks close at lights out, which is when you see what your friends picked. Every series has its own season table. Settings → Pick'em sets the name friends see.
+  link: "#/picks"
+
 - date: 2026-10-13
   kind: new
   title: GT World Challenge standings and results
