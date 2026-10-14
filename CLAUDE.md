@@ -19,6 +19,20 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
 - `/` serves index.html with versioned asset URLs (Cloudflare caches .js otherwise). web/sw.js caches the shell and
   shows web/offline.html when the server can't be reached (Cloudflare 502/530).
 
+## Speed and navigation (2026-10-13)
+- Server: GZip on responses; gate() keeps finished, gzipped answers for READY_PATHS (same for everyone; /api/wire per
+  person) for READY_TTL (30 s); /api/live, /api/events/, /api/story/ are never kept (they move during races). Requests
+  over 0.5 s are logged ("slow request"). WAL + synchronous=NORMAL; the refresh loop (every 120 s) runs PASSIVE
+  checkpoints on its own connection (Store.checkpoint) with automatic checkpoints off, so no request waits on one.
+- Phone: api() keeps GET_CACHE; fast(path) waits up to FRESH_WAIT (150 ms) for fresh data, else draws the phone's copy
+  and redraws once quietly (route(true): no animation) if it differs. prefetch() after startup and every 90 s (home
+  sessions, default Wire, standings, entries, names). Startup loads settings, What's new and the series list at once;
+  the home page uses the known follow status and refreshes it behind the scenes. showLoading() paints after 350 ms.
+- Navigation: bottom .tabbar (#tabs; icons + labels; one .tab-pill moved by movePill()), Settings = gear .top-link,
+  Admin is a link in Settings. Scrolling down folds the tab icons (.compact) and slides the header off (.tucked);
+  any scroll up restores both. Slapshot page animation (Web Animations API, whole-pixel translate) when a navigation's
+  content lands in #view; off with settings.animations = false or prefers-reduced-motion. backLink() has a chevron.
+
 ## Access
 - Cloudflare Access signs people in (one-time PIN) and passes a signed JWT; lightsout/access.py verifies it against the
   team's certs (LIGHTSOUT_ACCESS_TEAM / _AUD). Anyone with an email gets that far; the app keeps its own approved list
