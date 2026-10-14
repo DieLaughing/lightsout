@@ -77,3 +77,18 @@ def test_group_invite(client):
     assert [u["email"] for u in inv["uses"]] == ["a@example.com", "b@example.com"] and inv["max_uses"] == 2
     c.delete(f"/api/admin/invites/{code}")
     assert app_module.store.invite(code)["max_uses"] == 2  # used invites close, they don't vanish
+
+
+def test_heavy_answers_are_reused_and_gzipped(client):
+    c, who, sent, app_module = client
+    who["email"] = "owner@example.com"
+    app_module._ready.clear()
+    r1 = c.get("/api/series", headers={"Accept-Encoding": "gzip"})
+    small = len(r1.content) <= 1500                                            # small answers go out as they are
+    assert r1.status_code == 200 and (r1.headers.get("content-encoding") == "gzip") != small and isinstance(r1.json(), list)
+    assert any(k[0] == "/api/series" for k in app_module._ready)          # kept for the next asker
+    r2 = c.get("/api/series", headers={"Accept-Encoding": "identity"})
+    assert "content-encoding" not in r2.headers and r2.json() == r1.json()
+    assert not any(k[0].startswith("/api/live") for k in app_module._ready)
+    who["email"] = None
+    assert c.get("/api/series").status_code == 401                        # the cache never skips the sign-in check

@@ -70,12 +70,20 @@ async def refresh_due(store: Store, startup: bool = False) -> None:
     await asyncio.gather(*(one(sid) for sid in due))
 
 
+CHECKPOINT_EVERY = 120  # seconds between refresh checks (and WAL checkpoints); sources keep their own schedules
+
+
 async def loop(store: Store) -> None:
     startup = True  # after a deploy, retry failed sources straight away
+    store.manual_checkpoints()  # checkpoints happen here between passes, never inside a request's save
     while True:
         try:
             await refresh_due(store, startup)
             startup = False
         except Exception:
             log.exception("refresh loop error")
-        await asyncio.sleep(300)
+        try:
+            await asyncio.to_thread(store.checkpoint)
+        except Exception as exc:
+            log.warning("checkpoint failed: %r", exc)
+        await asyncio.sleep(CHECKPOINT_EVERY)
