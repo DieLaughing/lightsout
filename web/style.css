@@ -145,7 +145,9 @@ input:disabled { opacity: .6; }
 .standings .srow:first-child { border-top: 0; }
 .standings .pos { text-align: right; font-weight: 700; color: var(--muted); }
 .standings .who { min-width: 0; display: flex; flex-direction: column; }
-.standings .who b, .standings .who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.standings .who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Names may wrap to a second line: GT crews are two or three drivers ("A / B / C"). */
+.standings .who b { overflow-wrap: anywhere; line-height: 1.25; }
 .standings .who span { font-size: 12px; }
 .standings .num { text-align: right; font-size: 13px; white-space: nowrap; }
 .standings .pts { font-weight: 700; }
