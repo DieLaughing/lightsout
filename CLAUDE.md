@@ -54,7 +54,8 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
 - Settings (follows, series, calendar kinds, alert switches) live in user.settings; PUT /api/settings keeps only the
   keys sent. New series are switched on once for people with a saved series list (settings.seenSeries,
   web/app.js switchOnNewSeries).
-- Standings + last race: F1, F2, F3, F1 Academy, IndyCar, Formula E, GTWCE (Cups/classes as a class picker), WRC (WRC2/WRC3/Junior/Masters as a class picker),
+- Standings + last race: F1, F2, F3, F1 Academy, IndyCar, Formula E, GTWCE (Cups/classes as a class picker),
+  WRC (WRC2/WRC3/Junior/Masters as a class picker),
   NASCAR. IndyCar publishes no team championship. NASCAR's official results (weekend feed) can lag a day or more;
   until then Last race comes from the race's final timing feed (live/feeds/series_<n>/<race>/live_feed.json),
   labelled unofficial. Standings tab (#/standings/<series>/<drivers|teams|last>) and series pages share
