@@ -54,7 +54,7 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
 - Settings (follows, series, calendar kinds, alert switches) live in user.settings; PUT /api/settings keeps only the
   keys sent. New series are switched on once for people with a saved series list (settings.seenSeries,
   web/app.js switchOnNewSeries).
-- Standings + last race: F1, F2, F3, F1 Academy, IndyCar, Formula E, WRC (WRC2/WRC3/Junior/Masters as a class picker),
+- Standings + last race: F1, F2, F3, F1 Academy, IndyCar, Formula E, GTWCE (Cups/classes as a class picker), WRC (WRC2/WRC3/Junior/Masters as a class picker),
   NASCAR. IndyCar publishes no team championship. NASCAR's official results (weekend feed) can lag a day or more;
   until then Last race comes from the race's final timing feed (live/feeds/series_<n>/<race>/live_feed.json),
   labelled unofficial. Standings tab (#/standings/<series>/<drivers|teams|last>) and series pages share
@@ -99,6 +99,11 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
   gt-world-challenge-europe.com: /calendar (upcoming cards + a separate "past events" list; cross-month dates repeat
   the year), /event/<id>/<slug> timetables (GMT column = UTC; Bronze Test dropped), /entry-list/<year>/<slug>.
   Endurance races 3 h, Spa 24 h, Sprint 1 h. Other SRO series use the same site template.
+  Standings (gtwce.standings): /standings?filter_standing_type=<cup>_<class>_<drivers|teams> (cup 0 overall, 42 Endurance,
+  43 Sprint; class 81 Gold, 82 Silver, 80 Bronze); every driver of a crew has a row, merged into "A / B" (crews()).
+  Overall = drivers/teams, Endurance/Sprint/Gold/Silver/Bronze = classes. Last race = the newest round's last race
+  classification (/results -> round page -> race-1|race-2|main-race); teams and name spellings for the crews come from
+  the newest Sprint and Endurance classifications (standings write 'VAN DER LINDE').
 - NLS (`nls`, lightsout/adapters/nls.py): WordPress /wp-json API. This year = page
   calendar-nurburgring-langstrecken-serie-<year> (one race per date; split at dates, "(2x4h)" beats "24h" in a name);
   next year until that page exists = the news post announcing the dates. No timetable or entry lists; drivers are
