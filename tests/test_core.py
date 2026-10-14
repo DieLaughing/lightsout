@@ -419,3 +419,20 @@ def test_event_keywords_skip_generic_words():
     from lightsout.app import _keywords
     assert _keywords({"name": "United States Grand Prix", "venue": "Circuit of the Americas"}) >= {"austin", "americas"}
     assert "grand" not in _keywords({"name": "Brazilian Grand Prix", "venue": "Interlagos"})
+
+
+def test_gtwce_standings_and_results():
+    from lightsout.adapters import gtwce as g
+    rows = g.parse_standings(_gtwce("gtwce_standings_drivers.html"))
+    assert rows[0][0] == 1 and rows[0][0] == rows[1][0] and rows[0][2] == rows[1][2]   # a crew shares a row each
+    known = {"lucas auer": ("Lucas Auer", "Winward Racing")}
+    crew = g.crews(rows, known)[0]
+    assert " / " in crew.name and crew.team == "Winward Racing"
+    rounds = g.parse_results_index(_gtwce("gtwce_results_index.html"), 2026)
+    assert rounds[0].endswith("circuit-paul-ricard") and not any("test" in r for r in rounds)
+    page = _gtwce("gtwce_results_round.html")
+    assert g.round_name(page) == "Barcelona"
+    assert g.race_sessions(page, "/results/2026/barcelona") == ["race-1", "race-2"]
+    res = g.result_rows(g.parse_classification(page))
+    assert res[0].pos == "1" and res[0].time.endswith("laps") and res[0].team.startswith("#69 ")
+    assert res[1].time.startswith("+") and res[-1].pos == res[-1].time == "NC"
