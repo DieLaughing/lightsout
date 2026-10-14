@@ -114,6 +114,15 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
   Overall = drivers/teams, Endurance/Sprint/Gold/Silver/Bronze = classes. Last race = the newest round's last race
   classification (/results -> round page -> race-1|race-2|main-race); teams and name spellings for the crews come from
   the newest Sprint and Endurance classifications (standings write 'VAN DER LINDE').
+- Other SRO championships (`igtc`, `gtwcam`, `gtwcasia`, `gtwcau`, `britgt`; adapter `sro` = gtwce.fetch, sites in
+  gtwce.SITES): calendar + timetables (America prints 12-hour clocks; autograph/pit-walk rows dropped by OFF_TRACK) +
+  entry lists from /entry-lists, matched to rounds by shared words (slugs differ). Asia/Australia/British GT publish
+  entry lists only as PDFs, so no grids there yet. No standings: each site's tables differ. Off by default.
+- MotoGP / Moto2 / Moto3 (`motogp`, `moto2`, `moto3`; lightsout/adapters/motogp.py): api.motogp.pulselive.com.
+  /events?seasonYear= (kind GP; sessions = broadcasts of type SESSION per class acronym MGP/MT2/MT3; races listed
+  with end = start, so LENGTH sets 25/45 min), /riders (current_career_step), /results/* for standings + last race
+  (no team table in the API). Next season's GPs show as "Race weekend" until timetables are out. Live timing is the
+  paid TimingPass, so no timing link. Category `bikes`; only MotoGP on by default.
 - NLS (`nls`, lightsout/adapters/nls.py): WordPress /wp-json API. This year = page
   calendar-nurburgring-langstrecken-serie-<year> (one race per date; split at dates, "(2x4h)" beats "24h" in a name);
   next year until that page exists = the news post announcing the dates. No timetable or entry lists; drivers are
