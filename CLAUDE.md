@@ -90,6 +90,15 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
   last_event is this event, Race story flag, other series at the same place (weather place, dates ±1 day) and news
   (series-tagged, -10/+4 days, mentioning a keyword from the name/venue/place terms minus GENERIC words).
 
+- Pick'em (#/picks/<series>/<event_key>, lightsout/picks.py, tables pick_race + race_pick): F1, NASCAR Cup, IndyCar
+  (picks.SERIES). Per race (kind race, first race of a double-header): DUELS = 5 head-to-heads drawn OPEN_DAYS (10)
+  before the start from the standings + Last race field (up to 3 teammate battles, then non-teammates up to 2
+  championship places apart, closest on points; back-of-field battles cost more), then frozen with the field. Duel =
+  1 point, one lock per race 2/0; void when one didn't race or both retired. Podium call P1-P3: 1 per driver on the
+  podium, 2 for the exact spot. Picks close at the race start; friends' picks show from then. Scored by picks.grade()
+  after each standings save (and on GET /api/pickem) when the standings' last_event matches the race (loose name/venue
+  match) and was saved after the start; re-scored for 7 days (NASCAR official results replace unofficial). Tables per
+  series per season. Names = settings.nickname or the email's first part (friend_names()); emails never sent.
 - Bug reports (#/report, footer link on every page, Settings > Your reports): lightsout/bugs.py files anonymous GitHub
   issues (labels from-app + bug|enhancement; @mentions broken; page/device/version table) with LIGHTSOUT_GITHUB_TOKEN
   (fine-grained, Issues read/write); bug_report table keeps who sent what; /api/bugs refreshes state + the

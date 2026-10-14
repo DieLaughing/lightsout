@@ -3,6 +3,10 @@
 Every update to [Lights Out](https://github.com/DieLaughing/lightsout), newest first. The same list is on the app's What's new page.
 This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit that file, not this one.
 
+## October 14, 2026
+
+- **New: Pick'em for F1, NASCAR Cup and IndyCar.** A new Pick'em tab. Each race has five Duels, two drivers who usually finish close (teammates, or neighbours in the championship), and you pick who ends up ahead. That's 1 point each, and tap ★ on one duel to make it your lock, worth 2 (nothing if it's wrong). You can also call the podium, P1 to P3, for 1 point per driver who makes it and 2 for the exact spot. Duels appear 10 days before each race and picks close at lights out, which is when you see what your friends picked. Every series has its own season table. Settings → Pick'em sets the name friends see.
+
 ## October 13, 2026
 
 - **New: GT World Challenge standings and results.** GT World Challenge Europe now has standings and results like the other big series. The Drivers tab shows the overall championship by crew (the two or three drivers who share a car), with chips for the Endurance Cup, the Sprint Cup and the Gold, Silver and Bronze classes; Teams shows the teams' championship; Last race has the full finishing order with car number, team and class.
