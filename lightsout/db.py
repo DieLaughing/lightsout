@@ -81,6 +81,7 @@ def _iso(dt: datetime | None) -> str | None:
 class Store:
     def __init__(self, path: Path):
         path.parent.mkdir(parents=True, exist_ok=True)
+        self.path = path
         self.conn = sqlite3.connect(path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.lock = threading.Lock()  # request handlers run in threads; serialise the access writes
@@ -100,6 +101,18 @@ class Store:
                 self.conn.execute("ALTER TABLE invite ADD COLUMN max_uses INTEGER NOT NULL DEFAULT 1")
                 self.conn.execute("INSERT OR IGNORE INTO invite_use (code, email, used_at) "
                                   "SELECT code, used_by, used_at FROM invite WHERE used_by IS NOT NULL")
+
+    # ---- checkpoints off the request path ------------------------------------------------------
+    def manual_checkpoints(self) -> None:
+        """Stop SQLite folding the WAL back into the database inside whichever save triggers it (on a USB drive that
+        save could wait hundreds of ms). The refresh loop calls checkpoint() between passes instead."""
+        self.conn.execute("PRAGMA wal_autocheckpoint=0")
+
+    def checkpoint(self) -> tuple:
+        """A PASSIVE checkpoint on its own connection: never blocks readers or writers. Run it in a thread."""
+        if getattr(self, "_ckpt", None) is None:
+            self._ckpt = sqlite3.connect(self.path, check_same_thread=False)
+        return tuple(self._ckpt.execute("PRAGMA wal_checkpoint(PASSIVE)").fetchone())
 
     def save(self, series: str, result: AdapterResult) -> tuple[int, int]:
         """Replace every event of the covered seasons for this series."""

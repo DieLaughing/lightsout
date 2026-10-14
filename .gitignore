@@ -6,5 +6,6 @@ __pycache__/
 .pytest_cache/
 .env
 deploy.env
+deploy.*.env
 CLAUDE.local.md
 .cloudflare/
