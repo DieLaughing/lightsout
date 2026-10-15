@@ -463,8 +463,8 @@ a.item { text-decoration: none; color: inherit; }
   background: linear-gradient(160deg, color-mix(in srgb, var(--tc) 30%, var(--surface)) 0%, var(--surface) 68%); }
 .heroes .hero:only-child { flex-basis: 100%; }
 @media (pointer: fine) and (min-width: 760px) {
-  .heroes { flex-wrap: wrap; overflow: visible; }
-  .hero { flex: 1 1 300px; max-width: 480px; }
+  .heroes { display: grid; grid-template-columns: 1fr 1fr; overflow: visible; }
+  .heroes.odd > .hero:first-child { grid-column: 1 / -1; }
 }
 .hero > :not(.hero-bg) { position: relative; }
 .hero-bg { position: absolute; top: -14px; left: -6px; font-size: 104px; font-weight: 900; letter-spacing: -.05em; line-height: 1;

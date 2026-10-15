@@ -327,7 +327,7 @@ function heroCards(cards) {
   const hidden = dismissed();
   const byName = new Map();
   for (const c of cards || []) byName.set(c.name, [...(byName.get(c.name) || []), c]);
-  const html = FOLLOW_STATUS.flatMap(f => {
+  const items = FOLLOW_STATUS.flatMap(f => {
     const news = f.new.filter(n => !hidden.has(newKey(f.name, n))).map(n => `<div class="news">NEW · ${n.kind === "entry"
       ? `Entered ${esc(n.event_name)}` : `Joined the ${esc(BY_ID[n.series]?.name || n.series)} grid`}
       <button class="link" data-dismiss="${esc(newKey(f.name, n))}" aria-label="Dismiss">✕</button></div>`).join("");
@@ -356,8 +356,9 @@ function heroCards(cards) {
         <div class="hero-stats">${stats}</div>
         ${formBars(c.form)}${foot(i === 0)}</div>`;
     });
-  }).join("");
-  return `<div class="heroes">${html}</div>`;
+  });
+  // Two columns with a mouse: an odd count makes your first follow a full-width card, so no row is left half empty.
+  return `<div class="heroes${items.length % 2 ? " odd" : ""}">${items.join("")}</div>`;
 }
 const pts = p => Number.isInteger(p) ? String(p) : Number(p).toFixed(1);
 
