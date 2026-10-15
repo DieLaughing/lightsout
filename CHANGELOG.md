@@ -5,7 +5,7 @@ This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit th
 
 ## October 15, 2026
 
-- **Fixed: Right team names, everywhere.** Liam Lawson showed as Red Bull in the F1 standings because of his three-race stint there; drivers now show the team they raced for most recently, so a one-off swap shows for that week and then goes back. Teams also use their proper names (Red Bull Racing, Racing Bulls, Alpine, Haas, Cadillac), Formula E teams no longer appear twice in capitals, MotoGP classes lost some doubled names, NASCAR standings name the team as well as the make, and GT World Challenge America's entry lists show teams instead of drivers in the team column.
+- **Fixed: Right team names, everywhere.** Liam Lawson showed as Red Bull in the F1 standings because of his three-race stint there; drivers now show the team they raced for most recently, so a one-off swap shows for that week and then goes back. Teams also use their proper names (Red Bull Racing, Racing Bulls, Alpine, Haas, Cadillac), Formula E teams no longer appear twice in capitals, MotoGP classes lost some doubled names, NASCAR standings name the team as well as the make, GT World Challenge America's entry lists show teams instead of drivers in the team column, and F2 and F3 drivers now show their team in the standings, the last race and driver pages.
 
 ## October 14, 2026
 

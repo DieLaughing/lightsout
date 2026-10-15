@@ -41,7 +41,7 @@ async def refresh_series(store: Store, series_id: str) -> None:
         try:
             st = await module.standings(series_id)
             if st and (st.drivers or st.last_results):
-                grid = {e["name"]: e["team"] for e in store.entries() if e["series"] == series_id and e.get("team")}
+                grid = {e["name"]: e["team"] for e in store.entries(series_id) if e.get("team")}
                 store.save_standings(series_id, teamnames.standings(series_id, st, grid))
                 picks.grade(store, series_id)  # a new Last race scores that race's Pick'em
                 season = season_of(st.season_label)

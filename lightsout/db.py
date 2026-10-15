@@ -198,7 +198,9 @@ class Store:
                 "SELECT * FROM session WHERE series=? AND event_key=? ORDER BY sort_utc", (series, r["key"]))]
         return rows
 
-    def entries(self) -> list[dict]:
+    def entries(self, series: str | None = None) -> list[dict]:
+        if series:
+            return [dict(r) for r in self.conn.execute("SELECT * FROM entry WHERE series=? ORDER BY name", (series,))]
         return [dict(r) for r in self.conn.execute("SELECT * FROM entry ORDER BY series, name")]
 
     def save_standings(self, series: str, st: Standings) -> None:

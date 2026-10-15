@@ -39,7 +39,7 @@ def tidy(series: str, name: str) -> str:
 
 def entries(series: str, rows: list[Entry]) -> list[Entry]:
     for e in rows:
-        e.team = tidy(series, e.team)
+        e.name, e.team = _clean(e.name), tidy(series, e.team)  # F1 Academy's grid has "Alisha  Palmowski"
     return rows
 
 

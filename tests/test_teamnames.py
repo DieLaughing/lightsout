@@ -1,6 +1,9 @@
 """Team names: one spelling per team, the F1 seat a driver holds now, and SRO entry lists in either column order."""
 from lightsout import teamnames
-from lightsout.adapters import f1, gtwce
+import base64
+import json
+
+from lightsout.adapters import f1, fia_feeder, gtwce
 from lightsout.models import Entry, ResultRow, StandingRow, Standings
 
 
@@ -40,3 +43,12 @@ def test_sro_entry_lists_in_either_column_order():
     assert gtwce.parse_entry_list(europe)[0]["team"] == "Team WRT"
     row = gtwce.parse_entry_list(america)[0]
     assert row["team"] == "AF Corse USA" and row["drivers"] == ["Matias Perez Companc", "Frederik Schandorff"]
+
+
+def test_f2_f3_teams_come_from_the_driver_cards():
+    tag = base64.b64encode(json.dumps({"driver_team": "Invicta Racing"}).encode()).decode()
+    page = (f'<a data-uds-a7s-context="{tag}" class="x" href="/en/drivers/rafael-camara"><p>Rafael</p><p>Câmara</p></a>'
+            '<a data-uds-a7s-context="!!" href="/en/drivers/no-team"><p>No</p><p>Team</p></a>'
+            '<a href="/en/drivers/rafael-camara"><p>R. Câmara</p></a>')
+    assert [(e.name, e.team) for e in fia_feeder.parse_drivers(page)] == [("Rafael Câmara", "Invicta Racing"), ("No Team", "")]
+    assert teamnames.entries("f1a", [Entry("Alisha  Palmowski ", "Campos Racing")])[0].name == "Alisha Palmowski"
