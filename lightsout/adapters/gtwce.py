@@ -33,7 +33,8 @@ def _text(fragment: str) -> str:
 
 def _person(name: str) -> str:
     """'Max VERSTAPPEN' -> 'Max Verstappen'; keeps 'van der', 'de' etc. as written."""
-    return " ".join(w if not w.isupper() or len(w) <= 1 else w.capitalize() for w in _text(name).split())
+    # America marks some drivers with "***" (a footnote on its site).
+    return " ".join(w if not w.isupper() or len(w) <= 1 else w.capitalize() for w in _text(name).rstrip("*").split())
 
 
 # Sister SRO championships on the same site template: (site, usual race length). Their standings pages differ from
@@ -167,14 +168,19 @@ def parse_timetable(page: str, year: int, cup: str, event_name: str, usual: time
 
 
 def parse_entry_list(page: str) -> list[dict]:
-    """Rows of the entry table: number, team, drivers, car, class."""
+    """Rows of the entry table: number, team, drivers, car, class. Column order differs between sites (Europe: Car #,
+    Team, Driver 1..n, Car, Class; America: Car #, Driver 1, Driver 2, Team, Car, Class), so the header decides
+    which column is the team; without one, the Europe order."""
+    heads = [_text(h).lower() for h in re.findall(r"<th[^>]*>(.*?)</th>", page, re.S)]
+    team_col = heads.index("team") if "team" in heads else 1
     out = []
     for row in re.findall(r"<tr>(.*?)</tr>", page, re.S):
         cells = re.findall(r"<td[^>]*>(.*?)</td>", row, re.S)
-        if len(cells) < 5 or not _text(cells[0]).isdigit():
+        if len(cells) < 5 or not _text(cells[0]).isdigit() or team_col >= len(cells) - 2:
             continue
-        drivers = [_person(c) for c in cells[2:-2] if _text(c) and _text(c).upper() != "TBA"]
-        out.append({"number": _text(cells[0]), "team": tidy_caps(_text(cells[1])), "drivers": drivers,
+        drivers = [_person(c) for i, c in enumerate(cells[1:-2], 1)
+                   if i != team_col and re.search(r"[^\W\d_]", _text(c)) and _text(c).upper() != "TBA"]  # not "/" or TBA
+        out.append({"number": _text(cells[0]), "team": tidy_caps(_text(cells[team_col])), "drivers": drivers,
                     "car": _text(cells[-2]), "class": _text(cells[-1]).title()})
     return out
 
