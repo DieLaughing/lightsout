@@ -320,6 +320,77 @@ window.addEventListener("scroll", () => {
 }, { passive: true });
 
 // ---- views ------------------------------------------------------------------
+// ---- Following: one hero card per championship each followed name is in ------------------------------------
+// Big points, position, wins (where the series publishes them) and season form, coloured by team (colors.yaml).
+// Names with no championship row (pick-your-events rallies, one-off entries) get a slim card with what's next.
+function heroCards(cards) {
+  const hidden = dismissed();
+  const byName = new Map();
+  for (const c of cards || []) byName.set(c.name, [...(byName.get(c.name) || []), c]);
+  const html = FOLLOW_STATUS.flatMap(f => {
+    const news = f.new.filter(n => !hidden.has(newKey(f.name, n))).map(n => `<div class="news">NEW · ${n.kind === "entry"
+      ? `Entered ${esc(n.event_name)}` : `Joined the ${esc(BY_ID[n.series]?.name || n.series)} grid`}
+      <button class="link" data-dismiss="${esc(newKey(f.name, n))}" aria-label="Dismiss">✕</button></div>`).join("");
+    const pend = f.pending?.[0];
+    const next = f.next ? `Next: <b>${esc(f.next.event_name)}</b> · ${esc(f.next.name)} · ${esc(dayLabel(localDay(f.next)))}`
+      : pend ? `Registered for ${esc(BY_ID[pend.series]?.short)} · next rally ${esc(pend.event_name)}, ${esc(dayLabel(pend.day))} (entry list not out yet)`
+      : f.found.length ? "Nothing scheduled yet" : "Not on any current grid or published entry list. Still watching every series.";
+    const href = `#/driver/${encodeURIComponent(f.name)}`;
+    const mine = byName.get(f.name) || [];
+    const foot = (first) => `<div class="hero-foot">${first ? news : ""}<div class="hero-next">${next}</div></div>`;
+    if (!mine.length) {
+      return [`<div class="hero slim" data-href="${href}" style="--tc:${esc(BY_ID[f.series[0]]?.color || "var(--muted)")}">
+        <div class="hero-top">${f.series.map(chip).join(" ")}</div>
+        <a class="hero-name who-link" href="${href}"><b>${esc(f.name)}</b> ›</a>${foot(true)}</div>`];
+    }
+    return mine.map((c, i) => {
+      const last = (c.row || c.name).trim().split(/\s+/).pop().toLowerCase();
+      const stats = [`<span><b>P${c.pos}</b> ${c.kind === "class" ? "in class" : c.kind === "team" ? "teams" : "drivers"}</span>`,
+        c.wins != null ? `<span><b>${c.wins}</b> ${c.wins === 1 ? "win" : "wins"}</span>` : "",
+        c.behind != null ? `<span class="muted">−${pts(c.behind)} to the leader</span>` : c.pos === 1 ? `<span class="muted">Leading</span>` : ""].join("");
+      return `<div class="hero" data-href="${href}" style="--tc:${esc(c.color)}">
+        <span class="hero-bg" aria-hidden="true">${esc(last)}</span>
+        <div class="hero-top">${chip(c.series)}${c.team ? `<span class="hero-team">${esc(c.team)}</span>` : ""}</div>
+        <a class="hero-name who-link" href="${href}"><b>${esc(c.row || c.name)}</b> ›</a>
+        <div class="hero-pts"><b>${pts(c.points)}</b><span>PTS</span></div>
+        <div class="hero-stats">${stats}</div>
+        ${formBars(c.form)}${foot(i === 0)}</div>`;
+    });
+  }).join("");
+  return `<div class="heroes">${html}</div>`;
+}
+const pts = p => Number.isInteger(p) ? String(p) : Number(p).toFixed(1);
+
+// Season form: a bar per round, tall for a good day. Points when the series scores rounds, else finishing position.
+function formBars(form) {
+  if (!form?.length || form.length < 2) return "";
+  const scored = form.some(r => r.points > 0);
+  const top = Math.max(...form.map(r => scored ? r.points : 0), 1);
+  const field = Math.max(...form.map(r => parseInt(r.pos) || 0), 1);
+  const bars = form.slice(-24).map(r => {
+    const p = parseInt(r.pos);
+    const h = !r.pos ? 0 : scored ? r.points / top : p ? (field + 1 - p) / field : 0;
+    const label = `${r.event}: ${!r.pos ? "didn't race" : p ? `P${p}` : r.pos}${scored && r.pos ? `, ${pts(r.points)} pts` : ""}`;
+    return `<i class="${!r.pos ? "miss" : p === 1 ? "win" : ""}" style="--h:${Math.max(h, .06).toFixed(3)}" title="${esc(label)}"></i>`;
+  }).join("");
+  return `<div class="form" role="img" aria-label="Season form, ${form.length} rounds">${bars}</div>`;
+}
+
+// Next up: a big countdown to the next timed session, from the series you follow when there are any.
+function countdown(upcoming, followed) {
+  const now = Date.now();
+  const timed = upcoming.filter(s => s.start_utc && Date.parse(s.start_utc) > now);
+  const s = timed.find(x => followed.has(x.series)) || timed[0];
+  if (!s) return "";
+  const mins = Math.max(0, Math.floor((Date.parse(s.start_utc) - now) / 60000));
+  const d = Math.floor(mins / 1440), h = Math.floor(mins % 1440 / 60), m = mins % 60;
+  const part = (n, u) => `<b>${String(n).padStart(2, "0")}</b><small>${u}</small>`;
+  const time = d ? part(d, "d") + part(h, "h") + part(m, "min") : h ? part(h, "h") + part(m, "min") : part(m, "min");
+  return `<a class="countdown" href="#/event/${esc(s.series)}/${encodeURIComponent(s.event_key)}" style="--tc:${esc(BY_ID[s.series]?.color || "var(--accent)")}">
+    <div class="cd-label">${chip(s.series)} <span><b>${esc(s.event_name)}</b> · ${esc(s.name)} starts in</span></div>
+    <div class="cd-time">${time}</div></a>`;
+}
+
 async function homeView() {
   setNav("home");
   const ids = enabledSeries();
@@ -332,7 +403,8 @@ async function homeView() {
     const before = JSON.stringify(FOLLOW_STATUS);
     loadFollowStatus().then(now => { if (JSON.stringify(now) !== before && (location.hash || "#/") === "#/") route(true); });
   }
-  const [sessions, allFeeds] = await Promise.all([fast(`/api/sessions?series=${ids.join(",")}`), fast("/api/live").catch(() => [])]);
+  const [sessions, allFeeds, cards] = await Promise.all([fast(`/api/sessions?series=${ids.join(",")}`), fast("/api/live").catch(() => []),
+    follows().length ? fast("/api/cards").catch(() => []) : []]);
   const followed = followedSeries();
   const live = sessions.filter(isLive);
   let html = "";
@@ -348,24 +420,11 @@ async function homeView() {
     html += `<h2>Live now</h2><div class="evcs">${eventCards(live, followed)}</div>`;
   }
 
-  if (follows().length) {
-    const hidden = dismissed();
-    const rows = FOLLOW_STATUS.map(f => {
-      const news = f.new.filter(n => !hidden.has(newKey(f.name, n)));
-      const pend = f.pending?.[0];
-      const next = f.next ? `Next: ${esc(f.next.event_name)} · ${esc(f.next.name)} · ${esc(dayLabel(localDay(f.next)))}`
-        : pend ? `Registered for ${esc(BY_ID[pend.series]?.short)} · next rally ${esc(pend.event_name)}, ${esc(dayLabel(pend.day))} (entry list not out yet)`
-        : f.found.length ? "Nothing scheduled yet" : "Not on any current grid or published entry list. Still watching every series.";
-      return `<div class="item"><div style="flex:1"><div class="ev"><a class="who-link" href="#/driver/${encodeURIComponent(f.name)}"><b>${esc(f.name)}</b> ›</a> ${f.series.map(chip).join(" ")}</div>
-        ${news.map(n => `<div class="news">NEW · ${n.kind === "entry" ? `Entered ${esc(n.event_name)}` : `Joined the ${esc(BY_ID[n.series]?.name || n.series)} grid`}
-          <button class="link" data-dismiss="${esc(newKey(f.name, n))}" aria-label="Dismiss">✕</button></div>`).join("")}
-        <div class="muted small">${next}</div></div></div>`;
-    }).join("");
-    html += `<h2>Following</h2><div class="card">${rows}</div>`;
-  }
+  if (follows().length) html += `<h2>Following</h2>${heroCards(cards)}`;
 
   const today = localDay({ start_utc: new Date().toISOString() });
   const upcoming = sessions.filter(s => !isLive(s) && shows(s) && (s.start_utc ? Date.parse(s.end_utc) > Date.now() : (s.end_day || s.day) >= today));
+  html += countdown(upcoming, followed);
   if (upcoming.length) html += filterBar(upcoming);
   html += `<div id="upcoming">${upcomingList(upcoming, followed, today)}</div>`;
   const banner = await getAppBanner().catch(() => "");
@@ -377,8 +436,12 @@ async function homeView() {
     try { localStorage.setItem("getappHidden", "true"); } catch { /* fine */ }
     view.querySelector(".getapp")?.remove();
   });
-  view.querySelectorAll("[data-dismiss]").forEach(b => b.addEventListener("click", () => {
-    store.set("dismissed", [...dismissed(), b.dataset.dismiss]); homeView();
+  view.querySelectorAll("[data-dismiss]").forEach(b => b.addEventListener("click", e => {
+    e.stopPropagation(); store.set("dismissed", [...dismissed(), b.dataset.dismiss]); homeView();
+  }));
+  // The whole card opens the driver page; its buttons (dismiss) and links keep their own job.
+  view.querySelectorAll(".hero[data-href]").forEach(c => c.addEventListener("click", e => {
+    if (!e.target.closest("a, button")) location.hash = c.dataset.href;
   }));
   wireFilters(upcoming, followed, today);
 }
@@ -715,16 +778,18 @@ const TEAMS_NOTE = {
   gtwce: "Only teams entered for the teams' championship are listed. Some cars, like Mercedes-AMG Team Verstappen Racing, score only in the drivers' standings.",
 };
 
+// Team colour on a standings row (from /api/series/<id>/standings; colors.yaml, else the series colour).
+const tc = r => r.color ? ` style="--tc:${esc(r.color)}"` : "";
+
 function standingsBody(id, tab, st) {
   const s = BY_ID[id];
   const mine = new Set(follows().map(f => normalise(f.name)));
   const isMine = (...names) => names.some(n => n && mine.has(normalise(n)));
-  const pts = p => Number.isInteger(p) ? p : p.toFixed(1);
   const updated = st.updated ? `Updated ${new Date(st.updated).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}` : "";
   if (tab === "last") {
     return st.last_results?.length ? `<p class="muted small">${[st.last_event, st.last_session, updated].filter(Boolean).map(esc).join(" · ")}</p>
-      <div class="card standings">${st.last_results.map(r => `<div class="srow${isMine(r.name, r.team) ? " followed" : ""}">
-        <span class="pos">${esc(r.pos)}</span><span class="who"><b>${esc(r.name)}</b><span class="muted">${esc(r.team)}</span></span>
+      <div class="card standings">${st.last_results.map(r => `<div class="srow${isMine(r.name, r.team) ? " followed" : ""}"${tc(r)}>
+        <span class="pos">${esc(r.pos)}</span><span class="who"><b>${esc(r.name)}</b><span class="tteam">${esc(r.team)}</span></span>
         <span class="num">${esc(r.time)}</span><span class="num pts">${r.points ? pts(r.points) : ""}</span></div>`).join("")}</div>`
       : `<div class="empty">No race results yet.</div>`;
   }
@@ -735,8 +800,8 @@ function standingsBody(id, tab, st) {
   const picker = classes.length ? `<div class="chips">${[s.short, ...classes].map((c, i) =>
     `<button class="chip-btn${(i === 0 ? !cls : c === cls) ? " active" : ""}" data-class="${i === 0 ? "" : esc(c)}" data-for="${id}">${esc(c)}</button>`).join("")}</div>` : "";
   return rows?.length ? `${picker}<p class="muted small">${esc(st.season_label)} · ${updated}</p>
-    <div class="card standings">${rows.map(r => `<div class="srow${isMine(r.name, tab === "teams" ? r.name : null) ? " followed" : ""}">
-      <span class="pos">${r.pos}</span><span class="who"><b>${esc(r.name)}</b><span class="muted">${esc(r.team)}</span></span>
+    <div class="card standings">${rows.map(r => `<div class="srow${isMine(r.name, tab === "teams" ? r.name : null) ? " followed" : ""}"${tc(r)}>
+      <span class="pos">${r.pos}</span><span class="who"><b${tab === "teams" ? ` class="tteam-name"` : ""}>${esc(r.name)}</b><span class="tteam">${esc(r.team)}</span></span>
       <span class="num muted">${r.pos > 1 ? `−${pts(lead - r.points)}` : ""}</span><span class="num pts">${pts(r.points)}</span></div>`).join("")}</div>
     ${tab === "teams" && TEAMS_NOTE[id] ? `<p class="muted small">${esc(TEAMS_NOTE[id])}</p>` : ""}`
     : `<div class="empty">${tab === "teams" ? "This series doesn't publish a team championship we can read." : "No standings yet."}</div>`;

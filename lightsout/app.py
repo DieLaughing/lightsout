@@ -17,7 +17,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Red
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from . import access, bugs, adapters, alerts, changes, follow, ics, news, picks, places, refresh, tickets, watch, weather
+from . import access, bugs, adapters, alerts, changes, colors, follow, ics, news, picks, places, refresh, tickets, watch, weather
 from .db import Store
 from .live.hub import LiveHub
 from .push import Pusher
@@ -150,7 +150,8 @@ def series_events(series_id: str):
 def series_standings(series_id: str):
     if series_id not in BY_ID:
         raise HTTPException(404)
-    return store.standings(series_id) or {}
+    table = store.standings(series_id)
+    return colors.tint(table, series_id) if table else {}
 
 
 @app.get("/api/live")
@@ -516,6 +517,43 @@ def person(name: str):
                             "pos": last["pos"], "time": last.get("time"), "points": last.get("points")})
     return {"name": name, "series": st["series"], "found": st["found"], "rides": rides, "next": st["next"],
             "new": st["new"], "upcoming": upcoming[:8], "standings": standings, "results": results}
+
+
+@app.get("/api/cards")
+def cards(request: Request):
+    """Home-page cards for everyone you follow: one per championship they're in (a driver row, else a team row),
+    with points, the gap to the leader, wins when the series publishes them and season form from round_result."""
+    names = [f["name"] for f in (store.settings(request.state.email) or {}).get("follows") or [] if f.get("name")]
+    out = []
+    for name, st in zip(names, follow.status(store, names) if names else []):
+        for sid in st["series"]:
+            table = store.standings(sid) or {}
+            card = _card(name, sid, table)
+            if card:
+                out.append(card)
+    return out
+
+
+def _card(name: str, sid: str, table: dict) -> dict | None:
+    groups = (("driver", table.get("drivers") or []),
+              ("class", [r for v in (table.get("classes") or {}).values() for r in v]),
+              ("team", table.get("teams") or []))
+    kind, row = next(((k, r) for k, rows in groups for r in rows if follow.matches(name, r["name"])), (None, None))
+    if not row:
+        return None
+    team = row["name"] if kind == "team" else row.get("team") or ""
+    # Gap to the leader of the same table (a class row's leader isn't the overall leader, so no gap there).
+    lead = {"driver": table.get("drivers"), "team": table.get("teams")}.get(kind)
+    form = []
+    if kind != "team":  # a team's round would be two cars; drivers only
+        for r in store.rounds(sid, refresh.season_of(table.get("season_label", ""))):
+            key = next((k for k in r["rows"] if follow.matches(row["name"], k)), None)
+            form.append({"event": r["event"], "pos": r["rows"][key][0] if key else "",
+                         "points": r["rows"][key][1] if key else 0})
+    return {"name": name, "row": row["name"], "kind": kind, "series": sid, "team": "" if kind == "team" else team,
+            "color": colors.for_team(team, sid), "pos": row["pos"], "points": row["points"],
+            "behind": lead[0]["points"] - row["points"] if lead and row["pos"] > 1 else None,
+            "wins": row.get("wins"), "form": form, "season": table.get("season_label", "")}
 
 
 @app.get("/api/names")

@@ -107,6 +107,7 @@ class StandingRow:
     team: str = ""
     points: float = 0
     code: str = ""      # three-letter abbreviation when the series publishes one
+    wins: int | None = None  # season wins, when the series publishes them
 
 
 @dataclass
