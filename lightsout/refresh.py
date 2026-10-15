@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from datetime import datetime, timedelta, timezone
 
 from . import adapters, picks
@@ -41,8 +42,35 @@ async def refresh_series(store: Store, series_id: str) -> None:
             if st and (st.drivers or st.last_results):
                 store.save_standings(series_id, st)
                 picks.grade(store, series_id)  # a new Last race scores that race's Pick'em
+                season = season_of(st.season_label)
+                store.save_round(series_id, season, st.last_event, datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                                 {r.name: [r.pos, r.points] for r in st.last_results if r.name})
+                await backfill(store, module, series_id, season)
         except Exception as exc:  # standings are a bonus; keep the last good copy
             log.warning("%s standings failed: %r", series_id, exc)
+
+
+def season_of(label: str) -> int:
+    """The standings' season: a leading year in its label ("2026 · after round 19"), else this year."""
+    m = re.match(r"(\d{4})\b", label or "")
+    return int(m.group(1)) if m else datetime.now(timezone.utc).year
+
+
+_backfilled: dict[str, str] = {}  # series -> day of the last backfill (once a day is plenty)
+
+
+async def backfill(store: Store, module, series_id: str, season: int) -> None:
+    """Earlier races of the season, from adapters that can list them (history()), for the season form bars.
+    Other series build their form from here on, one Last race at a time."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if not hasattr(module, "history") or _backfilled.get(series_id) == today:
+        return
+    _backfilled[series_id] = today
+    try:
+        for r in await module.history(series_id, season, store.round_events(series_id, season)):
+            store.save_round(series_id, season, r["event"], r["day"], r["rows"])
+    except Exception as exc:
+        log.warning("%s history failed: %r", series_id, exc)
 
 
 def _due(store: Store, series_id: str, now: datetime, startup: bool = False) -> bool:

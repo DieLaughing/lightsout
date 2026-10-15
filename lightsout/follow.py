@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
+from functools import lru_cache
 
 from .db import Store
 from .series import BY_ID
@@ -25,6 +27,14 @@ def normalise(s: str) -> str:
     return " ".join(re.sub(r"[^a-z0-9 ]+", " ", s).split())
 
 
+@lru_cache(maxsize=8192)
+def _words(s: str) -> tuple[str, ...]:
+    return tuple(normalise(s).split())
+
+
+# Pure functions over a fairly fixed set of names (follows x grids and entry lists), so they're memoised: matching
+# every follow against every grid is the bulk of /api/follow-status and /api/cards.
+@lru_cache(maxsize=262144)
 def similarity(a: str, b: str) -> float:
     """Jaro-Winkler, 0..1."""
     if a == b:
@@ -56,19 +66,23 @@ def similarity(a: str, b: str) -> float:
     return jaro + prefix * 0.1 * (1 - jaro)
 
 
+@lru_cache(maxsize=131072)
 def matches(query: str, candidate: str) -> bool:
-    q, c = normalise(query).split(), normalise(candidate).split()
+    q, c = _words(query), _words(candidate)
     if not q or not c:
         return False
     if q == c:
         return True
-    total = 0.0
-    for word in q:
-        best = max(similarity(word, w) for w in c)
-        if best < 0.8:
-            return False
-        total += best
-    return total / len(q) - 0.01 * max(0, len(c) - len(q)) >= 0.86
+    # Each candidate word can stand in for one typed word only, best pairs first: otherwise "Marc Marquez" would
+    # match "Marcus Ericsson" by pairing both words with "Marcus".
+    best, used = {}, set()
+    for sim, i, j in sorted(((similarity(w, x), i, j) for i, w in enumerate(q) for j, x in enumerate(c)), reverse=True):
+        if i not in best and j not in used:
+            best[i] = sim
+            used.add(j)
+    if len(best) < len(q) or min(best.values()) < 0.8:
+        return False
+    return sum(best.values()) / len(q) - 0.01 * max(0, len(c) - len(q)) >= 0.86
 
 
 def _iso(dt: datetime) -> str:
@@ -81,14 +95,15 @@ def status(store: Store, names: list[str]) -> list[dict]:
     fresh = _iso(now - NEW_FOR)
     upcoming = [s for s in store.sessions(_iso(now), _iso(now + timedelta(days=400)))
                 if (s["start_utc"] and s["start_utc"] > _iso(now)) or (not s["start_utc"] and (s["end_day"] or s["day"]) >= today)]
-    grids = store.entries()
+    grids = defaultdict(list)
+    for g in store.entries():
+        grids[g["series"]].append(g)
     lists = [r for r in store.entry_lists_with_events() if (r["end_day"] or r["start_day"] or "") >= today]
     out = []
     for name in names:
         found = []
-        for series in sorted({g["series"] for g in grids}):
-            hit = next((g for g in grids if g["series"] == series and (matches(name, g["name"]) or
-                        (g["team"] and matches(name, g["team"])))), None)
+        for series in sorted(grids):
+            hit = next((g for g in grids[series] if matches(name, g["name"]) or (g["team"] and matches(name, g["team"]))), None)
             if hit:
                 found.append({"series": series, "kind": "grid", "as": hit["name"] if matches(name, hit["name"]) else hit["team"],
                               "first_seen": hit["first_seen"] or ""})

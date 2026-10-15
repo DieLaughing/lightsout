@@ -36,12 +36,13 @@ export function similarity(a, b) {
 function score(query, candidate) {
   const q = query.split(" "), c = candidate.split(" ");
   if (query === candidate) return 1;
-  let total = 0;
-  for (const word of q) {
-    const best = Math.max(...c.map(w => similarity(word, w)));
-    if (best < 0.8) return 0;
-    total += best;
-  }
+  // Each candidate word can stand in for one typed word only, best pairs first: otherwise "Marc Marquez" would
+  // match "Marcus Ericsson" by pairing both words with "Marcus". Mirrors follow.matches.
+  const pairs = q.flatMap((w, i) => c.map((x, j) => [similarity(w, x), i, j])).sort((a, b) => b[0] - a[0]);
+  const best = new Map(), used = new Set();
+  for (const [sim, i, j] of pairs) if (!best.has(i) && !used.has(j)) { best.set(i, sim); used.add(j); }
+  if (best.size < q.length || Math.min(...best.values()) < 0.8) return 0;
+  const total = [...best.values()].reduce((a, b) => a + b, 0);
   // Prefer candidates that don't have lots of extra words (team names, middle names).
   return total / q.length - 0.01 * Math.max(0, c.length - q.length);
 }
