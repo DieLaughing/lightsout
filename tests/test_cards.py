@@ -25,3 +25,11 @@ def test_rounds_keep_their_first_day_and_take_newer_results(tmp_path):
 
 def test_season_from_label():
     assert refresh.season_of("2025 · after round 24") == 2025
+
+
+def test_follow_names_use_each_word_once():
+    from lightsout.follow import matches
+    assert not matches("Marc Marquez", "Marcus Ericsson")
+    assert matches("Marc Marquez", "Marc Márquez")
+    assert matches("Kimi Antonelli", "Andrea Kimi Antonelli")
+    assert matches("Verstapen", "Max Verstappen")

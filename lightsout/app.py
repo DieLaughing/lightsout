@@ -526,11 +526,10 @@ def cards(request: Request):
     names = [f["name"] for f in (store.settings(request.state.email) or {}).get("follows") or [] if f.get("name")]
     out = []
     for name, st in zip(names, follow.status(store, names) if names else []):
-        for sid in st["series"]:
-            table = store.standings(sid) or {}
-            card = _card(name, sid, table)
-            if card:
-                out.append(card)
+        mine = [c for c in (_card(name, sid, store.standings(sid) or {}) for sid in st["series"]) if c]
+        # A one-off outside their championship (a Cup driver's O'Reilly start: P69, 0 points) is noise next to a real card.
+        scored = [c for c in mine if c["points"] > 0]
+        out += sorted(scored or mine[:1], key=lambda c: c["pos"])  # best championship first (points scales differ)
     return out
 
 

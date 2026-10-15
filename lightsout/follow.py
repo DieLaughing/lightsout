@@ -62,13 +62,16 @@ def matches(query: str, candidate: str) -> bool:
         return False
     if q == c:
         return True
-    total = 0.0
-    for word in q:
-        best = max(similarity(word, w) for w in c)
-        if best < 0.8:
-            return False
-        total += best
-    return total / len(q) - 0.01 * max(0, len(c) - len(q)) >= 0.86
+    # Each candidate word can stand in for one typed word only, best pairs first: otherwise "Marc Marquez" would
+    # match "Marcus Ericsson" by pairing both words with "Marcus".
+    best, used = {}, set()
+    for sim, i, j in sorted(((similarity(w, x), i, j) for i, w in enumerate(q) for j, x in enumerate(c)), reverse=True):
+        if i not in best and j not in used:
+            best[i] = sim
+            used.add(j)
+    if len(best) < len(q) or min(best.values()) < 0.8:
+        return False
+    return sum(best.values()) / len(q) - 0.01 * max(0, len(c) - len(q)) >= 0.86
 
 
 def _iso(dt: datetime) -> str:
