@@ -373,14 +373,16 @@ function formBars(form) {
     const label = `${r.event}: ${!r.pos ? "didn't race" : p ? `P${p}` : r.pos}${scored && r.pos ? `, ${pts(r.points)} pts` : ""}`;
     return `<i class="${!r.pos ? "miss" : p === 1 ? "win" : ""}" style="--h:${Math.max(h, .06).toFixed(3)}" title="${esc(label)}"></i>`;
   }).join("");
-  return `<div class="form" role="img" aria-label="Season form, ${form.length} rounds">${bars}</div>`;
+  return `<div class="formbars" role="img" aria-label="Season form, ${form.length} rounds">${bars}</div>`;
 }
 
-// Next up: a big countdown to the next timed session, from the series you follow when there are any.
+// Next up: a big countdown to the next session that counts (qualifying, sprint, race, rally day) in a series you
+// follow, else in any series on Upcoming. Practice and test days only when nothing else is timed.
 function countdown(upcoming, followed) {
   const now = Date.now();
   const timed = upcoming.filter(s => s.start_utc && Date.parse(s.start_utc) > now);
-  const s = timed.find(x => followed.has(x.series)) || timed[0];
+  const counts = timed.filter(s => s.kind !== "practice");
+  const s = counts.find(x => followed.has(x.series)) || counts[0] || timed[0];
   if (!s) return "";
   const mins = Math.max(0, Math.floor((Date.parse(s.start_utc) - now) / 60000));
   const d = Math.floor(mins / 1440), h = Math.floor(mins % 1440 / 60), m = mins % 60;
