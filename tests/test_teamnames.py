@@ -15,9 +15,11 @@ def test_spellings_and_whitespace():
 
 
 def test_nascar_standings_name_the_team_and_the_make():
-    st = Standings(drivers=[StandingRow(1, "Ross Chastain", "#1 · Chevrolet")], last_results=[ResultRow("1", "X", " Team  A ")])
+    st = Standings(drivers=[StandingRow(1, "Ross Chastain", "#1 · Chevrolet"), StandingRow(2, "Kyle Larson", "#5 · Chevrolet")],
+                   last_results=[ResultRow("1", "Kyle Larson", "#5 ·  Hendrick Motorsports ")])
     teamnames.standings("cup", st, {"Ross Chastain": "#1 · Trackhouse Racing"})
-    assert st.drivers[0].team == "#1 · Trackhouse Racing · Chevrolet" and st.last_results[0].team == "Team A"
+    assert [r.team for r in st.drivers] == ["#1 · Trackhouse Racing · Chevrolet", "#5 · Hendrick Motorsports · Chevrolet"]
+    assert st.last_results[0].team == "#5 · Hendrick Motorsports"
     assert teamnames.entries("f1", [Entry("Liam Lawson", "RB F1 Team")])[0].team == "Racing Bulls"
 
 
