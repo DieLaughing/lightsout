@@ -37,6 +37,12 @@ CREATE TABLE IF NOT EXISTS event_entry (
 CREATE TABLE IF NOT EXISTS standings (
     series TEXT PRIMARY KEY, data TEXT NOT NULL, updated TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS round_result (   -- each race's classification, for season form on the driver cards
+    series TEXT NOT NULL, season INTEGER NOT NULL, event TEXT NOT NULL,
+    day TEXT NOT NULL,                      -- race date (UTC), orders the rounds
+    data TEXT NOT NULL,                     -- {name: [pos text, points]}
+    PRIMARY KEY (series, season, event)
+);
 CREATE TABLE IF NOT EXISTS user (
     email TEXT PRIMARY KEY,
     status TEXT NOT NULL,          -- pending | approved | denied | revoked
@@ -203,6 +209,22 @@ class Store:
     def standings(self, series: str) -> dict | None:
         row = self.conn.execute("SELECT data, updated FROM standings WHERE series=?", (series,)).fetchone()
         return {**json.loads(row["data"]), "updated": row["updated"]} if row else None
+
+    def save_round(self, series: str, season: int, event: str, day: str, rows: dict[str, list]) -> None:
+        """One race's classification. Saving again (official results after unofficial ones) replaces it."""
+        if not event or not rows:
+            return
+        with self.conn:
+            self.conn.execute("INSERT OR REPLACE INTO round_result VALUES (?,?,?,COALESCE((SELECT day FROM round_result "
+                              "WHERE series=? AND season=? AND event=?), ?),?)",
+                              (series, season, event, series, season, event, day, json.dumps(rows)))
+
+    def rounds(self, series: str, season: int) -> list[dict]:
+        return [{"event": r["event"], "day": r["day"], "rows": json.loads(r["data"])} for r in self.conn.execute(
+            "SELECT event, day, data FROM round_result WHERE series=? AND season=? ORDER BY day", (series, season))]
+
+    def round_events(self, series: str, season: int) -> set[str]:
+        return {r[0] for r in self.conn.execute("SELECT event FROM round_result WHERE series=? AND season=?", (series, season))}
 
     def entry_lists_with_events(self) -> list[dict]:
         """Every published entry-list name with its event, for the follow search."""

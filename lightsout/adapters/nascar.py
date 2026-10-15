@@ -118,7 +118,7 @@ async def standings(series_id: str) -> Standings | None:
         return None
     st = Standings(season_label="Points (Chase standings while the Chase is on)")
     st.drivers = [StandingRow(p["position"], _name(p["driver_name"]), f"#{p.get('car_no', '')} · {p.get('manufacturer', '')}",
-                              p.get("points") or 0) for p in sorted(points, key=lambda p: p["position"])]
+                              p.get("points") or 0, wins=p.get("wins")) for p in sorted(points, key=lambda p: p["position"])]
     # Last race: the most recent race that has results. The weekend feed's official results can take a day or two
     # to appear after a race; until then the race's final timing feed gives the order (no points or teams there).
     year = datetime.now(timezone.utc).year
@@ -148,3 +148,22 @@ async def standings(series_id: str) -> Standings | None:
             if st.last_results and last.get("total_race_time"):
                 st.last_results[0].time = last["total_race_time"]
     return st
+
+
+async def history(series_id: str, season: int, have: set[str]) -> list[dict]:
+    """Official results of every finished race not stored yet: [{event, day, rows: {name: [pos, points]}}]."""
+    races = (await get_json(f"{CACHER}/{season}/race_list_basic.json")).get(f"series_{SERIES_NO[series_id]}") or []
+    out = []
+    for last in sorted((r for r in races if r.get("winner_driver_id")), key=lambda r: r["race_date"]):
+        if last["race_name"] in have:
+            continue
+        try:
+            feed = await get_json(f"{CACHER}/{season}/{SERIES_NO[series_id]}/{last['race_id']}/weekend-feed.json")
+        except Exception:
+            continue
+        race = (feed.get("weekend_race") or [{}])[0]
+        rows = {_name(x.get("driver_fullname", "")): [str(x["finishing_position"]), x.get("points_earned") or 0]
+                for x in race.get("results") or [] if x.get("finishing_position")}
+        if rows:
+            out.append({"event": race.get("race_name") or last["race_name"], "day": last["race_date"][:10], "rows": rows})
+    return out

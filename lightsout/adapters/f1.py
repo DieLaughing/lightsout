@@ -89,10 +89,12 @@ async def standings(series_id: str) -> Standings | None:
     for row in lists[0]["DriverStandings"]:
         d = row["Driver"]
         st.drivers.append(StandingRow(int(row["position"]), _name(d), row["Constructors"][-1]["name"]
-                                      if row.get("Constructors") else "", float(row["points"]), d.get("code", "")))
+                                      if row.get("Constructors") else "", float(row["points"]), d.get("code", ""),
+                                      int(row.get("wins") or 0)))
     teams = (await get_json(f"{API}/{season}/constructorstandings.json"))["MRData"]["StandingsTable"]["StandingsLists"]
     for row in teams[0]["ConstructorStandings"] if teams else []:
-        st.teams.append(StandingRow(int(row["position"]), row["Constructor"]["name"], points=float(row["points"])))
+        st.teams.append(StandingRow(int(row["position"]), row["Constructor"]["name"], points=float(row["points"]),
+                                    wins=int(row.get("wins") or 0)))
     races = (await get_json(f"{API}/{season}/last/results.json"))["MRData"]["RaceTable"]["Races"]
     if races:
         st.last_event, st.last_session = races[0]["raceName"], "Race"
@@ -101,3 +103,16 @@ async def standings(series_id: str) -> Standings | None:
             st.last_results.append(ResultRow(r["positionText"], _name(r["Driver"]), r["Constructor"]["name"],
                                              time, float(r["points"]), r["Driver"].get("code", "")))
     return st
+
+
+async def history(series_id: str, season: int, have: set[str]) -> list[dict]:
+    """Every race of the season so far: [{event, day, rows: {name: [pos, points]}}] (sprints left out)."""
+    races, offset, total = {}, 0, 1
+    while offset < total:
+        data = (await get_json(f"{API}/{season}/results.json?limit=100&offset={offset}"))["MRData"]
+        total, offset = int(data["total"]), offset + 100
+        for race in data["RaceTable"]["Races"]:  # a race can straddle two pages
+            r = races.setdefault(race["raceName"], {"event": race["raceName"], "day": race["date"], "rows": {}})
+            for x in race.get("Results") or []:
+                r["rows"][_name(x["Driver"])] = [x["positionText"], float(x["points"])]
+    return list(races.values())
