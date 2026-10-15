@@ -1,19 +1,20 @@
-# Teams for news and race-event tagging: the name shown in the app, then the everyday names stories use.
-# Grid team names that differ from a canonical name map onto it through `grid:`.
+# Teams: the name shown in the app, the everyday names stories use (`aliases:`), feed spellings that should SHOW as
+# this name (`spell:`, plus the name itself in any case; lightsout/teamnames.py), and grid names that count as this
+# team when tagging news (`grid:`; may merge separate entries, so never used for display).
 # NASCAR grids list the manufacturer, not the team, so its teams are all hand-kept here.
 
 f1:
-  Red Bull Racing: { aliases: [Red Bull], grid: [Red Bull] }
-  Racing Bulls: { aliases: [Racing Bulls, VCARB], grid: [RB F1 Team] }
+  Red Bull Racing: { aliases: [Red Bull], grid: [Red Bull], spell: [Red Bull] }
+  Racing Bulls: { aliases: [Racing Bulls, VCARB], grid: [RB F1 Team], spell: [RB F1 Team] }
   Mercedes: { aliases: [Mercedes] }
   Ferrari: { aliases: [Ferrari, Scuderia Ferrari] }
   McLaren: { aliases: [McLaren] }
   Aston Martin: { aliases: [Aston Martin] }
-  Alpine: { aliases: [Alpine], grid: [Alpine F1 Team] }
+  Alpine: { aliases: [Alpine], grid: [Alpine F1 Team], spell: [Alpine F1 Team] }
   Williams: { aliases: [Williams] }
-  Haas: { aliases: [Haas], grid: [Haas F1 Team] }
+  Haas: { aliases: [Haas], grid: [Haas F1 Team], spell: [Haas F1 Team] }
   Audi: { aliases: [Audi] }
-  Cadillac: { aliases: [Cadillac], grid: [Cadillac F1 Team] }
+  Cadillac: { aliases: [Cadillac], grid: [Cadillac F1 Team], spell: [Cadillac F1 Team] }
 
 indycar:
   Team Penske: { aliases: [Team Penske, Penske] }
@@ -22,8 +23,8 @@ indycar:
   Andretti Global: { aliases: [Andretti] }
   Rahal Letterman Lanigan Racing: { aliases: [RLL, Rahal Letterman Lanigan] }
   Meyer Shank Racing: { aliases: [Meyer Shank] }
-  Ed Carpenter Racing: { aliases: [Ed Carpenter Racing], grid: [ECR] }
-  A.J. Foyt Racing: { aliases: [Foyt], grid: [A.J. Foyt Enterprises, HMD Motorsports w/ AJ Foyt Racing] }
+  Ed Carpenter Racing: { aliases: [Ed Carpenter Racing], grid: [ECR], spell: [ECR] }
+  A.J. Foyt Racing: { aliases: [Foyt], grid: [A.J. Foyt Enterprises, HMD Motorsports w/ AJ Foyt Racing], spell: [A.J. Foyt Enterprises] }
   Dale Coyne Racing: { aliases: [Dale Coyne] }
   Juncos Hollinger Racing: { aliases: [Juncos Hollinger, Juncos] }
   Dreyer & Reinbold Racing: { aliases: [Dreyer & Reinbold] }
@@ -46,22 +47,35 @@ nascar:
   Haas Factory Team: { aliases: [Haas Factory Team] }
 
 fe:
-  Jaguar: { aliases: [Jaguar], grid: [JAGUAR TCS RACING] }
-  Porsche: { aliases: [Porsche], grid: [PORSCHE FORMULA E TEAM] }
-  Nissan: { aliases: [Nissan], grid: [NISSAN FORMULA E TEAM] }
+  Jaguar TCS Racing: { aliases: [Jaguar], grid: [JAGUAR TCS RACING] }
+  Porsche Formula E Team: { aliases: [Porsche], grid: [PORSCHE FORMULA E TEAM] }
+  Nissan Formula E Team: { aliases: [Nissan], grid: [NISSAN FORMULA E TEAM] }
   DS Penske: { aliases: [DS Penske, Penske], grid: [DS PENSKE] }
-  Andretti: { aliases: [Andretti], grid: [ANDRETTI FORMULA E] }
-  Envision: { aliases: [Envision], grid: [ENVISION RACING] }
-  Mahindra: { aliases: [Mahindra], grid: [MAHINDRA RACING] }
-  Citroen: { aliases: [Citroen, Citroën], grid: [CITROËN RACING] }
+  Andretti Formula E: { aliases: [Andretti], grid: [ANDRETTI FORMULA E] }
+  Envision Racing: { aliases: [Envision], grid: [ENVISION RACING] }
+  Mahindra Racing: { aliases: [Mahindra], grid: [MAHINDRA RACING] }
+  Citroën Racing: { aliases: [Citroen, Citroën], grid: [CITROËN RACING] }
   Cupra Kiro: { aliases: [Cupra Kiro, Kiro], grid: [CUPRA KIRO] }
-  Lola Yamaha ABT: { aliases: [Lola, Yamaha, ABT], grid: [LOLA YAMAHA ABT FORMULA E TEAM] }
+  Lola Yamaha ABT Formula E Team: { aliases: [Lola, Yamaha, ABT], grid: [LOLA YAMAHA ABT FORMULA E TEAM] }
 
 wrc:
   Toyota Gazoo Racing: { aliases: [Toyota Gazoo Racing, Toyota], grid: [Toyota Gazoo Racing WRT, Toyota Gazoo Racing WRT2, Toyota] }
   Hyundai: { aliases: [Hyundai], grid: [Hyundai Shell Mobis World Rally Team, Hyundai] }
   M-Sport Ford: { aliases: [M-Sport], grid: [M-sport Ford World Rally Team, Ford] }
+  M-Sport Ford World Rally Team: { spell: [M-sport Ford World Rally Team] }
   Toksport: { aliases: [Toksport], grid: [Toksport WRT, Toksport WRT 2] }
   Skoda: { aliases: [Skoda, Škoda], grid: [Skoda] }
   Citroen: { aliases: [Citroen, Citroën], grid: [Citroen] }
   Lancia: { aliases: [Lancia], grid: [Lancia, Lancia Corse HF] }
+
+# Display-only fixes for series that don't tag teams in news: one spelling where the feeds mix capitals.
+motogp:
+  Castrol Honda LCR: {}
+moto2:
+  Liqui Moly Dynavolt Intact GP: {}
+moto3:
+  Liqui Moly Dynavolt Intact GP: {}
+  Level Up - MTA: { spell: [LEVELUP - MTA] }
+
+imsa:
+  Aston Martin THOR Team: {}

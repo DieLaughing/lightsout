@@ -65,11 +65,25 @@ async def fetch(series_id: str, seasons: list[int]) -> AdapterResult:
     if covered:
         standings = await get_json(f"{API}/{covered[-1]}/driverstandings.json")
         lists = standings["MRData"]["StandingsTable"]["StandingsLists"]
-        for row in lists[0]["DriverStandings"] if lists else []:
-            d = row["Driver"]
-            team = row["Constructors"][-1]["name"] if row.get("Constructors") else ""
-            entries.append(Entry(f"{d['givenName']} {d['familyName']}", team, d.get("permanentNumber", "")))
+        if lists:
+            races = (await get_json(f"{API}/{covered[-1]}/last/results.json"))["MRData"]["RaceTable"]["Races"]
+            latest = latest_teams(races[0] if races else None)
+            for row in lists[0]["DriverStandings"]:
+                d = row["Driver"]
+                entries.append(Entry(_name(d), current_team(row, latest), d.get("permanentNumber", "")))
     return AdapterResult(events, covered, entries)
+
+
+def latest_teams(race: dict | None) -> dict[str, str]:
+    """driverId -> the team they drove for in this race."""
+    return {r["Driver"]["driverId"]: r["Constructor"]["name"] for r in (race or {}).get("Results") or []}
+
+
+def current_team(row: dict, latest: dict[str, str]) -> str:
+    """Where a driver races now. A driver who changed seats lists every team of the season, in no promised order
+    (Lawson 2026: Racing Bulls, three races at Red Bull, then back), so the latest race decides, even a one-off swap;
+    someone who wasn't in it keeps the feed's last listed team."""
+    return latest.get(row["Driver"].get("driverId")) or (row["Constructors"][-1]["name"] if row.get("Constructors") else "")
 
 
 def _name(d: dict) -> str:
@@ -86,16 +100,16 @@ async def standings(series_id: str) -> Standings | None:
     else:
         return None
     st = Standings(season_label=f"{season} · after round {lists[0]['round']}")
+    races = (await get_json(f"{API}/{season}/last/results.json"))["MRData"]["RaceTable"]["Races"]
+    latest = latest_teams(races[0] if races else None)
     for row in lists[0]["DriverStandings"]:
         d = row["Driver"]
-        st.drivers.append(StandingRow(int(row["position"]), _name(d), row["Constructors"][-1]["name"]
-                                      if row.get("Constructors") else "", float(row["points"]), d.get("code", ""),
-                                      int(row.get("wins") or 0)))
+        st.drivers.append(StandingRow(int(row["position"]), _name(d), current_team(row, latest), float(row["points"]),
+                                      d.get("code", ""), int(row.get("wins") or 0)))
     teams = (await get_json(f"{API}/{season}/constructorstandings.json"))["MRData"]["StandingsTable"]["StandingsLists"]
     for row in teams[0]["ConstructorStandings"] if teams else []:
         st.teams.append(StandingRow(int(row["position"]), row["Constructor"]["name"], points=float(row["points"]),
                                     wins=int(row.get("wins") or 0)))
-    races = (await get_json(f"{API}/{season}/last/results.json"))["MRData"]["RaceTable"]["Races"]
     if races:
         st.last_event, st.last_session = races[0]["raceName"], "Race"
         for r in races[0]["Results"]:

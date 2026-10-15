@@ -60,6 +60,11 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
   until then Last race comes from the race's final timing feed (live/feeds/series_<n>/<race>/live_feed.json),
   labelled unofficial. Standings tab (#/standings/<series>/<drivers|teams|last>) and series pages share
   standingsBody(). Pages reached from elsewhere get backLink() (history.back when the previous page was in the app).
+- Team names (lightsout/teamnames.py, applied by refresh.py before saving grids and standings): a teams.yaml name in
+  any case, or one of its `spell:` spellings, shows as that name; `grid:` is tagging-only (it merges separate entries
+  such as Toyota WRT/WRT2). Stray whitespace is collapsed; "Rally1 · X" / "#24 · X" are tidied part by part. NASCAR
+  standings rows become "#24 · <grid team> · <make>". F1 seats: f1.current_team() = the team in the latest race
+  (a driver who swapped seats lists every team of the season in no promised order).
 - Race Wire = news (lightsout/news.py: Motorsport.com per series, Autosport, RACER, The Race, DirtFish, NLS; every
   10 min) + important race events. Tagging in lightsout/names.py (grids + data/teams.yaml aliases; surnames only when
   unique in the series and not an everyday word).
