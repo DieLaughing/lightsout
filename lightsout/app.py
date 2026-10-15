@@ -524,9 +524,9 @@ def cards(request: Request):
     """Home-page cards for everyone you follow: one per championship they're in (a driver row, else a team row),
     with points, the gap to the leader, wins when the series publishes them and season form from round_result."""
     names = [f["name"] for f in (store.settings(request.state.email) or {}).get("follows") or [] if f.get("name")]
-    out = []
+    out, tables = [], {}  # each standings table read once per request
     for name, st in zip(names, follow.status(store, names) if names else []):
-        mine = [c for c in (_card(name, sid, store.standings(sid) or {}) for sid in st["series"]) if c]
+        mine = [c for c in (_card(name, sid, tables.setdefault(sid, store.standings(sid) or {})) for sid in st["series"]) if c]
         # A one-off outside their championship (a Cup driver's O'Reilly start: P69, 0 points) is noise next to a real card.
         scored = [c for c in mine if c["points"] > 0]
         out += sorted(scored or mine[:1], key=lambda c: c["pos"])  # best championship first (points scales differ)
@@ -546,7 +546,7 @@ def _card(name: str, sid: str, table: dict) -> dict | None:
     form = []
     if kind != "team":  # a team's round would be two cars; drivers only
         for r in store.rounds(sid, refresh.season_of(table.get("season_label", ""))):
-            key = next((k for k in r["rows"] if follow.matches(row["name"], k)), None)
+            key = row["name"] if row["name"] in r["rows"] else next((k for k in r["rows"] if follow.matches(row["name"], k)), None)
             form.append({"event": r["event"], "pos": r["rows"][key][0] if key else "",
                          "points": r["rows"][key][1] if key else 0})
     return {"name": name, "row": row["name"], "kind": kind, "series": sid, "team": "" if kind == "team" else team,
