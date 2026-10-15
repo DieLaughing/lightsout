@@ -47,6 +47,8 @@ def standings(series: str, st: Standings, grid: dict[str, str] | None = None) ->
     """grid: driver -> team from the series' grid. NASCAR's points feed and grid name only the manufacturer ("#24 ·
     Chevrolet"); the latest official results ("#24 · Hendrick Motorsports") know the team, so rows become
     "#24 · Hendrick Motorsports · Chevrolet". A driver missing from those results keeps the make."""
+    for r in st.last_results:
+        r.team = tidy(series, r.team)
     known = {**(grid or {}), **{r.name: r.team for r in st.last_results if r.team}} if series in NASCAR else {}
     for r in st.drivers:
         r.team = tidy(series, r.team)
@@ -54,8 +56,6 @@ def standings(series: str, st: Standings, grid: dict[str, str] | None = None) ->
             r.team = f"#{car[1]} · {team[2]} · {car[2]}"
     for r in st.teams:
         r.name = tidy(series, r.name)
-    for r in st.last_results:
-        r.team = tidy(series, r.team)
     for rows in st.classes.values():
         for r in rows:
             r.team = tidy(series, r.team)
