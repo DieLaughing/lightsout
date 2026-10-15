@@ -5,7 +5,9 @@ and a schema.org SportsEvent with the round's name and venue.
 """
 from __future__ import annotations
 
+import base64
 import html
+import json
 import re
 import unicodedata
 from datetime import datetime
@@ -52,13 +54,21 @@ def parse_round(page: str, season: int, slug: str, url: str) -> Event | None:
 
 
 def parse_drivers(page: str) -> list[Entry]:
-    """Driver cards link to /en/drivers/<slug> with first and last name inside."""
-    names = {}
-    for slug, inner in re.findall(r'<a[^>]+href="/en/drivers/([a-z0-9-]+)"[^>]*>(.*?)</a>', page, re.S):
+    """Driver cards link to /en/drivers/<slug> with first and last name inside. The link's analytics tag
+    (data-uds-a7s-context, base64 JSON) names the team: {"driver_team": "Invicta Racing", ...}."""
+    found: dict[str, Entry] = {}
+    for attrs, slug, inner in re.findall(r'<a([^>]+)href="/en/drivers/([a-z0-9-]+)"[^>]*>(.*?)</a>', page, re.S):
         parts = [p.strip() for p in html.unescape(re.sub(r"<[^>]+>", "\n", inner)).split("\n") if p.strip()]
-        if parts and slug not in names:
-            names[slug] = " ".join(parts[:2])
-    return [Entry(n) for n in names.values()]
+        if not parts or slug in found:
+            continue
+        team, ctx = "", re.search(r'data-uds-a7s-context="([^"]+)"', attrs)
+        if ctx:
+            try:
+                team = json.loads(base64.b64decode(ctx[1])).get("driver_team") or ""
+            except ValueError:  # not base64 / not JSON: no team, the name still counts
+                pass
+        found[slug] = Entry(" ".join(parts[:2]), team)
+    return list(found.values())
 
 
 async def fetch(series_id: str, seasons: list[int]) -> AdapterResult:
@@ -113,13 +123,19 @@ async def standings(series_id: str) -> Standings | None:
 
     site = SITES[series_id]
     year = datetime.now().year
-    names = {_short(e.name): e.name for e in parse_drivers(await get_text(f"{site}/en/drivers"))}
+    drivers = parse_drivers(await get_text(f"{site}/en/drivers"))
+    names = {_short(e.name): e.name for e in drivers}
+    team_of = {e.name: e.team for e in drivers}  # this season's seats
     st = Standings(season_label=f"{year}")
     for season in (year, year - 1):
         st.drivers = parse_standings(await get_text(f"{site}/en/standings/{season}/drivers"), names)
         if st.drivers:
             st.teams = parse_standings(await get_text(f"{site}/en/standings/{season}/teams"))
             st.season_label = str(season)
+            if season != year:
+                team_of = {}  # last season's table: today's seats would be wrong
+            for r in st.drivers:
+                r.team = team_of.get(r.name, "")
             break
     live = await fia.fetch_once(series_id)
     snap = live.snapshot()
@@ -127,6 +143,7 @@ async def standings(series_id: str) -> Standings | None:
         st.last_event, st.last_session = snap["event"], snap["session"]
         for r in snap["rows"]:
             time = r["status"] or (f"+{r['gap'].lstrip('+')}" if r["gap"] else f"{r['laps']} laps")
-            st.last_results.append(ResultRow(str(r["pos"]) if r["pos"] < 99 else "", names.get(_short(r["name"]), r["name"]),
+            name = names.get(_short(r["name"]), r["name"])
+            st.last_results.append(ResultRow(str(r["pos"]) if r["pos"] < 99 else "", name, team_of.get(name, ""),
                                              time=time, code=r["code"]))
     return st if st.drivers or st.last_results else None

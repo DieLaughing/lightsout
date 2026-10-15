@@ -3,6 +3,10 @@
 Every update to [Lights Out](https://github.com/DieLaughing/lightsout), newest first. The same list is on the app's What's new page.
 This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit that file, not this one.
 
+## October 15, 2026
+
+- **Fixed: Right team names, everywhere.** Liam Lawson showed as Red Bull in the F1 standings because of his three-race stint there; drivers now show the team they raced for most recently, so a one-off swap shows for that week and then goes back. Teams also use their proper names (Red Bull Racing, Racing Bulls, Alpine, Haas, Cadillac), Formula E teams no longer appear twice in capitals, MotoGP classes lost some doubled names, NASCAR standings name the team as well as the make, GT World Challenge America's entry lists show teams instead of drivers in the team column, and F2 and F3 drivers now show their team in the standings, the last race and driver pages.
+
 ## October 14, 2026
 
 - **Improved: Driver cards, a countdown and team colours.** Everyone you follow now gets a card on Upcoming for each championship they're in, with their points, championship position, wins (F1 and NASCAR), the gap to the leader and a bar for every round so you can see their season form, all in their team's colours. Swipe between them on a phone. Below them, a big countdown to the next qualifying or race in a series you follow. Standings show each team's name in its colours too, and following a name no longer mixes up similar ones (Marc Márquez stopped matching Marcus Ericsson). Form bars cover the whole F1 season already; other series fill in from their next race.

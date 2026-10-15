@@ -6,7 +6,7 @@ import logging
 import re
 from datetime import datetime, timedelta, timezone
 
-from . import adapters, picks
+from . import adapters, picks, teamnames
 from .db import Store
 from .series import SERIES
 
@@ -28,6 +28,7 @@ async def refresh_series(store: Store, series_id: str) -> None:
         result = await adapters.load(s.adapter).fetch(series_id, seasons_now())
         if not result.events:
             raise RuntimeError("source returned no events")
+        teamnames.entries(series_id, result.entries)
         counts = store.save(series_id, result)
         store.record_run(series_id, True, counts=counts)
         log.info("%s: %d events, %d sessions", series_id, *counts)
@@ -40,7 +41,8 @@ async def refresh_series(store: Store, series_id: str) -> None:
         try:
             st = await module.standings(series_id)
             if st and (st.drivers or st.last_results):
-                store.save_standings(series_id, st)
+                grid = {e["name"]: e["team"] for e in store.entries(series_id) if e.get("team")}
+                store.save_standings(series_id, teamnames.standings(series_id, st, grid))
                 picks.grade(store, series_id)  # a new Last race scores that race's Pick'em
                 season = season_of(st.season_label)
                 store.save_round(series_id, season, st.last_event, datetime.now(timezone.utc).strftime("%Y-%m-%d"),
