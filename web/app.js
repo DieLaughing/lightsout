@@ -332,20 +332,22 @@ function heroCards(cards) {
       ? `Entered ${esc(n.event_name)}` : `Joined the ${esc(BY_ID[n.series]?.name || n.series)} grid`}
       <button class="link" data-dismiss="${esc(newKey(f.name, n))}" aria-label="Dismiss">✕</button></div>`).join("");
     const pend = f.pending?.[0];
-    const next = f.next ? `Next: <b>${esc(f.next.event_name)}</b> · ${esc(f.next.name)} · ${esc(dayLabel(localDay(f.next)))}`
+    // A follow can race in several series (a team name, a driver's GT side gig): say which one "Next" is.
+    const nextIn = sid => f.next && f.next.series !== sid ? `${chip(f.next.series)} ` : "";
+    const next = sid => f.next ? `Next: ${nextIn(sid)}<b>${esc(f.next.event_name)}</b> · ${esc(f.next.name)} · ${esc(dayLabel(localDay(f.next)))}`
       : pend ? `Registered for ${esc(BY_ID[pend.series]?.short)} · next rally ${esc(pend.event_name)}, ${esc(dayLabel(pend.day))} (entry list not out yet)`
       : f.found.length ? "Nothing scheduled yet" : "Not on any current grid or published entry list. Still watching every series.";
     const href = `#/driver/${encodeURIComponent(f.name)}`;
     const mine = byName.get(f.name) || [];
-    const foot = (first) => `<div class="hero-foot">${first ? news : ""}<div class="hero-next">${next}</div></div>`;
+    const foot = (first, sid) => `<div class="hero-foot">${first ? news : ""}<div class="hero-next">${next(sid)}</div></div>`;
     if (!mine.length) {
       return [`<div class="hero slim" data-href="${href}" style="--tc:${esc(BY_ID[f.series[0]]?.color || "var(--muted)")}">
         <div class="hero-top">${f.series.map(chip).join(" ")}</div>
-        <a class="hero-name who-link" href="${href}"><b>${esc(f.name)}</b> ›</a>${foot(true)}</div>`];
+        <a class="hero-name who-link" href="${href}"><b>${esc(f.name)}</b> ›</a>${foot(true, f.series[0])}</div>`];
     }
     return mine.map((c, i) => {
       const last = (c.row || c.name).trim().split(/\s+/).pop().toLowerCase();
-      const stats = [`<span><b>P${c.pos}</b> ${c.kind === "class" ? "in class" : c.kind === "team" ? "teams" : "drivers"}</span>`,
+      const stats = [`<span><b>P${c.pos}</b> ${c.kind === "class" ? "in class" : c.kind === "team" ? "in the teams' championship" : "in the championship"}</span>`,
         c.wins != null ? `<span><b>${c.wins}</b> ${c.wins === 1 ? "win" : "wins"}</span>` : "",
         c.behind != null ? `<span class="muted">−${pts(c.behind)} to the leader</span>` : c.pos === 1 ? `<span class="muted">Leading</span>` : ""].join("");
       return `<div class="hero" data-href="${href}" style="--tc:${esc(c.color)}">
@@ -354,7 +356,7 @@ function heroCards(cards) {
         <a class="hero-name who-link" href="${href}"><b>${esc(c.row || c.name)}</b> ›</a>
         <div class="hero-pts"><b>${pts(c.points)}</b><span>PTS</span></div>
         <div class="hero-stats">${stats}</div>
-        ${formBars(c.form)}${foot(i === 0)}</div>`;
+        ${formBars(c.form)}${foot(i === 0, c.series)}</div>`;
     });
   });
   // Two columns with a mouse: an odd count makes your first follow a full-width card, so no row is left half empty.
@@ -1739,7 +1741,7 @@ async function prefetch() {
   const ids = enabledSeries();
   const sid = store.get("standingsSeries") || SERIES.find(x => x.has_standings && ids.includes(x.id))?.id;
   const paths = [`/api/sessions?series=${ids.join(",")}`, wirePath({ kind: "", series: "", driver: "", team: "", mine: false, ...local("wire", {}) }),
-    ...(sid ? [`/api/series/${sid}/standings`] : []), "/api/entries"];
+    ...(sid ? [`/api/series/${sid}/standings`] : []), ...(follows().length ? ["/api/cards"] : []), "/api/entries"];
   for (const path of paths) {
     if (document.hidden) return;
     const hit = GET_CACHE.get(path);
