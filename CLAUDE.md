@@ -130,6 +130,9 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
   Overall = drivers/teams, Endurance/Sprint/Gold/Silver/Bronze = classes. Last race = the newest round's last race
   classification (/results -> round page -> race-1|race-2|main-race); teams and name spellings for the crews come from
   the newest Sprint and Endurance classifications (standings write 'VAN DER LINDE').
+  Qualifying (Standings.quali_event/qualifying = {label: rows}) = every qualifying classification of the newest round
+  that has one (gtwce.quali_sessions: super-pole, qualifying-combined, qualifying-N[-group]-x[-combined]); Combined
+  prints Avg Time + Time 1..4 (no Gap), so quali_rows works gaps out from the times. UI tab "quali" (hasTab()).
 - Other SRO championships (`igtc`, `gtwcam`, `gtwcasia`, `gtwcau`, `britgt`; adapter `sro` = gtwce.fetch, sites in
   gtwce.SITES): calendar + timetables (America prints 12-hour clocks; autograph/pit-walk rows dropped by OFF_TRACK) +
   entry lists from /entry-lists, matched to rounds by shared words (slugs differ). Asia/Australia/British GT publish

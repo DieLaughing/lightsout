@@ -251,6 +251,9 @@ async def fetch(series_id: str, seasons: list[int]) -> AdapterResult:
 CLASS_TABLES = [("42_0_drivers", "Endurance Cup"), ("43_0_drivers", "Sprint Cup"), ("0_81_drivers", "Gold Cup"),
                 ("0_82_drivers", "Silver Cup"), ("0_80_drivers", "Bronze Cup")]
 RACE_SESSION = re.compile(r"^(race-\d+|race|main-race)$")
+# Qualifying slugs: qualifying-combined, qualifying-1..4 (Endurance, Spa), super-pole (Spa), Sprint's qualifying-1,
+# qualifying-1-combined, qualifying-1-group-a, qualifying-2-b (groups when the field is split).
+QUALI_SESSION = re.compile(r"^qualifying(?:-(\d+))?(?:-(?:group-)?([a-z]))?(-combined)?$")
 
 
 def _num(text: str) -> float:
@@ -307,6 +310,25 @@ def race_sessions(page: str, round_path: str) -> list[str]:
     return sorted(found, key=lambda x: (x != "main-race", x))
 
 
+def quali_sessions(page: str, round_path: str) -> list[tuple[str, str]]:
+    """A round's qualifying classifications as (slug, label): Superpole, Combined, then Q1, Q1 Group A... in order."""
+    found: dict[str, tuple[tuple, str]] = {}
+    for slug in re.findall(rf'href="{re.escape(round_path)}/([^"/#]+)"', page):
+        if slug == "super-pole":
+            key, label = (0,), "Superpole"
+        elif m := QUALI_SESSION.match(slug):
+            n, group = m[1], m[2]
+            if not n:
+                key, label = (1,), "Combined"
+            else:
+                key, label = (2, int(n), group or ""), f"Q{n}" + (f" Group {group.upper()}" if group else "")
+        else:
+            continue
+        if label not in {v[1] for v in found.values()}:
+            found[slug] = (key, label)
+    return [(slug, label) for slug, (_, label) in sorted(found.items(), key=lambda x: x[1][0])]
+
+
 def round_name(page: str) -> str:
     """The round's name as the site's round picker shows it ('Barcelona', 'CrowdStrike 24 Hours of Spa')."""
     picker = re.search(r'<select[^>]*name="filter_meeting_id".*?</select>', page, re.S)
@@ -316,14 +338,22 @@ def round_name(page: str) -> str:
 
 def parse_classification(page: str) -> list[dict]:
     table = re.search(r'<table[^>]*class="table session".*?</table>', page, re.S)
+    # Qualifying Combined has Avg Time, Time 1..4 in place of Time, Laps, Gap.
+    combined = "Avg Time" in [_text(x) for x in re.findall(r"<th[^>]*>(.*?)</th>", table.group(0) if table else "", re.S)]
     out = []
     for row in re.findall(r"<tr[^>]*>(.*?)</tr>", table.group(0) if table else "", re.S):
         c = [_text(x) for x in re.findall(r"<td[^>]*>(.*?)</td>", row, re.S)]
         if len(c) < 9:
             continue
         out.append({"pos": c[0], "car": c[1], "class": c[2], "drivers": [_person(d) for d in c[3].split(",") if d.strip()],
-                    "team": c[4], "model": c[5], "time": c[6], "laps": c[7], "gap": c[8]})
+                    "team": c[4], "model": c[5], "time": c[6], "laps": "" if combined else c[7], "gap": "" if combined else c[8]})
     return out
+
+
+def _secs(lap: str) -> float | None:
+    """'1:42.071' -> 102.071"""
+    m = re.match(r"^(?:(\d+):)?(\d+(?:\.\d+)?)$", lap)
+    return int(m[1] or 0) * 60 + float(m[2]) if m else None
 
 
 def result_rows(cls: list[dict]) -> list[ResultRow]:
@@ -342,6 +372,28 @@ def result_rows(cls: list[dict]) -> list[ResultRow]:
     return rows
 
 
+def quali_rows(cls: list[dict]) -> list[ResultRow]:
+    """Pole shows its lap, everyone else the gap to it (worked out from the times when the table has no Gap, as
+    Combined's averages); a car without a time says so. Superpole prints no lap for pole."""
+    rows = []
+    pole = _secs(cls[0]["time"]) if cls else None
+    for i, r in enumerate(cls):
+        mine = _secs(r["time"])
+        if not r["pos"].isdigit():
+            when = r["pos"]
+        elif i == 0:
+            when = r["time"] or "Pole"
+        elif r["gap"]:
+            when = r["gap"] if not re.match(r"^[\d:.]+$", r["gap"]) else f"+{r['gap']}"
+        elif pole is not None and mine is not None:
+            when = f"+{mine - pole:.3f}"
+        else:
+            when = r["time"] or "No time"
+        team = " · ".join(x for x in (f"#{r['car']} {r['team']}".strip(), r["class"]) if x and x != "#")
+        rows.append(ResultRow(r["pos"], " / ".join(r["drivers"]), team, when))
+    return rows
+
+
 async def standings(series_id: str) -> Standings | None:
     year = datetime.now().year
     index = await get_text(f"{BASE}/results")
@@ -354,8 +406,15 @@ async def standings(series_id: str) -> Standings | None:
     last_name, last_session, last_rows = "", "", []
     known: dict[str, tuple[str, str]] = {}   # lower-case driver name -> (name as written, team)
     seen_kinds: set[str] = set()
+    quali_name, quali = "", {}               # the newest round with qualifying (can be newer than the last race)
     for path in reversed(rounds):
         page = await get_text(BASE + path)
+        if not quali:
+            for slug, label in quali_sessions(page, path):
+                if rows := quali_rows(parse_classification(await get_text(f"{BASE}{path}/{slug}"))):
+                    quali[label] = rows
+            if quali:
+                quali_name = round_name(page) or path.rsplit("/", 1)[-1]
         races = race_sessions(page, path)
         if not races:
             continue
@@ -379,7 +438,7 @@ async def standings(series_id: str) -> Standings | None:
     teams = [StandingRow(p, n, "", pts) for p, n, pts in
              parse_standings(await get_text(f"{BASE}/standings?filter_standing_type=0_0_teams"), people=False)]
     st = Standings(drivers=drivers, teams=teams, season_label=str(season), last_event=last_name,
-                   last_session=last_session, last_results=last_rows)
+                   last_session=last_session, last_results=last_rows, quali_event=quali_name, qualifying=quali)
     for flt, label in CLASS_TABLES:
         try:
             rows = crews(parse_standings(await get_text(f"{BASE}/standings?filter_standing_type={flt}")), known)

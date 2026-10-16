@@ -27,11 +27,13 @@ def for_team(team: str, series: str = "") -> str:
 
 
 def tint(table: dict, series: str) -> dict:
-    """A copy of a standings table with `color` on every row (drivers, teams, classes, last race)."""
+    """A copy of a standings table with `color` on every row (drivers, teams, classes, last race, qualifying)."""
     out = dict(table)
     out["drivers"] = [{**r, "color": for_team(r.get("team", ""), series)} for r in table.get("drivers") or []]
     out["teams"] = [{**r, "color": for_team(r.get("name", ""), series)} for r in table.get("teams") or []]
     out["last_results"] = [{**r, "color": for_team(r.get("team", ""), series)} for r in table.get("last_results") or []]
     out["classes"] = {k: [{**r, "color": for_team(r.get("team", ""), series)} for r in v]
                       for k, v in (table.get("classes") or {}).items()}
+    out["qualifying"] = {k: [{**r, "color": for_team(r.get("team", ""), series)} for r in v]
+                         for k, v in (table.get("qualifying") or {}).items()}
     return out
