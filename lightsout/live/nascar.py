@@ -151,7 +151,8 @@ class NascarState:
                 "gap": gap, "interval": "",
                 "last": f"{v['last_lap_time']:.3f}" if v.get("last_lap_time") else "",
                 "best": f"{v['best_lap_time']:.3f}" if v.get("best_lap_time") else "",
-                "laps": v.get("laps_completed") or "", "pits": len(v.get("pit_stops") or []),
+                # Outside races "pit stops" are trips down pit road (every qualifying run), so they aren't shown.
+                "laps": v.get("laps_completed") or "", "pits": len(v.get("pit_stops") or []) if race else 0,
                 "tyre": "", "status": "" if v.get("status") in (None, 1) else "OUT",
                 "make": MAKES.get(v.get("vehicle_manufacturer", ""), v.get("vehicle_manufacturer", "")),
             })
@@ -159,7 +160,8 @@ class NascarState:
             "series": self.series, "kind": "race" if race else "timed",
             "event": f.get("run_name", ""), "session": {1: "Practice", 2: "Qualifying", 3: "Race"}.get(f.get("run_type"), ""),
             "status": "", "track": FLAGS.get(f.get("flag_state"), ""),
-            "lap": f.get("lap_number"), "total_laps": f.get("laps_in_race"), "clock": "",
+            # Practice and qualifying carry lap 1 of 999 (a placeholder): laps only mean something in a race.
+            "lap": f.get("lap_number") if race else None, "total_laps": f.get("laps_in_race") if race else None, "clock": "",
             "rows": rows, "messages": [], "updated": self.changed,
             "venue": f.get("track_name", ""),
         }
