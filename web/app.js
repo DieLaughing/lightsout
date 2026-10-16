@@ -837,7 +837,16 @@ function wireClassPicker(rerender) {
 // Standings tab: every championship in one place. Series you have switched on come first; the last one picked is remembered.
 const STANDINGS_TABS = [["drivers", "Drivers"], ["teams", "Teams"], ["last", "Last race"], ["quali", "Qualifying"]];
 // Tabs that only show when the series has them: Teams (some publish no team table), Qualifying (GTWCE so far).
-const hasTab = (t, st) => (t !== "teams" || st.teams?.length) && (t !== "quali" || Object.keys(st.qualifying || {}).length);
+// SRO's other series have results but no championship table: Drivers hides there, and America (qualifying only) has
+// no Last race either. A series with nothing yet keeps Drivers and Last race, which say so.
+const hasTab = (t, st) => {
+  const quali = Object.keys(st.qualifying || {}).length, last = st.last_results?.length;
+  if (t === "teams") return st.teams?.length;
+  if (t === "quali") return quali;
+  if (t === "drivers") return st.drivers?.length || (!quali && !last);
+  if (t === "last") return last || !quali;
+  return true;
+};
 
 async function standingsView(id, tab) {
   setNav("standings");
@@ -849,7 +858,7 @@ async function standingsView(id, tab) {
   store.set("standingsSeries", id);
   const st = await fast(`/api/series/${id}/standings`);
   const tabs = STANDINGS_TABS.filter(([t]) => hasTab(t, st));
-  if (!tabs.some(([t]) => t === tab)) tab = "drivers";
+  if (!tabs.some(([t]) => t === tab)) tab = tabs.some(([t]) => t === "drivers") ? "drivers" : tabs[0][0];
   view.innerHTML = `<h1>Standings</h1>
     <div class="series-pick" role="tablist" aria-label="Series">${list.map(x =>
       `<a role="tab" href="#/standings/${x.id}/${["teams", "quali"].includes(tab) ? "drivers" : tab}" class="${x.id === id ? "active" : ""}${on.has(x.id) ? "" : " off"}" aria-selected="${x.id === id}">${esc(x.short)}</a>`).join("")}</div>

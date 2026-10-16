@@ -37,10 +37,10 @@ async def refresh_series(store: Store, series_id: str) -> None:
         store.record_run(series_id, False, error=f"{type(exc).__name__}: {exc}"[:500])
         return
     module = adapters.load(s.adapter)
-    if hasattr(module, "standings"):
+    if adapters.has_standings(series_id, s.adapter):
         try:
             st = await module.standings(series_id)
-            if st and (st.drivers or st.last_results):
+            if st and (st.drivers or st.last_results or st.qualifying):
                 grid = {e["name"]: e["team"] for e in store.entries(series_id) if e.get("team")}
                 store.save_standings(series_id, teamnames.standings(series_id, st, grid))
                 picks.grade(store, series_id)  # a new Last race scores that race's Pick'em
