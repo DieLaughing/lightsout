@@ -120,7 +120,7 @@ def _with_watch(rows: list[dict]) -> list[dict]:
 def list_series():
     runs = store.runs()
     return [{**s.__dict__, "status": runs.get(s.id),
-             "has_standings": hasattr(adapters.load(s.adapter), "standings")} for s in SERIES]
+             "has_standings": adapters.has_standings(s.id, s.adapter)} for s in SERIES]
 
 
 @app.get("/api/sessions")

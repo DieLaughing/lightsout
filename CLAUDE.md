@@ -136,7 +136,10 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
 - Other SRO championships (`igtc`, `gtwcam`, `gtwcasia`, `gtwcau`, `britgt`; adapter `sro` = gtwce.fetch, sites in
   gtwce.SITES): calendar + timetables (America prints 12-hour clocks; autograph/pit-walk rows dropped by OFF_TRACK) +
   entry lists from /entry-lists, matched to rounds by shared words (slugs differ). Asia/Australia/British GT publish
-  entry lists only as PDFs, so no grids there yet. No standings: each site's tables differ. Off by default.
+  entry lists only as PDFs, so no grids there yet. No championship tables (each site's differ), but gtwce.standings
+  reads their /results: Last race + qualifying for America (qualifying only: it posts no race classifications), Asia
+  and British GT (gt3-/gt4- sessions); IGTC and Australia post PDFs (sro.NO_STANDINGS, adapters.has_standings).
+  parse_classification maps columns by heading (orders differ; Asia adds Cat). Off by default.
 - MotoGP / Moto2 / Moto3 (`motogp`, `moto2`, `moto3`; lightsout/adapters/motogp.py): api.motogp.pulselive.com.
   /events?seasonYear= (kind GP; sessions = broadcasts of type SESSION per class acronym MGP/MT2/MT3; races listed
   with end = start, so LENGTH sets 25/45 min), /riders (current_career_step), /results/* for standings + last race

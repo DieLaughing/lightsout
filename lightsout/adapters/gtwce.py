@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import html
 import re
+from urllib.parse import quote
 from datetime import date, datetime, timedelta, timezone
 
 from ..models import RACE, AdapterResult, Entry, Event, ResultRow, Session, StandingRow, Standings, kind_from_name
@@ -252,8 +253,9 @@ CLASS_TABLES = [("42_0_drivers", "Endurance Cup"), ("43_0_drivers", "Sprint Cup"
                 ("0_82_drivers", "Silver Cup"), ("0_80_drivers", "Bronze Cup")]
 RACE_SESSION = re.compile(r"^(race-\d+|race|main-race)$")
 # Qualifying slugs: qualifying-combined, qualifying-1..4 (Endurance, Spa), super-pole (Spa), Sprint's qualifying-1,
-# qualifying-1-combined, qualifying-1-group-a, qualifying-2-b (groups when the field is split).
-QUALI_SESSION = re.compile(r"^qualifying(?:-(\d+))?(?:-(?:group-)?([a-z]))?(-combined)?$")
+# qualifying-1-combined, qualifying-1-group-a, qualifying-2-b (groups when the field is split); Asia writes
+# qualifying_1, British GT gt3-qualifying-1 / gt4-qualifying-combined (a class each). pre-qualifying is practice.
+QUALI_SESSION = re.compile(r"^(?:(gt\d)-)?qualifying(?:-(\d+))?(?:-(?:group-)?([a-z]))?(-combined)?$")
 
 
 def _num(text: str) -> float:
@@ -315,13 +317,14 @@ def quali_sessions(page: str, round_path: str) -> list[tuple[str, str]]:
     found: dict[str, tuple[tuple, str]] = {}
     for slug in re.findall(rf'href="{re.escape(round_path)}/([^"/#]+)"', page):
         if slug == "super-pole":
-            key, label = (0,), "Superpole"
-        elif m := QUALI_SESSION.match(slug):
-            n, group = m[1], m[2]
-            if not n:
-                key, label = (1,), "Combined"
+            key, label = ("", 0), "Superpole"
+        elif m := QUALI_SESSION.match(slug.replace("_", "-")):
+            cls, n, group = m[1] or "", m[2], m[3]
+            prefix = f"{cls.upper()} " if cls else ""
+            if not n:  # America's single session is plain "qualifying"
+                key, label = (cls, 1), f"{prefix}{'Combined' if m[4] else 'Qualifying'}".strip()
             else:
-                key, label = (2, int(n), group or ""), f"Q{n}" + (f" Group {group.upper()}" if group else "")
+                key, label = (cls, 2, int(n), group or ""), f"{prefix}Q{n}" + (f" Group {group.upper()}" if group else "")
         else:
             continue
         if label not in {v[1] for v in found.values()}:
@@ -336,17 +339,28 @@ def round_name(page: str) -> str:
     return _text(chosen.group(1)) if chosen else ""
 
 
+# Column headings per field: the sites order their columns differently (Asia and British GT put Team before Drivers,
+# Asia adds Cat, America's Combined says Best Lap, Europe's Combined has Avg Time + Time 1..4 and no Gap).
+COLUMNS = {"pos": ("Pos",), "car": ("Car #",), "class": ("Class",), "cat": ("Cat",), "drivers": ("Drivers",),
+           "team": ("Team",), "model": ("Car",), "time": ("Time", "Avg Time", "Best Lap"), "laps": ("Laps",), "gap": ("Gap",)}
+
+
 def parse_classification(page: str) -> list[dict]:
     table = re.search(r'<table[^>]*class="table session".*?</table>', page, re.S)
-    # Qualifying Combined has Avg Time, Time 1..4 in place of Time, Laps, Gap.
-    combined = "Avg Time" in [_text(x) for x in re.findall(r"<th[^>]*>(.*?)</th>", table.group(0) if table else "", re.S)]
+    heads = [_text(x) for x in re.findall(r"<th(?:\s[^>]*)?>(.*?)</th>", table.group(0) if table else "", re.S)]
+    at = {k: next((heads.index(n) for n in names if n in heads), None) for k, names in COLUMNS.items()}
+    if at["pos"] is None or at["drivers"] is None:
+        return []
     out = []
     for row in re.findall(r"<tr[^>]*>(.*?)</tr>", table.group(0) if table else "", re.S):
         c = [_text(x) for x in re.findall(r"<td[^>]*>(.*?)</td>", row, re.S)]
-        if len(c) < 9:
+        if len(c) <= max(i for i in at.values() if i is not None):
             continue
-        out.append({"pos": c[0], "car": c[1], "class": c[2], "drivers": [_person(d) for d in c[3].split(",") if d.strip()],
-                    "team": c[4], "model": c[5], "time": c[6], "laps": "" if combined else c[7], "gap": "" if combined else c[8]})
+        get = lambda k: c[at[k]] if at[k] is not None else ""  # noqa: E731
+        cat = get("cat").title() if get("cat").isupper() else get("cat")     # Asia: "PRO-AM" -> "Pro-Am"
+        out.append({"pos": get("pos"), "car": get("car"), "class": " ".join(x for x in (get("class"), cat) if x),
+                    "drivers": [_person(d) for d in get("drivers").split(",") if d.strip()],
+                    "team": get("team"), "model": get("model"), "time": get("time"), "laps": get("laps"), "gap": get("gap")})
     return out
 
 
@@ -380,23 +394,25 @@ def quali_rows(cls: list[dict]) -> list[ResultRow]:
     for i, r in enumerate(cls):
         mine = _secs(r["time"])
         if not r["pos"].isdigit():
-            when = r["pos"]
+            when = r["pos"] or "No time"
         elif i == 0:
             when = r["time"] or "Pole"
         elif r["gap"]:
             when = r["gap"] if not re.match(r"^[\d:.]+$", r["gap"]) else f"+{r['gap']}"
-        elif pole is not None and mine is not None:
+        elif pole is not None and mine is not None and mine >= pole:
             when = f"+{mine - pole:.3f}"
-        else:
+        else:  # British GT's Combined adds both drivers' laps; a car with one driver's lap only lists its time
             when = r["time"] or "No time"
         team = " · ".join(x for x in (f"#{r['car']} {r['team']}".strip(), r["class"]) if x and x != "#")
         rows.append(ResultRow(r["pos"], " / ".join(r["drivers"]), team, when))
     return rows
 
 
-async def standings(series_id: str) -> Standings | None:
+async def standings(series_id: str = "gtwce") -> Standings | None:
+    """Europe: championship tables, Last race and qualifying. The other SRO sites (sro.py): Last race and qualifying."""
+    base = SITES[series_id][0]
     year = datetime.now().year
-    index = await get_text(f"{BASE}/results")
+    index = await get_text(f"{base}/results")
     rounds = parse_results_index(index, year) or parse_results_index(index, year - 1)
     if not rounds:
         return None
@@ -408,10 +424,11 @@ async def standings(series_id: str) -> Standings | None:
     seen_kinds: set[str] = set()
     quali_name, quali = "", {}               # the newest round with qualifying (can be newer than the last race)
     for path in reversed(rounds):
-        page = await get_text(BASE + path)
+        url = base + quote(path)                 # a few round paths have spaces ('/results/2026/The Bend')
+        page = await get_text(url)
         if not quali:
             for slug, label in quali_sessions(page, path):
-                if rows := quali_rows(parse_classification(await get_text(f"{BASE}{path}/{slug}"))):
+                if rows := quali_rows(parse_classification(await get_text(f"{url}/{slug}"))):
                     quali[label] = rows
             if quali:
                 quali_name = round_name(page) or path.rsplit("/", 1)[-1]
@@ -421,7 +438,7 @@ async def standings(series_id: str) -> Standings | None:
         kind = "endurance" if races[-1] == "main-race" else "sprint"
         if kind in seen_kinds:
             continue
-        cls = parse_classification(await get_text(f"{BASE}{path}/{races[-1]}"))
+        cls = parse_classification(await get_text(f"{url}/{races[-1]}"))
         if not cls:
             continue
         seen_kinds.add(kind)
@@ -432,8 +449,11 @@ async def standings(series_id: str) -> Standings | None:
             last_name = round_name(page) or path.rsplit("/", 1)[-1]
             last_session = "Race" if races[-1] == "main-race" else races[-1].replace("-", " ").capitalize()
             last_rows = result_rows(cls)
-        if len(seen_kinds) == 2:
+        if len(seen_kinds) == 2 or series_id != "gtwce":
             break
+    if series_id != "gtwce":
+        return Standings(season_label=str(season), last_event=last_name, last_session=last_session,
+                         last_results=last_rows, quali_event=quali_name, qualifying=quali)
     drivers = crews(parse_standings(await get_text(f"{BASE}/standings?filter_standing_type=0_0_drivers")), known)
     teams = [StandingRow(p, n, "", pts) for p, n, pts in
              parse_standings(await get_text(f"{BASE}/standings?filter_standing_type=0_0_teams"), people=False)]
