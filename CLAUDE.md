@@ -194,3 +194,17 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
 - Rallies: one calendar entry per day; rally-raids: one spanning entry. Calendar default: practice, qualifying, races.
 - Where-to-watch badges must make PAID ONLY vs FREE (and the source) obvious.
 - No league or team logos (trademarks); team marks are text.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in this repo's GitHub Issues, managed with the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Uses the default label names: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `GLOSSARY.md` and one `docs/adr/` at the repo root, created only when needed. See `docs/agents/domain.md`.
