@@ -3,6 +3,10 @@
 Every update to [Lights Out](https://github.com/DieLaughing/lightsout), newest first. The same list is on the app's What's new page.
 This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit that file, not this one.
 
+## October 16, 2026
+
+- **New: Qualifying results for the GT World Challenge.** GT World Challenge Europe, America and Asia and British GT now have a Qualifying tab on the series page and in Standings. It shows the newest round's qualifying, often before the race has run, with every session as a chip (Superpole, Combined, Q1, Q2, Q3, split groups, and GT3 and GT4 sessions at British GT). You get each car's position, class, crew and gap to pole, and followed drivers are highlighted. The round's event page lists it too. Asia and British GT also get Last race, so following a driver shows how they finished. Results appear within about an hour of the session ending. This isn't live timing; for that, use Official timing. The Intercontinental GT Challenge and GT World Challenge Australia only publish results as PDFs, so they're not included.
+
 ## October 15, 2026
 
 - **Fixed: Right team names, everywhere.** Liam Lawson showed as Red Bull in the F1 standings because of his three-race stint there; drivers now show the team they raced for most recently, so a one-off swap shows for that week and then goes back. Teams also use their proper names (Red Bull Racing, Racing Bulls, Alpine, Haas, Cadillac), Formula E teams no longer appear twice in capitals, MotoGP classes lost some doubled names, NASCAR standings name the team as well as the make, GT World Challenge America's entry lists show teams instead of drivers in the team column, and F2 and F3 drivers now show their team in the standings, the last race and driver pages.
