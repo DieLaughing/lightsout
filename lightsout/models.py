@@ -129,3 +129,5 @@ class Standings:
     last_results: list[ResultRow] = field(default_factory=list)
     season_label: str = ""
     classes: dict[str, list[StandingRow]] = field(default_factory=dict)  # support championships, e.g. WRC2
+    quali_event: str = ""
+    qualifying: dict[str, list[ResultRow]] = field(default_factory=dict)  # latest round's qualifying sessions, in order

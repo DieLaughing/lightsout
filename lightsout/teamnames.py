@@ -56,7 +56,7 @@ def standings(series: str, st: Standings, grid: dict[str, str] | None = None) ->
             r.team = f"#{car[1]} · {team[2]} · {car[2]}"
     for r in st.teams:
         r.name = tidy(series, r.name)
-    for rows in st.classes.values():
+    for rows in [*st.classes.values(), *st.qualifying.values()]:
         for r in rows:
             r.team = tidy(series, r.team)
     return st

@@ -3,6 +3,12 @@
 # After editing: `.venv/bin/python tools/changelog.py` rewrites CHANGELOG.md (a test checks they match),
 # and `.venv/bin/python tools/release.py` publishes the day's GitHub Release.
 
+- date: 2026-10-16
+  kind: new
+  title: GT World Challenge Europe qualifying results
+  text: GT World Challenge Europe now has a Qualifying tab next to Last race, on the series page and in Standings. It shows the newest round's qualifying, which often lands before the race has run, with every session as a chip (Superpole, Combined, Q1, Q2, Q3 and split groups at Sprint rounds). You get each car's position, class, crew and gap to pole, and followed drivers are highlighted. The round's event page lists it too. Results appear within about an hour of the session ending. This isn't live timing yet; for that, use Official timing.
+  link: "#/standings/gtwce/quali"
+
 - date: 2026-10-15
   kind: fixed
   title: Right team names, everywhere
