@@ -216,6 +216,11 @@ def test_nascar_races_and_live():
     snap = st.snapshot()
     assert snap["track"] == "Caution" and snap["rows"][0]["name"] == "Chase Briscoe"
     assert snap["rows"][1]["gap"] == "-154 laps" and snap["rows"][1]["status"] == "OUT"
+    st.apply({"series_id": 1, "run_type": 2, "lap_number": 1, "laps_in_race": 999, "flag_state": 9, "vehicles": [
+        {"running_position": 1, "vehicle_number": "34", "driver": {"full_name": "Layne Riggs"}, "best_lap_time": 27.039,
+         "pit_stops": [{}, {}], "status": 1}]})
+    snap = st.snapshot()  # qualifying: no "Lap 1 / 999", no pit-road trips as stops
+    assert snap["lap"] is None and snap["total_laps"] is None and snap["rows"][0]["pits"] == 0
 
 
 def test_watch_prefers_session_network():

@@ -5,6 +5,7 @@ This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit th
 
 ## October 16, 2026
 
+- **Fixed: NASCAR qualifying live timing.** NASCAR practice and qualifying no longer show "Lap 1 / 999". The lap count now appears only during races. The Pits column is also blank outside races, since it was counting every trip down pit road as a stop.
 - **New: Qualifying results for the GT World Challenge.** GT World Challenge Europe, America and Asia and British GT now have a Qualifying tab on the series page and in Standings. It shows the newest round's qualifying, often before the race has run, with every session as a chip (Superpole, Combined, Q1, Q2, Q3, split groups, and GT3 and GT4 sessions at British GT). You get each car's position, class, crew and gap to pole, and followed drivers are highlighted. The round's event page lists it too. Asia and British GT also get Last race, so following a driver shows how they finished. Results appear within about an hour of the session ending. This isn't live timing; for that, use Official timing. The Intercontinental GT Challenge and GT World Challenge Australia only publish results as PDFs, so they're not included.
 
 ## October 15, 2026
