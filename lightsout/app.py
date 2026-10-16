@@ -120,7 +120,7 @@ def _with_watch(rows: list[dict]) -> list[dict]:
 def list_series():
     runs = store.runs()
     return [{**s.__dict__, "status": runs.get(s.id),
-             "has_standings": hasattr(adapters.load(s.adapter), "standings")} for s in SERIES]
+             "has_standings": adapters.has_standings(s.id, s.adapter)} for s in SERIES]
 
 
 @app.get("/api/sessions")
@@ -645,6 +645,8 @@ def event_page(series_id: str, event_key: str):
     st = store.standings(series_id) or {}
     same = st.get("last_event") and weather.norm(st["last_event"]) in (weather.norm(ev["name"]), weather.norm(ev.get("venue") or ""))
     ev["results"] = {"session": st.get("last_session"), "rows": st.get("last_results")} if same else None
+    q_same = st.get("quali_event") and weather.norm(st["quali_event"]) in (weather.norm(ev["name"]), weather.norm(ev.get("venue") or ""))
+    ev["qualifying"] = colors.tint({"qualifying": st.get("qualifying")}, series_id)["qualifying"] if q_same else None
     ev["story"] = bool(store.conn.execute("SELECT 1 FROM race_event WHERE series=? AND event_key=? LIMIT 1",
                                           (series_id, event_key)).fetchone())
 

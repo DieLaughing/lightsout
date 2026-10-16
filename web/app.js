@@ -671,6 +671,7 @@ async function eventView(id, key) {
       `<a href="#/event/${w.series}/${encodeURIComponent(w.key)}">${chip(w.series)}</a>`).join(" ")}</p>` : ""}
     ${yours.length ? `<h2>Your drivers</h2><div class="card standings">${yours.map(driverRow).join("")}</div>` : ""}
     ${e.results?.rows?.length ? `<h2>Results</h2>${standingsBody(id, "last", { last_results: e.results.rows, last_event: e.name, last_session: e.results.session })}` : ""}
+    ${Object.keys(e.qualifying || {}).length ? `<h2>Qualifying</h2>${standingsBody(id, "quali", { qualifying: e.qualifying, quali_event: e.name })}` : ""}
     <h2>Schedule</h2>
     <div class="card">${e.sessions.length ? `${commonWatch(e.sessions) && e.sessions[0].watch
       ? `<div class="evc-head"><span class="muted small">Where to watch</span>${badge(e.sessions[0].watch)}</div>` : ""}${seriesRows(e.sessions)}`
@@ -681,6 +682,7 @@ async function eventView(id, key) {
       <details class="card entry-list"${e.drivers.length <= 30 ? " open" : ""}><summary class="small muted">${e.entry_list
         ? "Everyone entered for this event" : "The series' regular drivers; this event has no separate entry list"}</summary>
         <div class="standings">${e.drivers.map(driverRow).join("")}</div></details>` : ""}`;
+  wireClassPicker(() => eventView(id, key));
 }
 
 async function trackView(slug) {
@@ -733,7 +735,7 @@ function seasonProgress(events, today) {
       `<i class="${i < done ? "done" : i === done ? "next" : ""}" title="${esc(e.name)}"></i>`).join("")}</div></div>`;
 }
 
-const SERIES_TABS = [["schedule", "Schedule"], ["last", "Last race"], ["drivers", "Drivers"], ["teams", "Teams"]];
+const SERIES_TABS = [["schedule", "Schedule"], ["last", "Last race"], ["quali", "Qualifying"], ["drivers", "Drivers"], ["teams", "Teams"]];
 
 async function seriesView(id, tab = "schedule") {
   setNav("series");
@@ -741,7 +743,8 @@ async function seriesView(id, tab = "schedule") {
   if (!s) { view.innerHTML = `<div class="empty">Unknown series.</div>`; return; }
   if (!s.has_standings) tab = "schedule";
   const st = s.has_standings ? await fast(`/api/series/${id}/standings`) : {};
-  const shown = SERIES_TABS.filter(([t]) => t !== "teams" || st.teams?.length);
+  const shown = SERIES_TABS.filter(([t]) => hasTab(t, st));
+  if (!shown.some(([t]) => t === tab)) tab = "schedule";
   const liveNow = (await api("/api/live").catch(() => [])).some(f => f.series === id);
   const tabs = s.has_standings || liveNow ? `<div class="tabs" role="tablist">${liveNow ? `<a role="tab" href="#/live/${id}" class="live-tab">● Live</a>` : ""}${(s.has_standings ? shown : SERIES_TABS.slice(0, 1)).map(([t, label]) =>
     `<a role="tab" href="#/series/${id}/${t}" class="${t === tab ? "active" : ""}" aria-selected="${t === tab}">${label}</a>`).join("")}</div>` : "";
@@ -791,12 +794,22 @@ function standingsBody(id, tab, st) {
   const mine = new Set(follows().map(f => normalise(f.name)));
   const isMine = (...names) => names.some(n => n && mine.has(normalise(n)));
   const updated = st.updated ? `Updated ${new Date(st.updated).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}` : "";
+  const resultRows = rows => `<div class="card standings">${rows.map(r => `<div class="srow${isMine(r.name, r.team) ? " followed" : ""}"${tc(r)}>
+        <span class="pos">${esc(r.pos)}</span><span class="who"><b>${esc(r.name)}</b><span class="tteam">${esc(r.team)}</span></span>
+        <span class="num">${esc(r.time)}</span><span class="num pts">${r.points ? pts(r.points) : ""}</span></div>`).join("")}</div>`;
   if (tab === "last") {
     return st.last_results?.length ? `<p class="muted small">${[st.last_event, st.last_session, updated].filter(Boolean).map(esc).join(" · ")}</p>
-      <div class="card standings">${st.last_results.map(r => `<div class="srow${isMine(r.name, r.team) ? " followed" : ""}"${tc(r)}>
-        <span class="pos">${esc(r.pos)}</span><span class="who"><b>${esc(r.name)}</b><span class="tteam">${esc(r.team)}</span></span>
-        <span class="num">${esc(r.time)}</span><span class="num pts">${r.points ? pts(r.points) : ""}</span></div>`).join("")}</div>`
+      ${resultRows(st.last_results)}`
       : `<div class="empty">No race results yet.</div>`;
+  }
+  if (tab === "quali") {
+    const sessions = Object.keys(st.qualifying || {});
+    if (!sessions.length) return `<div class="empty">No qualifying results yet.</div>`;
+    const pick = sessions.includes(seriesQuali[id]) ? seriesQuali[id] : sessions[0];
+    const picker = sessions.length > 1 ? `<div class="chips">${sessions.map(q =>
+      `<button class="chip-btn${q === pick ? " active" : ""}" data-quali="${esc(q)}" data-for="${id}">${esc(q)}</button>`).join("")}</div>` : "";
+    return `${picker}<p class="muted small">${[st.quali_event, pick, updated].filter(Boolean).map(esc).join(" · ")}</p>
+      ${resultRows(st.qualifying[pick])}${pick === "Combined" ? `<p class="muted small">The average of the crew's qualifying times sets the grid.</p>` : ""}`;
   }
   const classes = tab === "drivers" ? Object.keys(st.classes || {}) : [];
   const cls = classes.includes(seriesClass[id]) ? seriesClass[id] : null;
@@ -816,10 +829,24 @@ function wireClassPicker(rerender) {
   view.querySelectorAll("[data-class]").forEach(b => b.addEventListener("click", () => {
     seriesClass[b.dataset.for] = b.dataset.class || null; rerender();
   }));
+  view.querySelectorAll("[data-quali]").forEach(b => b.addEventListener("click", () => {
+    seriesQuali[b.dataset.for] = b.dataset.quali; rerender();
+  }));
 }
 
 // Standings tab: every championship in one place. Series you have switched on come first; the last one picked is remembered.
-const STANDINGS_TABS = [["drivers", "Drivers"], ["teams", "Teams"], ["last", "Last race"]];
+const STANDINGS_TABS = [["drivers", "Drivers"], ["teams", "Teams"], ["last", "Last race"], ["quali", "Qualifying"]];
+// Tabs that only show when the series has them: Teams (some publish no team table), Qualifying (GTWCE so far).
+// SRO's other series have results but no championship table: Drivers hides there, and America (qualifying only) has
+// no Last race either. A series with nothing yet keeps Drivers and Last race, which say so.
+const hasTab = (t, st) => {
+  const quali = Object.keys(st.qualifying || {}).length, last = st.last_results?.length;
+  if (t === "teams") return st.teams?.length;
+  if (t === "quali") return quali;
+  if (t === "drivers") return st.drivers?.length || (!quali && !last);
+  if (t === "last") return last || !quali;
+  return true;
+};
 
 async function standingsView(id, tab) {
   setNav("standings");
@@ -830,11 +857,11 @@ async function standingsView(id, tab) {
   if (!BY_ID[id]?.has_standings) id = list.some(x => x.id === store.get("standingsSeries")) ? store.get("standingsSeries") : list[0].id;
   store.set("standingsSeries", id);
   const st = await fast(`/api/series/${id}/standings`);
-  const tabs = STANDINGS_TABS.filter(([t]) => t !== "teams" || st.teams?.length);
-  if (!tabs.some(([t]) => t === tab)) tab = "drivers";
+  const tabs = STANDINGS_TABS.filter(([t]) => hasTab(t, st));
+  if (!tabs.some(([t]) => t === tab)) tab = tabs.some(([t]) => t === "drivers") ? "drivers" : tabs[0][0];
   view.innerHTML = `<h1>Standings</h1>
     <div class="series-pick" role="tablist" aria-label="Series">${list.map(x =>
-      `<a role="tab" href="#/standings/${x.id}/${tab === "teams" ? "drivers" : tab}" class="${x.id === id ? "active" : ""}${on.has(x.id) ? "" : " off"}" aria-selected="${x.id === id}">${esc(x.short)}</a>`).join("")}</div>
+      `<a role="tab" href="#/standings/${x.id}/${["teams", "quali"].includes(tab) ? "drivers" : tab}" class="${x.id === id ? "active" : ""}${on.has(x.id) ? "" : " off"}" aria-selected="${x.id === id}">${esc(x.short)}</a>`).join("")}</div>
     <div class="standings-title">${chip(id)} <b>${esc(BY_ID[id].name)}</b> <a class="small" href="#/series/${id}">Schedule →</a></div>
     <div class="tabs" role="tablist">${tabs.map(([t, label]) =>
       `<a role="tab" href="#/standings/${id}/${t}" class="${t === tab ? "active" : ""}" aria-selected="${t === tab}">${label}</a>`).join("")}</div>
@@ -843,6 +870,7 @@ async function standingsView(id, tab) {
   wireClassPicker(() => standingsView(id, tab));
 }
 const seriesClass = {};  // picked support championship per series (e.g. WRC2), for this page visit
+const seriesQuali = {};  // picked qualifying session per series (Q1, Combined...)
 
 async function settingsView() {
   setNav("settings");

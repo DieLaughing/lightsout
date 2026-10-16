@@ -436,6 +436,22 @@ def test_gtwce_standings_and_results():
     res = g.result_rows(g.parse_classification(page))
     assert res[0].pos == "1" and res[0].time.endswith("laps") and res[0].team.startswith("#69 ")
     assert res[1].time.startswith("+") and res[-1].pos == res[-1].time == "NC"
+    assert [x[1] for x in g.quali_sessions(page, "/results/2026/barcelona")][:3] == ["Q1", "Q1 Group A", "Q1 Group B"]
+    spa = '<a href="/results/2026/spa/qualifying-2"><a href="/results/2026/spa/qualifying-combined"><a href="/results/2026/spa/super-pole">'
+    assert [x[1] for x in g.quali_sessions(spa, "/results/2026/spa")] == ["Superpole", "Combined", "Q2"]
+    combined = g.quali_rows(g.parse_classification(_gtwce("gtwce_quali_combined.html")))
+    assert combined[0].time == "1:42.071" and combined[1].time == "+0.108"   # gap worked out from the averages
+    pole = g.quali_rows(g.parse_classification(_gtwce("gtwce_superpole.html")))
+    assert pole[0].time == "Pole" and pole[1].time == "+0.428" and pole[-1].time == "NC"
+    # The other SRO sites: Team before Drivers + a Cat column (Asia), underscores, classes and a plain "qualifying".
+    asia = ('<table class="table session"><tr><th>Pos</th><th>Car #</th><th>Class</th><th>Cat</th><th>Team</th><th>Drivers</th>'
+            '<th>Car</th><th>Time</th><th>Laps</th><th>Gap</th></tr><tr><td>1</td><td>96</td><td>GT3</td><td>PRO-AM</td>'
+            '<td>Harmony Racing</td><td>Kaishun LIU, Takuro SHINOHARA</td><td>Audi</td><td>1:45.023</td><td>7</td><td></td></tr></table>')
+    row = g.quali_rows(g.parse_classification(asia))[0]
+    assert row.name == "Kaishun Liu / Takuro Shinohara" and row.team == "#96 Harmony Racing · GT3 Pro-Am"
+    links = "".join(f'<a href="/results/2026/x/{s}">' for s in ("gt4-qualifying-1", "gt3-qualifying-combined", "qualifying_1", "pre-qualifying"))
+    assert [x[1] for x in g.quali_sessions(links, "/results/2026/x")] == ["Q1", "GT3 Combined", "GT4 Q1"]
+    assert [x[1] for x in g.quali_sessions('<a href="/results/2026/x/qualifying">', "/results/2026/x")] == ["Qualifying"]
 
 
 def test_motogp_calendar_per_class():
