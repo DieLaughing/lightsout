@@ -18,7 +18,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Red
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from . import access, bugs, adapters, alerts, changes, colors, follow, ics, news, picks, places, refresh, tickets, usage, watch, weather
+from . import access, bugs, adapters, alerts, changes, colors, follow, ics, news, picks, places, refresh, slow, tickets, usage, watch, weather
 from .db import Store
 from .live.hub import LiveHub
 from .push import Pusher
@@ -47,6 +47,7 @@ store = Store(DATA_DIR / "lightsout.db")
 bugs.init(store.conn)
 picks.init(store.conn)
 usage.init(sqlite3.connect(store.path, check_same_thread=False, timeout=10))   # its own: see usage.init
+slow.init(sqlite3.connect(store.path, check_same_thread=False, timeout=10))
 CAL_TOKEN = _cal_token()
 live = LiveHub(store)
 pusher = Pusher(DATA_DIR, access.ADMIN)
@@ -92,7 +93,8 @@ async def lifespan(app: FastAPI):
              asyncio.create_task(starts_loop())]
     if not os.environ.get("LIGHTSOUT_NO_REFRESH"):
         tasks += [asyncio.create_task(refresh.loop(store)), asyncio.create_task(news_loop()),
-                  asyncio.create_task(tickets.refresh_loop()), asyncio.create_task(weather.loop(store, DATA_DIR))]
+                  asyncio.create_task(tickets.refresh_loop()), asyncio.create_task(weather.loop(store, DATA_DIR)),
+                  asyncio.create_task(slow.loop(store, access.notify))]
     yield
     for task in tasks:
         task.cancel()
@@ -283,8 +285,10 @@ async def gate(request: Request, call_next):
         return _ready_response(hit, request)
     started = time.perf_counter()
     response = await call_next(request)
-    if path.startswith("/api/") and (took := time.perf_counter() - started) > 0.5:
-        logging.getLogger("lightsout.app").warning("slow request: %s %s %.0f ms", request.method, path, took * 1000)
+    if path.startswith("/api/") and (took := time.perf_counter() - started) > slow.SLOW:
+        log.warning("slow request: %s %s %.0f ms", request.method, path, took * 1000)
+        route = getattr(request.scope.get("route"), "path", None) or "(no route)"   # /api/live/{series_id}, not each series
+        asyncio.get_running_loop().run_in_executor(None, slow.add, route, round(took * 1000), any(f.running for f in live.feeds.values()))
     if key and response.status_code == 200:
         raw = b"".join([chunk async for chunk in response.body_iterator])
         if len(_ready) > 300:
