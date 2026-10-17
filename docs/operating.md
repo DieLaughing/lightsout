@@ -37,11 +37,13 @@ they have drifted, the newer and better-tested version wins.
 | Calendar feeds | `lightsout/ics.py` | `sog/ics.py` |
 | Service worker + offline page | `web/sw.js`, `web/offline.html` | `web/sw.js`, `web/offline.html` |
 | Phone cache (`api()`, `fast()`, `prefetch()`, `showLoading()`) | `web/app.js` | `web/app.js` |
-| Server answer caching, slow-request log, SQLite WAL + checkpoints | `lightsout/app.py`, `lightsout/db.py` | `sog/app.py`, `sog/feed.py`, `sog/db.py` |
+| Server answer caching, SQLite WAL + checkpoints | `lightsout/app.py`, `lightsout/db.py` | `sog/app.py`, `sog/feed.py`, `sog/db.py` |
 | Page-view counts (anonymous, per page and day) | `lightsout/usage.py`, `countView()`/`sendViews()` in `web/app.js` | `sog/usage.py`, `countView()`/`sendViews()` in `web/app.js` |
+| Slow-request log + 9am ntfy summary | `lightsout/slow.py` | `sog/slow.py` |
+| Speed budget check | `tools/perfcheck.py`, `tools/perf_server.py` | `tools/perfcheck.py`, `tools/perf_server.py` |
 | Deploy, Docker, CI | `deploy.sh`, `Dockerfile`, `.github/workflows/` | `deploy.sh`, `Dockerfile`, `.github/workflows/` |
 
-New shared parts get a row here when they land (perfcheck, the slow-request summary).
+New shared parts get a row here when they land.
 
 ## New ideas
 
