@@ -30,7 +30,7 @@ def test_report_is_anonymous_and_defuses_mentions(monkeypatch):
     assert out["issue"] == 7 and out["title"] == "Scores froze @everyone"
     sent = calls[0][2]
     assert "fan@example.com" not in sent["body"] and "@​everyone" in sent["body"]
-    assert sent["labels"] == ["from-app", "bug"] and bugs.sent_today("fan@example.com") == 1
+    assert sent["labels"] == ["from-app", "bug", "needs-triage"] and bugs.sent_today("fan@example.com") == 1
 
 
 def test_your_reports_pick_up_fixed_and_the_owner_reply(monkeypatch):
