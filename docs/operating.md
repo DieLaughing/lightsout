@@ -38,9 +38,10 @@ they have drifted, the newer and better-tested version wins.
 | Service worker + offline page | `web/sw.js`, `web/offline.html` | `web/sw.js`, `web/offline.html` |
 | Phone cache (`api()`, `fast()`, `prefetch()`, `showLoading()`) | `web/app.js` | `web/app.js` |
 | Server answer caching, slow-request log, SQLite WAL + checkpoints | `lightsout/app.py`, `lightsout/db.py` | `sog/app.py`, `sog/feed.py`, `sog/db.py` |
+| Page-view counts (anonymous, per page and day) | `lightsout/usage.py`, `countView()`/`sendViews()` in `web/app.js` | `sog/usage.py`, `countView()`/`sendViews()` in `web/app.js` |
 | Deploy, Docker, CI | `deploy.sh`, `Dockerfile`, `.github/workflows/` | `deploy.sh`, `Dockerfile`, `.github/workflows/` |
 
-New shared parts get a row here when they land (usage counts, perfcheck, the slow-request summary).
+New shared parts get a row here when they land (perfcheck, the slow-request summary).
 
 ## New ideas
 

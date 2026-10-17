@@ -1596,6 +1596,17 @@ const ago = iso => {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 };
 
+// Page views (anonymous, your own not counted): which pages friends actually open.
+function usageBlock(u) {
+  if (!u?.pages.length) return `<h2>Page views</h2><div class="card"><div class="empty">No views counted yet.</div></div>`;
+  const month = u.pages.reduce((n, p) => n + p.month, 0);
+  return `<h2>Page views</h2>
+    <div class="card"><table class="board"><tr><th>Page</th><th>7 days</th><th>30 days</th><th>Since ${esc(u.first)}</th></tr>
+      ${u.pages.map(p => `<tr><td>${esc(VIEW_NAME[p.route] || p.route)}</td><td>${p.week}</td><td>${p.month}</td><td>${p.all}</td></tr>`).join("")}
+    </table></div>
+    <p class="small muted">${month} views in the last 30 days. Counted per page and day, never who; your own views aren't counted.</p>`;
+}
+
 async function adminView() {
   setNav("admin");
   if (!ME.admin) { view.innerHTML = `<div class="empty">Admin only.</div>`; return; }
@@ -1620,7 +1631,8 @@ async function adminView() {
     <p class="small muted">Set how many people can use a link (one for a single friend, more for a group chat). Whoever signs in with it is approved straight away. Close a group link to stop it.</p>
     <h2>Approved (${approved.length})</h2>
     <div class="card">${approved.map(u => row(u, ME.email === u.email ? `<span class="small muted">You</span>` : btn(u.email, "revoked", "Revoke"))).join("")}</div>
-    ${other.length ? `<h2>Denied or revoked</h2><div class="card">${other.map(u => row(u, btn(u.email, "approved", "Approve"))).join("")}</div>` : ""}`;
+    ${other.length ? `<h2>Denied or revoked</h2><div class="card">${other.map(u => row(u, btn(u.email, "approved", "Approve"))).join("")}</div>` : ""}
+    ${usageBlock(d.usage)}`;
   view.querySelectorAll("[data-status]").forEach(b => b.addEventListener("click", async () => {
     b.disabled = true;
     await send("/api/admin/users", "POST", { email: b.dataset.email, status: b.dataset.status });
@@ -1779,10 +1791,43 @@ async function prefetch() {
 }
 setInterval(() => { if (!document.hidden) prefetch(); }, 90000);
 
+// Page views for /admin: counted per page pattern on the phone, sent in batches (sendBeacon: never in a page's way).
+// Anonymous on the server; the owner's own views aren't counted. Patterns follow route()'s matches below.
+const VIEWS = {};
+const VIEW_PLAIN = new Set(["/report", "/wire", "/new", "/app", "/series", "/settings", "/settings/near", "/standings", "/picks"]);
+const VIEW_DEEP = [[/^\/series\/[\w-]+(?:\/\w+)?$/, "series/:id"], [/^\/live\/[\w-]+$/, "live/:series"],
+  [/^\/driver\/.+$/, "driver/:name"], [/^\/team\/.+$/, "team/:name"], [/^\/story\/[\w-]+\/.+$/, "story/:id"],
+  [/^\/event\/[\w-]+\/.+$/, "event/:id"], [/^\/track\/[\w-]+$/, "track/:id"],
+  [/^\/standings\/[\w-]+(?:\/\w+)?$/, "standings/:series"], [/^\/picks\/[\w-]+(?:\/.+)?$/, "picks/:sub"]];
+const VIEW_NAME = { home: "Home", wire: "Race Wire", new: "What's new", app: "Get the app", series: "Series list",
+  settings: "Settings", standings: "Standings", picks: "Pick'em", report: "Report a problem", "series/:id": "A series' page",
+  "live/:series": "Live timing", "driver/:name": "Driver page", "team/:name": "Team page", "story/:id": "Race story",
+  "event/:id": "Event page", "track/:id": "Track page", "standings/:series": "Standings, a series",
+  "picks/:sub": "Pick'em, a race or table" };
+
+function countView(hash) {
+  if (ME?.status !== "approved" || ME.admin) return;
+  const key = VIEW_PLAIN.has(hash) ? hash.split("/")[1] : VIEW_DEEP.find(([re]) => re.test(hash))?.[1] || "home";
+  VIEWS[key] = (VIEWS[key] || 0) + 1;
+}
+
+// Leaving the app: sendBeacon (survives the page going away). Otherwise a fetch, and a batch that doesn't land
+// (offline, an expired sign-in redirecting to the login page) goes back in the count for next time.
+function sendViews(leaving = false) {
+  if (!Object.keys(VIEWS).length) return;
+  const batch = { ...VIEWS }, body = JSON.stringify({ views: batch });
+  for (const k in VIEWS) delete VIEWS[k];
+  const putBack = () => { for (const k in batch) VIEWS[k] = (VIEWS[k] || 0) + batch[k]; };
+  if (leaving && navigator.sendBeacon?.("/api/views", new Blob([body], { type: "application/json" }))) return;
+  fetch("/api/views", { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true, redirect: "error" })
+    .then(res => { if (!res.ok) putBack(); }, putBack);
+}
+
 async function route(quiet = false) {
   const hash = location.hash.replace(/^#/, "") || "/";
   const page = hash.split("/")[1] || "";
   QUIET_ROUTE = quiet;
+  const navigated = !quiet && location.hash !== lastHash;   // a navigation, not a redraw of the same page
   if (!quiet) {
     const changed = lastHash !== null && location.hash !== lastHash;
     pendingShot = changed && motionOn() && ME?.status === "approved" ? shotFrom(lastPage, page, lastHash || "", location.hash) : 0;
@@ -1792,6 +1837,7 @@ async function route(quiet = false) {
   try {
     if (!ME) ME = await api("/api/me");
     if (ME.status !== "approved") return gateView();
+    if (navigated) countView(hash);
     document.getElementById("tabs").hidden = false;
     if (!SETTINGS || !SERIES.length) {
       // First load: settings, What's new and the series list all at once.
@@ -1842,6 +1888,13 @@ async function route(quiet = false) {
 
 window.addEventListener("hashchange", () => { CAME_FROM_APP = true; window.scrollTo(0, 0); route(); });
 route();
+setInterval(sendViews, 60000);
+// Coming back after a while counts as opening the app again; leaving sends what's been counted.
+let hiddenAt = 0;
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) { hiddenAt = Date.now(); sendViews(true); return; }
+  if (hiddenAt && Date.now() - hiddenAt > 5 * 60000) countView(location.hash.replace(/^#/, "") || "/");
+});
 // Keep live badges and "next up" fresh while the page is open (a quiet redraw: no animation).
 setInterval(() => { if ((location.hash || "#/") === "#/" && document.visibilityState === "visible") route(true); }, 60000);
 
