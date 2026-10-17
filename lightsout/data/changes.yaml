@@ -4,6 +4,12 @@
 # and `.venv/bin/python tools/release.py` publishes the day's GitHub Release.
 
 - date: 2026-10-16
+  kind: improved
+  title: Counting which pages get used
+  text: The app now keeps a simple tally of how often each kind of page is opened (Home, series pages, live timing, the Race Wire, Pick'em and so on). It isn't tracking you. It never records who opened what, so not even the person running the app can see who clicked anything, just totals like "live timing was opened 40 times this week". It's strictly for deciding what to build and improve next. Tallies are kept for six months.
+  link: "#/new"
+
+- date: 2026-10-16
   kind: fixed
   title: NASCAR qualifying live timing
   text: NASCAR practice and qualifying no longer show "Lap 1 / 999". The lap count now appears only during races. The Pits column is also blank outside races, since it was counting every trip down pit road as a stop.

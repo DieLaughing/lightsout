@@ -7,6 +7,7 @@ import hashlib
 import logging
 import os
 import secrets
+import sqlite3
 import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
@@ -17,7 +18,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Red
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from . import access, bugs, adapters, alerts, changes, colors, follow, ics, news, picks, places, refresh, tickets, watch, weather
+from . import access, bugs, adapters, alerts, changes, colors, follow, ics, news, picks, places, refresh, tickets, usage, watch, weather
 from .db import Store
 from .live.hub import LiveHub
 from .push import Pusher
@@ -45,6 +46,7 @@ def _cal_token() -> str:
 store = Store(DATA_DIR / "lightsout.db")
 bugs.init(store.conn)
 picks.init(store.conn)
+usage.init(sqlite3.connect(store.path, check_same_thread=False, timeout=10))   # its own: see usage.init
 CAL_TOKEN = _cal_token()
 live = LiveHub(store)
 pusher = Pusher(DATA_DIR, access.ADMIN)
@@ -408,7 +410,34 @@ async def invite(code: str, request: Request):
 @app.get("/api/admin")
 def admin_overview():
     return {"users": [{k: u[k] for k in ("email", "status", "requested", "decided")} for u in store.users()],
-            "invites": [{**i, "link": f"{access.BASE_URL}/invite/{i['code']}"} for i in store.invites()]}
+            "invites": [{**i, "link": f"{access.BASE_URL}/invite/{i['code']}"} for i in store.invites()],
+            "usage": usage.summary()}
+
+
+@app.get("/api/admin/usage")
+def admin_usage(since: str | None = None):
+    """Raw page-view counts per day and page (the monthly idea session reads these)."""
+    try:
+        since and datetime.strptime(since, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(400, "since must be YYYY-MM-DD")
+    return {"days": usage.days(since), "keep_days": usage.KEEP_DAYS}
+
+
+# ---- page views (anonymous counts per page and day; see usage.py) ------------------------------
+@app.post("/api/views")
+async def page_views(request: Request):
+    """A phone's batch of page views ({views: {route: count}}). The owner's own views aren't counted."""
+    if access.is_admin(request.state.email):
+        return Response(status_code=204)
+    try:
+        body = await request.json()
+    except ValueError:
+        raise HTTPException(400, "bad JSON")
+    views = body.get("views") if isinstance(body, dict) else None
+    if isinstance(views, dict):
+        await asyncio.to_thread(usage.add, views, request.state.email)   # a SQLite write: off the event loop
+    return Response(status_code=204)
 
 
 @app.post("/api/admin/users")
