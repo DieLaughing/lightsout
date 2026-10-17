@@ -12,3 +12,14 @@ jobs:
           python-version: "3.13"
       - run: pip install -r requirements.txt pytest httpx
       - run: python -m pytest -q
+  perf:
+    # The speed budget on every push (fixture data, slow relay): docs/operating.md. Releases are gated on it too.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt playwright
+      - run: python -m playwright install --with-deps chromium
+      - run: python tools/perfcheck.py

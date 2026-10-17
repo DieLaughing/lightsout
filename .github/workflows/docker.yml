@@ -1,15 +1,48 @@
 name: docker image
 # Every published release (and a manual run) builds the image for regular PCs/servers (amd64) and
 # Raspberry Pi / ARM (arm64) and pushes it to GitHub's container registry: ghcr.io/<owner>/<repo>.
+# The speed budget (tools/perfcheck.py, docs/operating.md) runs first and blocks the image when it fails. To ship
+# anyway, put a line "perf-override: <why>" in the release notes (or tick the box on a manual run); the reason then
+# sits in the notes for everyone to see.
 on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      perf_override:
+        description: "Build even if the speed budget fails (say why in the release notes)"
+        type: boolean
+        default: false
 permissions:
   contents: read
   packages: write
 jobs:
+  perf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt playwright
+      - run: python -m playwright install --with-deps chromium
+      - name: speed budget
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OVERRIDE: ${{ inputs.perf_override }}
+        run: |
+          python tools/perfcheck.py && exit 0
+          # The notes as they are now, not as published: editing them and re-running picks up a new override line.
+          notes=$(gh release view "$GITHUB_REF_NAME" --json body --jq .body 2>/dev/null || true)
+          reason=$(printf '%s\n' "$notes" | sed -n 's/^perf-override:[[:space:]]*//p' | head -1)
+          if [ -n "$reason" ] || [ "$OVERRIDE" = "true" ]; then
+            echo "::warning::Over the speed budget, built anyway: ${reason:-manual override}"
+            exit 0
+          fi
+          echo "::error::Over the speed budget (see the job summary). Fix it, or add 'perf-override: <why>' to the release notes and re-run."
+          exit 1
   build:
+    needs: perf
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -13,6 +13,12 @@ Operating rules shared with the sibling app (standards, speed budget, shared par
 - `.venv/bin/python tools/release.py` creates/updates the day's GitHub Release (tag v<YYYY.MM.DD>) from the same
   entries; publishing a release builds the Docker image (.github/workflows/docker.yml).
 - Tests: `.venv/bin/python -m pytest -q`. The follow-name matcher is web/match.js (node-testable).
+- Speed budget: `.venv/bin/python tools/perfcheck.py` (needs `.venv/bin/pip install playwright` + a Chromium:
+  `.venv/bin/playwright install chromium`, or PERF_CHROMIUM=/usr/bin/chromium). It runs tools/perf_server.py (the app
+  seeded with made-up events, grids, standings and stories for every series, outside requests refused), opens it in a
+  phone-sized Chromium with 200 ms added per request, and checks first visit < 1.5 s, revisits < 300 ms, API p95 <
+  200 ms. CI runs it on every push and before every release image (blocks it; override: `tools/release.py
+  --perf-override "why"`). Run it before staging.
 
 ## How it runs
 - One container (Dockerfile), port 8787, all state in /data (SQLite, VAPID key, link secret, calendar token).
@@ -29,7 +35,10 @@ Operating rules shared with the sibling app (standards, speed budget, shared par
 - Phone: api() keeps GET_CACHE; fast(path) waits up to FRESH_WAIT (150 ms) for fresh data, else draws the phone's copy
   and redraws once quietly (route(true): no animation) if it differs. prefetch() after startup and every 90 s (home
   sessions, default Wire, standings, entries, names). Startup loads settings, What's new and the series list at once;
-  the home page uses the known follow status and refreshes it behind the scenes. showLoading() paints after 350 ms.
+  /api/me goes out with series/config/What's new; the first follow-status load (FOLLOW_FIRST) is awaited with home's
+  own data (other pages wait for it), later ones refresh behind the scenes. Home's get-the-app/alerts banner fills its
+  slot after the page draws (BANNER keeps the last one). Pages fetch in parallel (series: standings + live + events;
+  person: the Wire from the phone's copy of the person). showLoading() paints after 350 ms.
 - Navigation: bottom .tabbar (#tabs; icons + labels; one .tab-pill moved by movePill()), Settings = gear .top-link,
   Admin is a link in Settings. Scrolling down folds the tab icons (.compact) and slides the header off (.tucked);
   any scroll up restores both. Slapshot page animation (Web Animations API, whole-pixel translate) when a navigation's
