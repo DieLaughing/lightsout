@@ -4,6 +4,8 @@ Self-hosted racing schedule app: every series in one place, follows that find dr
 a Race Wire, alerts, a calendar feed and US where-to-watch. Built with Claude Code; these notes are how it works.
 Personal deployment notes (if any) live in CLAUDE.local.md, which is not committed.
 
+Operating rules shared with the sibling app (standards, speed budget, shared parts, ideas): docs/operating.md.
+
 ## Shipping a feature (do this every time)
 - Add an entry at the top of `lightsout/data/changes.yaml` (date, kind new|improved|fixed, title, text written for the
   people who use the app, link to try it). It feeds the What's new page (#/new), the dot on Settings and the home banner.
@@ -116,7 +118,7 @@ Personal deployment notes (if any) live in CLAUDE.local.md, which is not committ
   match) and was saved after the start; re-scored for 7 days (NASCAR official results replace unofficial). Tables per
   series per season. Names = settings.nickname or the email's first part (friend_names()); emails never sent.
 - Bug reports (#/report, footer link on every page, Settings > Your reports): lightsout/bugs.py files anonymous GitHub
-  issues (labels from-app + bug|enhancement; @mentions broken; page/device/version table) with LIGHTSOUT_GITHUB_TOKEN
+  issues (labels from-app + bug|enhancement + needs-triage; @mentions broken; page/device/version table) with LIGHTSOUT_GITHUB_TOKEN
   (fine-grained, Issues read/write); bug_report table keeps who sent what; /api/bugs refreshes state + the
   owner's latest comment every 10 min. 5 a day per person. No token = GitHub's prefilled new-issue link.
 

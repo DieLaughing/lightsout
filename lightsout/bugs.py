@@ -95,7 +95,7 @@ async def _gh(method: str, path: str, **kw):
 async def file(email: str, kind: str, text: str, page: str, device: str, version: str) -> dict:
     title = title_for(text)
     issue = await _gh("POST", f"/repos/{REPO}/issues", json={
-        "title": title, "body": body_for(text, page, device, version), "labels": ["from-app", KINDS[kind][1]]})
+        "title": title, "body": body_for(text, page, device, version), "labels": ["from-app", KINDS[kind][1], "needs-triage"]})
     with _lock, _conn:
         _conn.execute("INSERT INTO bug_report (email, created, kind, title, text, page, device, issue, url, state, checked)"
                       " VALUES (?,?,?,?,?,?,?,?,?,?,?)",
