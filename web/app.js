@@ -79,6 +79,7 @@ async function loadFollowStatus() {
     body: JSON.stringify({ names }) }).then(r => r.json()).catch(() => []) : [];
   return FOLLOW_STATUS;
 }
+let FOLLOW_FIRST = null;   // the startup follow-status load, until a page has waited for it
 const followedSeries = () => new Set(FOLLOW_STATUS.flatMap(f => f.series));
 const dismissed = () => new Set(store.get("dismissed", []));
 const newKey = (name, f) => `${name}|${f.series}|${f.event_key || "grid"}`;
@@ -100,10 +101,13 @@ const api = path => fetch(path, { headers: { Accept: "application/json" } }).the
 
 // A page's data, fast: fresh data if it lands within FRESH_WAIT (so the page draws once, current), otherwise the
 // phone's copy straight away and one quiet redraw (after any page animation) if the fresh data differs.
-async function fast(path) {
+const LIVE_COPY = 60000;
+// `maxCopy`: the oldest phone copy worth drawing (live status: a minute, so a finished session's Live button doesn't
+// flash up from an old copy).
+async function fast(path, maxCopy = SHOW_COPY_FOR) {
   const hit = GET_CACHE.get(path), age = hit ? Date.now() - hit.at : Infinity;
   if (age < 3000) return hit.data;                              // just fetched (this is the redraw)
-  if (age > SHOW_COPY_FOR || QUIET_ROUTE) return api(path);
+  if (age > maxCopy || QUIET_ROUTE) return api(path);
   const at = location.hash, fresh = api(path);
   const first = await Promise.race([fresh.then(d => ({ d }), () => null), new Promise(r => setTimeout(() => r(null), FRESH_WAIT))]);
   if (first) return first.d;
@@ -396,6 +400,16 @@ function countdown(upcoming, followed) {
     <div class="cd-time">${time}</div></a>`;
 }
 
+let BANNER = "";   // the home banner's last text, so a redraw doesn't make the page jump while it's re-checked
+const bannerHtml = b => b ? `<div class="getapp"><div>${b}</div><a class="btn primary" href="#/app">Show me how</a><button class="link x" id="hidebanner" aria-label="Hide">✕</button></div>` : "";
+function bindBanner(root) {
+  root.querySelector("#hidebanner")?.addEventListener("click", () => {
+    try { localStorage.setItem("getappHidden", "true"); } catch { /* fine */ }
+    BANNER = "";
+    view.querySelector(".getapp")?.remove();
+  });
+}
+
 async function homeView() {
   setNav("home");
   const ids = enabledSeries();
@@ -403,13 +417,16 @@ async function homeView() {
     view.innerHTML = `<div class="empty">No series switched on. <a href="#/settings">Pick some in Settings</a>.</div>`;
     return;
   }
-  // Follow status is loaded at startup and when follows change; here it refreshes behind the scenes.
-  if (!QUIET_ROUTE) {
+  // Follow status is loaded at startup (FOLLOW_FIRST: waited for with this page's data) and when follows change; on
+  // later visits it refreshes behind the scenes.
+  const first = FOLLOW_FIRST;
+  FOLLOW_FIRST = null;
+  if (!first && !QUIET_ROUTE) {
     const before = JSON.stringify(FOLLOW_STATUS);
     loadFollowStatus().then(now => { if (JSON.stringify(now) !== before && (location.hash || "#/") === "#/") route(true); });
   }
-  const [sessions, allFeeds, cards] = await Promise.all([fast(`/api/sessions?series=${ids.join(",")}`), fast("/api/live").catch(() => []),
-    follows().length ? fast("/api/cards").catch(() => []) : []]);
+  const [sessions, allFeeds, cards] = await Promise.all([fast(`/api/sessions?series=${ids.join(",")}`), fast("/api/live", LIVE_COPY).catch(() => []),
+    follows().length ? fast("/api/cards").catch(() => []) : [], first]);
   const followed = followedSeries();
   const live = sessions.filter(isLive);
   let html = "";
@@ -432,15 +449,18 @@ async function homeView() {
   html += countdown(upcoming, followed);
   if (upcoming.length) html += filterBar(upcoming);
   html += `<div id="upcoming">${upcomingList(upcoming, followed, today)}</div>`;
-  const banner = await getAppBanner().catch(() => "");
-  html = newBanner() + html;
-  if (banner) html = `<div class="getapp"><div>${banner}</div><a class="btn primary" href="#/app">Show me how</a><button class="link x" id="hidebanner" aria-label="Hide">✕</button></div>` + html;
-  view.innerHTML = html;
-  view.querySelector("#newbar-x")?.addEventListener("click", e => { e.target.closest(".newbar")?.remove(); markChangesSeen(); });
-  view.querySelector("#hidebanner")?.addEventListener("click", () => {
-    try { localStorage.setItem("getappHidden", "true"); } catch { /* fine */ }
-    view.querySelector(".getapp")?.remove();
+  // The get-the-app / alerts banner never holds the page up (checking alerts can wait up to 2 s for the service
+  // worker): the slot shows the last answer at once and updates when the check is done.
+  view.innerHTML = `<div id="getapp-slot">${bannerHtml(BANNER)}</div>` + newBanner() + html;
+  getAppBanner().catch(() => "").then(b => {
+    if (local("getappHidden", false)) b = "";   // dismissed while the check was waiting on the service worker
+    const slot = view.querySelector("#getapp-slot");
+    if (b === BANNER && slot?.childElementCount === (b ? 1 : 0)) return;
+    BANNER = b;
+    if (slot) { slot.innerHTML = bannerHtml(b); bindBanner(slot); }
   });
+  bindBanner(view);
+  view.querySelector("#newbar-x")?.addEventListener("click", e => { e.target.closest(".newbar")?.remove(); markChangesSeen(); });
   view.querySelectorAll("[data-dismiss]").forEach(b => b.addEventListener("click", e => {
     e.stopPropagation(); store.set("dismissed", [...dismissed(), b.dataset.dismiss]); homeView();
   }));
@@ -645,14 +665,14 @@ function statusText(st) {
 // One race weekend: schedule with where to watch and weather, your drivers, entry list, results, news.
 async function eventView(id, key) {
   setNav("series");
-  const e = await fast(`/api/event/${id}/${encodeURIComponent(key)}`);
+  const [e, feeds] = await Promise.all([fast(`/api/event/${id}/${encodeURIComponent(key)}`), fast("/api/live", LIVE_COPY).catch(() => [])]);
   const s = BY_ID[id];
   const today = localDay({ start_utc: new Date().toISOString() });
   const past = (e.end_day || e.start_day) < today;
   const mine = new Set(follows().map(f => normalise(f.name)));
   const isMine = d => mine.has(normalise(d.name)) || (d.team && mine.has(normalise(d.team)));
   const yours = e.drivers.filter(isMine);
-  const live = (await api("/api/live").catch(() => [])).some(f => f.series === id);
+  const live = feeds.some(f => f.series === id);
   const dates = `${shortDate(e.start_day)}${e.end_day && e.end_day !== e.start_day ? ` – ${shortDate(e.end_day)}` : ""}`;
   const buttons = [
     live && `<a class="btn primary" href="#/live/${id}">● Live timing</a>`,
@@ -742,10 +762,14 @@ async function seriesView(id, tab = "schedule") {
   const s = BY_ID[id];
   if (!s) { view.innerHTML = `<div class="empty">Unknown series.</div>`; return; }
   if (!s.has_standings) tab = "schedule";
-  const st = s.has_standings ? await fast(`/api/series/${id}/standings`) : {};
+  // Everything at once: standings, live status and (for the schedule tab) the events and race stories.
+  const schedule = () => Promise.all([fast(`/api/series/${id}/events`), fast(`/api/stories/${id}`).catch(() => [])]);
+  const early = tab === "schedule" ? schedule() : null;
+  early?.catch(() => {});   // if standings fail first, the page shows that error; this one needn't be reported too
+  const [st, feeds] = await Promise.all([s.has_standings ? fast(`/api/series/${id}/standings`) : {}, fast("/api/live", LIVE_COPY).catch(() => [])]);
   const shown = SERIES_TABS.filter(([t]) => hasTab(t, st));
   if (!shown.some(([t]) => t === tab)) tab = "schedule";
-  const liveNow = (await api("/api/live").catch(() => [])).some(f => f.series === id);
+  const liveNow = feeds.some(f => f.series === id);
   const tabs = s.has_standings || liveNow ? `<div class="tabs" role="tablist">${liveNow ? `<a role="tab" href="#/live/${id}" class="live-tab">● Live</a>` : ""}${(s.has_standings ? shown : SERIES_TABS.slice(0, 1)).map(([t, label]) =>
     `<a role="tab" href="#/series/${id}/${t}" class="${t === tab ? "active" : ""}" aria-selected="${t === tab}">${label}</a>`).join("")}</div>` : "";
   const links = [s.site && `<a class="btn" href="${esc(s.site)}" target="_blank" rel="noopener">Official site ↗</a>`,
@@ -759,7 +783,7 @@ async function seriesView(id, tab = "schedule") {
     view.querySelectorAll("[data-level]").forEach(x => { x.classList.toggle("active", x === b); x.setAttribute("aria-pressed", x === b); });
   }));
   if (tab === "schedule") {
-    const [events, storyKeys] = await Promise.all([fast(`/api/series/${id}/events`), fast(`/api/stories/${id}`).catch(() => [])]);
+    const [events, storyKeys] = await (early || schedule());
     const hasStory = new Set(storyKeys);
     const today = localDay({ start_utc: new Date().toISOString() });
     const followed = followedSeries();
@@ -1340,10 +1364,20 @@ async function personView(type, name) {
   setNav("wire");
   showLoading(`Loading ${esc(name)}…`);
   // Wire items are tagged with the grid's spelling; a follow may be typed differently or be a team.
-  const [p, dir] = await Promise.all([fast(`/api/person/${encodeURIComponent(name)}`).catch(() => null), loadNames()]);
-  const asDriver = p?.rides?.find(r => normalise(r.name) === normalise(name))?.name;
-  const tagged = type === "team" || (!asDriver && p?.rides?.length) ? "team" : "driver";
-  const items = await api(`/api/wire?${tagged}=${encodeURIComponent(asDriver || (tagged === "team" ? (p?.rides?.[0]?.team || name) : name))}`).catch(() => []);
+  const personPath = `/api/person/${encodeURIComponent(name)}`;
+  const tagFor = p => {
+    const asDriver = p?.rides?.find(r => normalise(r.name) === normalise(name))?.name;
+    return { asDriver, tagged: type === "team" || (!asDriver && p?.rides?.length) ? "team" : "driver" };
+  };
+  const wirePath = p => {
+    const { asDriver, tagged } = tagFor(p);
+    return `/api/wire?${tagged}=${encodeURIComponent(asDriver || (tagged === "team" ? (p?.rides?.[0]?.team || name) : name))}`;
+  };
+  // Seen before: the Wire request goes out with the person's, from the phone's copy of who they are.
+  const guess = GET_CACHE.has(personPath) ? wirePath(GET_CACHE.get(personPath).data) : null;
+  const [p, dir, early] = await Promise.all([fast(personPath).catch(() => null), loadNames(), guess && fast(guess).catch(() => [])]);
+  const items = guess === wirePath(p) ? early : await fast(wirePath(p)).catch(() => []);
+  const { tagged } = tagFor(p);
   const entry = (type === "driver" ? dir.drivers : dir.teams).find(x => x.name === name);
   const followed = follows().some(f => normalise(f.name) === normalise(name));
   const seriesIds = p?.series?.length ? p.series : (entry?.series || []);
@@ -1835,24 +1869,32 @@ async function route(quiet = false) {
     setCompact(false);
   }
   try {
-    if (!ME) ME = await api("/api/me");
+    let early = null;   // first load: ask for the series, config and What's new alongside /api/me, not after it
+    if (!ME) {
+      const me = api("/api/me");
+      const lists = Promise.all([api("/api/series"), api("/api/config")]);
+      lists.catch(() => {});   // someone not approved yet gets 403s here; the gate page below handles them
+      early = [api("/api/changes").catch(() => []), lists];
+      ME = await me;
+    }
     if (ME.status !== "approved") return gateView();
     if (navigated) countView(hash);
     document.getElementById("tabs").hidden = false;
     if (!SETTINGS || !SERIES.length) {
       // First load: settings, What's new and the series list all at once.
-      const [, changes, both] = await Promise.all([SETTINGS ? null : loadSettings(), api("/api/changes").catch(() => []),
-        SERIES.length ? null : Promise.all([api("/api/series"), api("/api/config")])]);
+      const [, changes, both] = await Promise.all([SETTINGS ? null : loadSettings(), early?.[0] || api("/api/changes").catch(() => []),
+        SERIES.length ? null : early?.[1] || Promise.all([api("/api/series"), api("/api/config")])]);
       CHANGES = changes;
       if (both) {
         [SERIES, CONFIG] = both;
         BY_ID = Object.fromEntries(SERIES.map(s => [s.id, s]));
         switchOnNewSeries();
-        await loadFollowStatus();
+        FOLLOW_FIRST = loadFollowStatus();   // home waits for it alongside its own data; other pages wait below
         setTimeout(prefetch, 2500);
       }
     }
     updateNewDot();
+    if (FOLLOW_FIRST && hash !== "/") { await FOLLOW_FIRST; FOLLOW_FIRST = null; }
     const m = hash.match(/^\/series\/([\w-]+)(?:\/(\w+))?$/);
     const lv = hash.match(/^\/live\/([\w-]+)$/);
     const person = hash.match(/^\/(driver|team)\/(.+)$/);

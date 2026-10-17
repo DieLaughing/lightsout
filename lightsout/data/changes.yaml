@@ -5,6 +5,12 @@
 
 - date: 2026-10-16
   kind: improved
+  title: Faster everywhere
+  text: Opening the app on a slow connection is about three times quicker, and going back to Home, a series, an event or a driver page is now close to instant. Home no longer waits on the "turn on alerts" check before showing your races, and pages load everything they need at once instead of one thing after another.
+  link: "#/"
+
+- date: 2026-10-16
+  kind: improved
   title: Counting which pages get used
   text: The app now keeps a simple tally of how often each kind of page is opened (Home, series pages, live timing, the Race Wire, Pick'em and so on). It isn't tracking you. It never records who opened what, so not even the person running the app can see who clicked anything, just totals like "live timing was opened 40 times this week". It's strictly for deciding what to build and improve next. Tallies are kept for six months.
   link: "#/new"
