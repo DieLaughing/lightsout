@@ -5,7 +5,7 @@ This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit th
 
 ## October 18, 2026
 
-- **New: Driver pages with photos and careers.** Tap any driver's name to see their photo and a couple of lines about them, their season so far (points, position, wins and a bar for every race) and, for Formula 1 drivers, their whole F1 career - titles, wins, podiums, poles and every season. The first time anyone opens a driver it takes a few seconds to fetch; after that it's instant. Photos and bios come from Wikipedia, F1 stats from Jolpica.
+- **New: Driver pages with photos and careers.** Tap any driver's name (in standings, results, entry lists, the Race Wire or your follows) to see their photo and a couple of lines about them, their season so far (points, position, wins and a bar for every race) and, for Formula 1 drivers, their whole F1 career - titles, wins, podiums, poles and every season. The first time anyone opens a driver it takes a few seconds to fetch; after that it's instant. Photos and bios come from Wikipedia, F1 stats from Jolpica.
 
 ## October 16, 2026
 
