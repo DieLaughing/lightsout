@@ -18,7 +18,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Red
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from . import access, bugs, adapters, alerts, changes, colors, follow, ics, news, picks, places, refresh, slow, tickets, usage, watch, weather
+from . import access, bugs, adapters, alerts, changes, colors, follow, ics, news, picks, places, profiles, refresh, slow, tickets, usage, watch, weather
 from .db import Store
 from .live.hub import LiveHub
 from .push import Pusher
@@ -50,6 +50,7 @@ usage.init(sqlite3.connect(store.path, check_same_thread=False, timeout=10))   #
 slow.init(sqlite3.connect(store.path, check_same_thread=False, timeout=10))
 CAL_TOKEN = _cal_token()
 live = LiveHub(store)
+profiles.setup(DATA_DIR)
 pusher = Pusher(DATA_DIR, access.ADMIN)
 alerter = alerts.Alerts(store, pusher, access.BASE_URL)
 live.alerts = alerter
@@ -94,7 +95,7 @@ async def lifespan(app: FastAPI):
     if not os.environ.get("LIGHTSOUT_NO_REFRESH"):
         tasks += [asyncio.create_task(refresh.loop(store)), asyncio.create_task(news_loop()),
                   asyncio.create_task(tickets.refresh_loop()), asyncio.create_task(weather.loop(store, DATA_DIR)),
-                  asyncio.create_task(slow.loop(store, access.notify))]
+                  asyncio.create_task(slow.loop(store, access.notify)), asyncio.create_task(profiles.loop(store))]
     yield
     for task in tasks:
         task.cancel()
@@ -518,8 +519,8 @@ async def save_settings(request: Request):
 
 @app.get("/api/person/{name}")
 def person(name: str):
-    """Everything known about one followed name (driver or team): where they race, what's next, standings,
-    their last result. News and race events come from /api/wire?driver=."""
+    """Everything known about one followed name (driver or team): where they race, what's next, this season's
+    cards (as on Home), their last result. News and race events come from /api/wire?driver=."""
     name = name.strip()[:80]
     st = follow.status(store, [name])[0]
     now = datetime.now(timezone.utc)
@@ -535,21 +536,33 @@ def person(name: str):
     # The sessions that decide things (qualifying, sprints, races, rally days), not every practice.
     upcoming = [r for r in upcoming if r["kind"] in ("qualifying", "sprint", "race", "rally_day", "event")]
     weather.attach(_with_watch(upcoming))
-    standings, results = [], []
-    for sid in st["series"]:
-        table = store.standings(sid) or {}
-        rows = list(table.get("drivers") or []) + [r for rows_ in (table.get("classes") or {}).values() for r in rows_]
-        row = next((r for r in rows if follow.matches(name, r["name"])), None)
-        if row:
-            lead = (table.get("drivers") or [{}])[0].get("points", 0)
-            standings.append({"series": sid, "pos": row["pos"], "points": row["points"], "behind": lead - row["points"],
-                              "season": table.get("season_label") or ""})
+    results = []
+    tables = {sid: store.standings(sid) or {} for sid in st["series"]}
+    for sid, table in tables.items():
         last = next((r for r in table.get("last_results") or [] if follow.matches(name, r["name"])), None)
         if last:
             results.append({"series": sid, "event": table.get("last_event"), "session": table.get("last_session"),
                             "pos": last["pos"], "time": last.get("time"), "points": last.get("points")})
     return {"name": name, "series": st["series"], "found": st["found"], "rides": rides, "next": st["next"],
-            "new": st["new"], "upcoming": upcoming[:8], "standings": standings, "results": results}
+            "new": st["new"], "upcoming": upcoming[:8], "results": results,
+            "cards": [c for c in (_card(name, sid, t) for sid, t in tables.items()) if c]}
+
+
+@app.get("/api/profile/{name}")
+async def profile(name: str):
+    """A driver's photo, Wikipedia lines and F1 career, from what's saved; pending=True while it's being built
+    (the page asks again). Never waits on Wikipedia or Jolpica."""
+    return profiles.get(store, name.strip()[:80])
+
+
+@app.get("/img/d/{file}")
+def driver_photo(file: str):
+    path = profiles.photo_path(file)
+    if not path or not path.exists():
+        raise HTTPException(404)
+    media = {".png": "image/png", ".webp": "image/webp"}.get(path.suffix, "image/jpeg")
+    # The name is the photo's own hash: a new photo gets a new name, so phones and Cloudflare may keep this for good.
+    return Response(path.read_bytes(), media_type=media, headers={"Cache-Control": "public, max-age=31536000, immutable"})
 
 
 @app.get("/api/cards")
