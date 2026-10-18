@@ -74,6 +74,9 @@ CREATE TABLE IF NOT EXISTS push_sub (
 CREATE TABLE IF NOT EXISTS sent (        -- alerts already pushed (or deliberately skipped), so none repeat
     key TEXT PRIMARY KEY, at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS profile (    -- driver pages: Wikipedia summaries, F1 careers, Jolpica answers (key -> JSON)
+    key TEXT PRIMARY KEY, data TEXT NOT NULL, fetched TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS adapter_run (
     series TEXT PRIMARY KEY, last_try TEXT, last_ok TEXT, error TEXT, events INTEGER, sessions INTEGER
 );
@@ -227,6 +230,16 @@ class Store:
 
     def round_events(self, series: str, season: int) -> set[str]:
         return {r[0] for r in self.conn.execute("SELECT event FROM round_result WHERE series=? AND season=?", (series, season))}
+
+    def cached(self, key: str) -> tuple[object, str] | None:
+        """A saved profile part: (data, fetched iso) or None."""
+        row = self.conn.execute("SELECT data, fetched FROM profile WHERE key=?", (key,)).fetchone()
+        return (json.loads(row["data"]), row["fetched"]) if row else None
+
+    def save_cached(self, key: str, data) -> None:
+        with self.lock, self.conn:
+            self.conn.execute("INSERT OR REPLACE INTO profile VALUES (?,?,?)",
+                              (key, json.dumps(data), _iso(datetime.now(timezone.utc))))
 
     def entry_lists_with_events(self) -> list[dict]:
         """Every published entry-list name with its event, for the follow search."""
