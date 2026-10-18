@@ -812,6 +812,9 @@ const TEAMS_NOTE = {
 
 // Team colour on a standings row (from /api/series/<id>/standings; colors.yaml, else the series colour).
 const tc = r => r.color ? ` style="--tc:${esc(r.color)}"` : "";
+// A standings name opens its driver (or team) page; a crew ("A / B", sports cars) links each driver.
+const whoLink = (name, kind = "driver", cls = "") => `<div>${String(name).split(" / ").map(n =>
+  `<a class="who-link" href="#/${kind}/${encodeURIComponent(n)}"><b${cls ? ` class="${cls}"` : ""}>${esc(n)}</b></a>`).join(" / ")}</div>`;
 
 function standingsBody(id, tab, st) {
   const s = BY_ID[id];
@@ -819,7 +822,7 @@ function standingsBody(id, tab, st) {
   const isMine = (...names) => names.some(n => n && mine.has(normalise(n)));
   const updated = st.updated ? `Updated ${new Date(st.updated).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}` : "";
   const resultRows = rows => `<div class="card standings">${rows.map(r => `<div class="srow${isMine(r.name, r.team) ? " followed" : ""}"${tc(r)}>
-        <span class="pos">${esc(r.pos)}</span><span class="who"><b>${esc(r.name)}</b><span class="tteam">${esc(r.team)}</span></span>
+        <span class="pos">${esc(r.pos)}</span><span class="who">${whoLink(r.name)}<span class="tteam">${esc(r.team)}</span></span>
         <span class="num">${esc(r.time)}</span><span class="num pts">${r.points ? pts(r.points) : ""}</span></div>`).join("")}</div>`;
   if (tab === "last") {
     return st.last_results?.length ? `<p class="muted small">${[st.last_event, st.last_session, updated].filter(Boolean).map(esc).join(" · ")}</p>
@@ -843,7 +846,7 @@ function standingsBody(id, tab, st) {
     `<button class="chip-btn${(i === 0 ? !cls : c === cls) ? " active" : ""}" data-class="${i === 0 ? "" : esc(c)}" data-for="${id}">${esc(c)}</button>`).join("")}</div>` : "";
   return rows?.length ? `${picker}<p class="muted small">${esc(st.season_label)} · ${updated}</p>
     <div class="card standings">${rows.map(r => `<div class="srow${isMine(r.name, tab === "teams" ? r.name : null) ? " followed" : ""}"${tc(r)}>
-      <span class="pos">${r.pos}</span><span class="who"><b${tab === "teams" ? ` class="tteam-name"` : ""}>${esc(r.name)}</b><span class="tteam">${esc(r.team)}</span></span>
+      <span class="pos">${r.pos}</span><span class="who">${tab === "teams" ? whoLink(r.name, "team", "tteam-name") : whoLink(r.name)}<span class="tteam">${esc(r.team)}</span></span>
       <span class="num muted">${r.pos > 1 ? `−${pts(lead - r.points)}` : ""}</span><span class="num pts">${pts(r.points)}</span></div>`).join("")}</div>
     ${tab === "teams" && TEAMS_NOTE[id] ? `<p class="muted small">${esc(TEAMS_NOTE[id])}</p>` : ""}`
     : `<div class="empty">${tab === "teams" ? "This series doesn't publish a team championship we can read." : "No standings yet."}</div>`;
