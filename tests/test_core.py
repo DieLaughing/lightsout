@@ -255,8 +255,14 @@ def test_gtwce_timetable_uses_gmt():
     assert not any("Bronze" in s.name for s in sessions)
 
 
-def test_gtwce_entry_list_finds_verstappen(tmp_path):
+def test_gtwce_entry_list_finds_verstappen(tmp_path, monkeypatch):
     from lightsout import follow
+
+    class Before(datetime):  # the fixture's Portimao round (17 Oct 2026) is still to come
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 10, 10, tzinfo=tz)
+    monkeypatch.setattr(follow, "datetime", Before)
     from lightsout.adapters import gtwce
     from lightsout.db import Store
     rows = gtwce.parse_entry_list(_gtwce("gtwce_entrylist.html"))

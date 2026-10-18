@@ -351,15 +351,12 @@ function heroCards(cards) {
     }
     return mine.map((c, i) => {
       const last = (c.row || c.name).trim().split(/\s+/).pop().toLowerCase();
-      const stats = [`<span><b>P${c.pos}</b> ${c.kind === "class" ? "in class" : c.kind === "team" ? "in the teams' championship" : "in the championship"}</span>`,
-        c.wins != null ? `<span><b>${c.wins}</b> ${c.wins === 1 ? "win" : "wins"}</span>` : "",
-        c.behind != null ? `<span class="muted">−${pts(c.behind)} to the leader</span>` : c.pos === 1 ? `<span class="muted">Leading</span>` : ""].join("");
       return `<div class="hero" data-href="${href}" style="--tc:${esc(c.color)}">
         <span class="hero-bg" aria-hidden="true">${esc(last)}</span>
         <div class="hero-top">${chip(c.series)}${c.team ? `<span class="hero-team">${esc(c.team)}</span>` : ""}</div>
         <a class="hero-name who-link" href="${href}"><b>${esc(c.row || c.name)}</b> ›</a>
         <div class="hero-pts"><b>${pts(c.points)}</b><span>PTS</span></div>
-        <div class="hero-stats">${stats}</div>
+        <div class="hero-stats">${heroStats(c)}</div>
         ${formBars(c.form)}${foot(i === 0, c.series)}</div>`;
     });
   });
@@ -367,6 +364,9 @@ function heroCards(cards) {
   return `<div class="heroes${items.length % 2 ? " odd" : ""}">${items.join("")}</div>`;
 }
 const pts = p => Number.isInteger(p) ? String(p) : Number(p).toFixed(1);
+const heroStats = c => [`<span><b>P${c.pos}</b> ${c.kind === "class" ? "in class" : c.kind === "team" ? "in the teams' championship" : "in the championship"}</span>`,
+  c.wins != null ? `<span><b>${c.wins}</b> ${c.wins === 1 ? "win" : "wins"}</span>` : "",
+  c.behind != null ? `<span class="muted">−${pts(c.behind)} to the leader</span>` : c.pos === 1 ? `<span class="muted">Leading</span>` : ""].join("");
 
 // Season form: a bar per round, tall for a good day. Points when the series scores rounds, else finishing position.
 function formBars(form) {
@@ -812,6 +812,9 @@ const TEAMS_NOTE = {
 
 // Team colour on a standings row (from /api/series/<id>/standings; colors.yaml, else the series colour).
 const tc = r => r.color ? ` style="--tc:${esc(r.color)}"` : "";
+// A standings name opens its driver (or team) page; a crew ("A / B", sports cars) links each driver.
+const whoLink = (name, kind = "driver", cls = "") => `<div>${String(name).split(" / ").map(n =>
+  `<a class="who-link" href="#/${kind}/${encodeURIComponent(n)}"><b${cls ? ` class="${cls}"` : ""}>${esc(n)}</b></a>`).join(" / ")}</div>`;
 
 function standingsBody(id, tab, st) {
   const s = BY_ID[id];
@@ -819,7 +822,7 @@ function standingsBody(id, tab, st) {
   const isMine = (...names) => names.some(n => n && mine.has(normalise(n)));
   const updated = st.updated ? `Updated ${new Date(st.updated).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}` : "";
   const resultRows = rows => `<div class="card standings">${rows.map(r => `<div class="srow${isMine(r.name, r.team) ? " followed" : ""}"${tc(r)}>
-        <span class="pos">${esc(r.pos)}</span><span class="who"><b>${esc(r.name)}</b><span class="tteam">${esc(r.team)}</span></span>
+        <span class="pos">${esc(r.pos)}</span><span class="who">${whoLink(r.name)}<span class="tteam">${esc(r.team)}</span></span>
         <span class="num">${esc(r.time)}</span><span class="num pts">${r.points ? pts(r.points) : ""}</span></div>`).join("")}</div>`;
   if (tab === "last") {
     return st.last_results?.length ? `<p class="muted small">${[st.last_event, st.last_session, updated].filter(Boolean).map(esc).join(" · ")}</p>
@@ -843,7 +846,7 @@ function standingsBody(id, tab, st) {
     `<button class="chip-btn${(i === 0 ? !cls : c === cls) ? " active" : ""}" data-class="${i === 0 ? "" : esc(c)}" data-for="${id}">${esc(c)}</button>`).join("")}</div>` : "";
   return rows?.length ? `${picker}<p class="muted small">${esc(st.season_label)} · ${updated}</p>
     <div class="card standings">${rows.map(r => `<div class="srow${isMine(r.name, tab === "teams" ? r.name : null) ? " followed" : ""}"${tc(r)}>
-      <span class="pos">${r.pos}</span><span class="who"><b${tab === "teams" ? ` class="tteam-name"` : ""}>${esc(r.name)}</b><span class="tteam">${esc(r.team)}</span></span>
+      <span class="pos">${r.pos}</span><span class="who">${tab === "teams" ? whoLink(r.name, "team", "tteam-name") : whoLink(r.name)}<span class="tteam">${esc(r.team)}</span></span>
       <span class="num muted">${r.pos > 1 ? `−${pts(lead - r.points)}` : ""}</span><span class="num pts">${pts(r.points)}</span></div>`).join("")}</div>
     ${tab === "teams" && TEAMS_NOTE[id] ? `<p class="muted small">${esc(TEAMS_NOTE[id])}</p>` : ""}`
     : `<div class="empty">${tab === "teams" ? "This series doesn't publish a team championship we can read." : "No standings yet."}</div>`;
@@ -1373,10 +1376,15 @@ async function personView(type, name) {
     const { asDriver, tagged } = tagFor(p);
     return `/api/wire?${tagged}=${encodeURIComponent(asDriver || (tagged === "team" ? (p?.rides?.[0]?.team || name) : name))}`;
   };
-  // Seen before: the Wire request goes out with the person's, from the phone's copy of who they are.
-  const guess = GET_CACHE.has(personPath) ? wirePath(GET_CACHE.get(personPath).data) : null;
-  const [p, dir, early] = await Promise.all([fast(personPath).catch(() => null), loadNames(), guess && fast(guess).catch(() => [])]);
-  const items = guess === wirePath(p) ? early : await fast(wirePath(p)).catch(() => []);
+  // Driver pages also get a profile (photo, Wikipedia lines, F1 career), asked for under the grid's spelling.
+  const profilePath = p => type === "driver" ? `/api/profile/${encodeURIComponent(tagFor(p).asDriver || name)}` : null;
+  // Seen before: the Wire and profile requests go out with the person's, from the phone's copy of who they are.
+  const copy = GET_CACHE.get(personPath)?.data;
+  const guess = copy ? wirePath(copy) : null, guessProfile = copy ? profilePath(copy) : null;
+  const [p, dir, early, earlyProfile] = await Promise.all([fast(personPath).catch(() => null), loadNames(),
+    guess && fast(guess).catch(() => []), guessProfile && fast(guessProfile).catch(() => null)]);
+  const [items, prof] = await Promise.all([guess === wirePath(p) ? early : fast(wirePath(p)).catch(() => []),
+    !profilePath(p) ? null : guessProfile === profilePath(p) ? earlyProfile : fast(profilePath(p)).catch(() => null)]);
   const { tagged } = tagFor(p);
   const entry = (type === "driver" ? dir.drivers : dir.teams).find(x => x.name === name);
   const followed = follows().some(f => normalise(f.name) === normalise(name));
@@ -1388,20 +1396,24 @@ async function personView(type, name) {
       <div class="muted small">${esc([r.team, r.number ? `#${r.number}` : ""].filter(Boolean).join(" · "))}</div></div></div>`).join("")
     + entries.map(f => `<div class="item"><div>${chip(f.series)} Entered: <b>${esc(f.event_name)}</b>
       <div class="muted small">${esc(shortDate(f.start_day))}${(p?.new || []).some(n => n.event_key === f.event_key) ? " · NEW" : ""}</div></div></div>`).join("");
-  const stand = (p?.standings || []).map(x => `<div class="item"><div>${chip(x.series)} <b>${esc(ordinal(x.pos))}</b> in the championship
-      <div class="muted small">${x.points} pts${x.behind > 0 ? ` · ${x.behind} behind the leader` : x.pos === 1 ? " · leading" : ""}${x.season ? ` · ${esc(x.season)}` : ""}</div></div></div>`).join("");
   const last = (p?.results || []).map(x => `<div class="item"><div>${chip(x.series)} <b>${/^\d+$/.test(x.pos) ? `P${esc(x.pos)}` : esc(x.pos)}</b> · ${esc(x.event)}
       <div class="muted small">${esc(x.session || "")}${x.time ? ` · ${esc(x.time)}` : ""}${x.points ? ` · ${x.points} pts` : ""}</div></div></div>`).join("");
   const upcoming = p?.upcoming || [];
-  view.innerHTML = `${backLink("#/")}<h1>${esc(name)}</h1>
+  const w = prof?.wiki;
+  view.innerHTML = `${backLink("#/")}<div class="dhead">${w?.photo ? `<img class="dphoto" src="${esc(w.photo)}" alt="" width="88" height="88">` : ""}
+      <div><h1>${esc(name)}</h1>${w?.description ? `<div class="muted small">${esc(w.description)}</div>` : ""}</div></div>
     <div class="person-head">${seriesIds.map(chip).join(" ")} <span class="muted small">${tagged === "team" ? "Team" : "Driver"}</span>
       <button class="btn${followed ? "" : " primary"}" id="follow">${followed ? "Following ✓" : "Follow"}</button></div>
+    ${w?.extract ? `<p class="bio">${esc(w.extract)}</p>` : prof?.pending ? `<p class="small muted">Looking up their photo and career…</p>` : ""}
+    ${seasonCards(p?.cards)}
     ${where ? `<h2>Where they race</h2><div class="card">${where}</div>` : `<p class="small muted">Not on any current grid or published entry list. If you follow them, every series is still watched.</p>`}
     ${upcoming.length ? `<h2>Coming up</h2><div class="card">${upcoming.map(x => sessionRow({ ...x }, new Set())).join("")}</div>` : ""}
-    ${stand ? `<h2>Championship</h2><div class="card">${stand}</div>` : ""}
     ${last ? `<h2>Last race</h2><div class="card">${last}</div>` : ""}
+    ${careerBlock(prof?.f1)}
     <h2>News and race events</h2>
-    ${items.length ? `<div class="card">${items.map(wireItem).join("")}</div>` : `<div class="empty">Nothing in the last 30 days.</div>`}`;
+    ${items.length ? `<div class="card">${items.map(wireItem).join("")}</div>` : `<div class="empty">Nothing in the last 30 days.</div>`}
+    ${w ? `<p class="credit small muted">${w.credit ? `Photo: <a href="${esc(w.credit.url)}" target="_blank" rel="noopener">${esc(w.credit.author || "Wikimedia Commons")}</a>${w.credit.license ? `, ${esc(w.credit.license)}` : ""} · ` : ""}About: <a href="${esc(w.url)}" target="_blank" rel="noopener">Wikipedia</a>${prof.f1 ? " · F1 stats: Jolpica" : ""}</p>` : ""}`;
+  if (prof?.pending) waitForProfile(profilePath(p));
   view.querySelector("#follow").addEventListener("click", () => {
     const l = follows();
     store.set("follows", followed ? l.filter(f => normalise(f.name) !== normalise(name)) : [...l, { name }]);
@@ -1409,11 +1421,38 @@ async function personView(type, name) {
   });
 }
 
-function ordinal(n) {
-  n = Number(n);
-  if (!n) return "";
-  const teen = n % 100 >= 11 && n % 100 <= 13;
-  return `${n}${teen ? "th" : ({ 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th")}`;
+// The profile is built in the background the first time anyone opens the page: ask again, redrawing as parts land.
+function waitForProfile(path, tries = 0) {
+  const at = location.hash, before = JSON.stringify(GET_CACHE.get(path)?.data);
+  setTimeout(() => api(path).then(d => {
+    if (location.hash !== at) return;
+    if (!d.pending || JSON.stringify(d) !== before) route(true);   // the photo can land before the F1 career
+    else if (tries < 30) waitForProfile(path, tries + 1);
+  }).catch(() => {}), 2000);
+}
+
+// This season, one card per championship: points, position, wins and form, as on Home.
+const seasonCards = cards => !cards?.length ? "" : `<h2>This season</h2><div class="heroes${cards.length % 2 ? " odd" : ""}">${cards.map(c =>
+  `<div class="hero plain" style="--tc:${esc(c.color)}">
+    <div class="hero-top">${chip(c.series)}${c.team ? `<span class="hero-team">${esc(c.team)}</span>` : ""}<span class="muted">${esc(c.season)}</span></div>
+    <div class="hero-pts"><b>${pts(c.points)}</b><span>PTS</span></div>
+    <div class="hero-stats">${heroStats(c)}</div>${formBars(c.form)}</div>`).join("")}</div>`;
+
+// Formula 1 career (Jolpica): totals, then season by season.
+function careerBlock(f) {
+  if (!f?.races) return "";
+  const place = x => /^\d+$/.test(x || "") ? `P${x}` : esc(x || "–");
+  const tiles = [["Titles", f.titles.length], ["Wins", f.wins], ["Podiums", f.podiums], ["Poles", f.poles], ["Races", f.races],
+    ["Points", pts(f.points)]].map(([k, v]) => `<div><b>${v}</b><span>${k}</span></div>`).join("");
+  const facts = [f.titles.length ? `Champion ${[...f.titles].sort().join(", ")}` : "",
+    f.first ? `First race: ${esc(f.first.race)} ${f.first.season}` : "",
+    f.first_win ? `First win: ${esc(f.first_win.race)} ${f.first_win.season}` : f.best ? `Best finish: P${f.best}` : ""].filter(Boolean);
+  const rows = f.seasons.map(s => `<tr><td>${s.season}</td><td>${esc(s.teams.join(" / "))}</td><td>${place(s.pos)}</td>
+    <td>${pts(s.points)}</td><td>${s.wins}</td></tr>`).join("");
+  return `<h2>F1 career</h2><div class="card"><div class="tiles">${tiles}</div>
+    ${facts.length ? `<div class="facts small muted">${facts.join(" · ")}</div>` : ""}
+    <details class="seasons"${f.seasons.length <= 4 ? " open" : ""}><summary>Season by season (${f.seasons.length})</summary>
+      <table><thead><tr><th>Year</th><th>Team</th><th>Pos</th><th>Pts</th><th>Wins</th></tr></thead><tbody>${rows}</tbody></table></details></div>`;
 }
 
 // ---- race story: everything that happened at one event ----------------------------------------

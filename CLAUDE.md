@@ -86,8 +86,16 @@ Operating rules shared with the sibling app (standards, speed budget, shared par
 - Web push alerts (lightsout/alerts.py, VAPID key in the data dir): starts, cautions, followed drivers'
   incidents/penalties/outs/leads, results with your drivers' positions, news; never older than 15 min.
 - Person pages (#/driver/<name>, #/team/<name>): /api/person/<name> = where they race (grid team + car number per
-  series, events they're entered in), next qualifying/sprints/races across series (8), championship position per
-  series, last race result, then their Wire items.
+  series, events they're entered in), next qualifying/sprints/races across series (8), this season's cards (same as
+  Home's /api/cards: points, position, wins, form), last race result, then their Wire items.
+- Driver profiles (lightsout/profiles.py, /api/profile/<name>, table `profile`): built on demand (no driver database),
+  never waited on: get() answers from the table with pending=true and builds in the background; the page polls every
+  2 s (waitForProfile) and redraws as parts land. Wikipedia (en, Api-User-Agent set): titles tried "<name> (racing
+  driver)" etc. then a search; a page counts only when its short description names a racer (driver/racer/rider...) and
+  its title matches the name. Photo = the page's Commons thumbnail (180 px) saved in /data/img/d/<hash>, served at
+  /img/d/<file> (immutable) with author + licence shown. F1 career from Jolpica for drivers of the last F1_SEASONS
+  seasons: results + sprints + per-season standings (past seasons saved forever; requests 2/s, 429s happen when
+  hammered). Rebuilt after a day; followed names are warmed every 6 h (profiles.loop). Teams get no profile.
 - Tickets: lightsout/data/tickets.yaml (series -> official tickets page). F1 race-specific pages (lightsout/tickets.py):
   f1_races in tickets.yaml (slug -> tickets.formula1.com/en/f1-<id>-<slug>), refreshed from the store twice a day when
   it isn't behind its Queue-Fair waiting room (never try to bypass it). Matched on race name, then venue (never
@@ -192,6 +200,7 @@ Operating rules shared with the sibling app (standards, speed budget, shared par
 - The web app polls /api/live/<series> every 2 s (simpler than SSE through the Cloudflare tunnel).
 
 ## Sources
+- Driver profiles: Wikipedia (photo, two lines, credited) + Jolpica (F1 careers).
 - Scraped: F1 (Jolpica), F2/F3 (round pages), F1 Academy (Next.js data), Formula E (calendar JSON-LD; session times TBA),
   IndyCar (public JSON feeds), WEC (round JSON-LD), WRC (calendar page), ARA (<year>-ara-schedule page),
   Euro RX (fia-rallycross.com/calendar).
