@@ -3,6 +3,10 @@
 Every update to [Lights Out](https://github.com/DieLaughing/lightsout), newest first. The same list is on the app's What's new page.
 This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit that file, not this one.
 
+## October 18, 2026
+
+- **New: Driver pages with photos and careers.** Tap any driver's name to see their photo and a couple of lines about them, their season so far (points, position, wins and a bar for every race) and, for Formula 1 drivers, their whole F1 career - titles, wins, podiums, poles and every season. The first time anyone opens a driver it takes a few seconds to fetch; after that it's instant. Photos and bios come from Wikipedia, F1 stats from Jolpica.
+
 ## October 16, 2026
 
 - **Improved: Faster everywhere.** Opening the app on a slow connection is about three times quicker, and going back to Home, a series, an event or a driver page is now close to instant. Home no longer waits on the "turn on alerts" check before showing your races, and pages load everything they need at once instead of one thing after another.
