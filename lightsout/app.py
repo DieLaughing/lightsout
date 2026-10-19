@@ -297,8 +297,9 @@ async def gate(request: Request, call_next):
         _ready[key] = hit = (time.monotonic(), raw, gzip.compress(raw, 6) if len(raw) > 1500 else None)
         return _ready_response(hit, request)
     if not path.startswith(("/api/", "/cal/")):
-        # Without this, Cloudflare caches .js/.css for hours and new versions don't show up.
-        response.headers.setdefault("Cache-Control", "no-cache")
+        # Without this, Cloudflare caches .js/.css for hours and new versions don't show up. Icons barely change (and the
+        # page asks for them with ?v=), so a day's cache saves a round trip per navigation on the favicon.
+        response.headers.setdefault("Cache-Control", "public, max-age=86400" if path.startswith("/icons/") else "no-cache")
     return response
 
 

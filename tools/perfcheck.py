@@ -2,8 +2,8 @@
 "slow relay") opens the app, visits every tab and an event, driver and series page, then comes back to each one. Every API call the
 pages made is then timed directly against the server.
 
-  first visit    content on screen after opening the app with nothing cached          < FIRST_MS
-  revisit        content on screen after going back to a page already seen            < REVISIT_MS
+  first visit    content on screen after opening the app with nothing cached (median of FIRST_RUNS) < FIRST_MS
+  revisit        content on screen after going back to a page seen over 3 s ago       < REVISIT_MS
   api p95        95th percentile of RUNS direct requests to each API path the pages use < API_P95_MS
 
     .venv/bin/python tools/perfcheck.py              # starts tools/perf_server.py (fixture data) on a spare port
@@ -32,6 +32,9 @@ FIRST_MS, REVISIT_MS, API_P95_MS = 1500, 300, 200
 LATENCY_MS = 200          # added to every request: the slow relay
 DOWN_KBPS = 1600          # a slow phone connection (~"slow 4G")
 RUNS = 20
+FIRST_RUNS = 3            # one cold open swings ~150 ms run to run on CI; the median doesn't
+COPY_AGE_MS = 3500
+HOP = "#/app"             # the page stepped through between visits: static, saves nothing (What's new marks changes seen)        # fast() hands back a copy under 3 s old without asking (that's a redraw, not a revisit)
 TABS = ["#/wire", "#/picks", "#/standings", "#/series", "#/settings", "#/"]
 DETAIL = ['a[href^="#/event/"]', 'a[href^="#/driver/"]', 'a[href^="#/series/"]']   # found on the pages: the first link of each
 
@@ -83,16 +86,27 @@ def browse(url: str) -> tuple[float, dict[str, float | None], set[str]]:
     with sync_playwright() as pw:
         exe = os.environ.get("PERF_CHROMIUM") or None
         browser = pw.chromium.launch(executable_path=exe)
-        ctx = browser.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True,
-                                  service_workers="block")   # a first visit has no service worker yet
-        page = ctx.new_page()
-        page.on("request", lambda r: apis.add(r.url[len(url):]) if r.method == "GET" and r.url.startswith(f"{url}/api/") else None)
-        cdp = ctx.new_cdp_session(page)
-        cdp.send("Network.enable")
-        cdp.send("Network.emulateNetworkConditions", {"offline": False, "latency": LATENCY_MS,
-                                                      "downloadThroughput": DOWN_KBPS * 125, "uploadThroughput": DOWN_KBPS * 125})
-        page.goto(url + "/", wait_until="commit")
-        first = page.evaluate(FIRST, 15000)
+
+        def cold_open():
+            ctx = browser.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True,
+                                      service_workers="block")   # a first visit has no service worker yet
+            page = ctx.new_page()
+            page.on("request", lambda r: apis.add(r.url[len(url):]) if r.method == "GET" and r.url.startswith(f"{url}/api/") else None)
+            cdp = ctx.new_cdp_session(page)
+            cdp.send("Network.enable")
+            cdp.send("Network.emulateNetworkConditions", {"offline": False, "latency": LATENCY_MS,
+                                                          "downloadThroughput": DOWN_KBPS * 125, "uploadThroughput": DOWN_KBPS * 125})
+            page.goto(url + "/", wait_until="commit")
+            return ctx, page, page.evaluate(FIRST, 15000)
+
+        firsts = []
+        for _ in range(FIRST_RUNS - 1):
+            ctx, _, ms = cold_open()
+            firsts.append(ms)
+            ctx.close()
+        ctx, page, ms = cold_open()                  # the last one goes on to browse
+        firsts.append(ms)
+        first = None if None in firsts else -1 if any(m < 0 for m in firsts) else sorted(firsts)[len(firsts) // 2]
         page.wait_for_timeout(4000)                  # prefetch() runs 2.5 s after start
         pages = list(TABS)
         for sel in DETAIL:                           # detail pages, from links the app shows
@@ -104,10 +118,11 @@ def browse(url: str) -> tuple[float, dict[str, float | None], set[str]]:
                     break
         for hash in pages:                           # see each page once, then come back to it
             page.evaluate(GO, [hash, 10000])
-            page.evaluate(GO, ["#/new", 10000])
+            page.evaluate(GO, [HOP, 10000])
+        page.wait_for_timeout(COPY_AGE_MS)
         revisit = {}
         for hash in pages:
-            page.evaluate(GO, ["#/new" if hash != "#/new" else "#/", 10000])
+            page.evaluate(GO, [HOP if hash != HOP else "#/", 10000])
             revisit[hash] = page.evaluate(GO, [hash, 5000])
         browser.close()
     return first, revisit, apis
@@ -148,7 +163,7 @@ def main() -> int:
             proc.wait(10)
             shutil.rmtree(data, ignore_errors=True)
 
-    rows = [("first visit", "/", first, FIRST_MS)]
+    rows = [("first visit", f"/ (median of {FIRST_RUNS})", first, FIRST_MS)]
     rows += [("revisit", h, ms, REVISIT_MS) for h, ms in revisit.items()]
     rows += [("api p95", p, ms, API_P95_MS) for p, ms in api.items()]
     over = lambda ms, b: ms is None or ms < 0 or ms > b  # noqa: E731
