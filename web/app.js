@@ -20,6 +20,7 @@ const store = {
   },
   set(key, value) {
     if (SETTINGS && SYNCED.includes(key)) {
+      if (JSON.stringify(SETTINGS[key]) === JSON.stringify(value)) return;   // unchanged: no save (it drops the Wire copies)
       SETTINGS[key] = value;
       clearTimeout(saveTimer);
       saveTimer = setTimeout(() => saveSettings().catch(() => {}), 400);
