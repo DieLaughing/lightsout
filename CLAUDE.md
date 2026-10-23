@@ -65,6 +65,12 @@ How the app moves (what animates, what must hold still, timings, rules for new U
 - Search (#/search, web/app.js searchView): series, drivers, teams (/api/names) and tracks (/api/tracks, with the next
   race) filtered on the phone; accents/apostrophes/case ignored; under 3 hits adds names with a word whose
   match.js similarity >= 0.88 ("verstapen"). Followed names first.
+- Shared-element morph (navigate() wraps hash changes in document.startViewTransition; docs/motion.md): going to an
+  event, driver, team or series page (MORPH_PAGES), the tapped (or first on-screen) link to it and the new page's h1
+  share view-transition-name "hero" (inline, cleared on vt.finished), and the h1 shrinks back into its link on the
+  way back. In-page switches (SWAP, same pageOf) never morph. route() runs inside the callback with `morphing` set (no
+  Rise), capped at MORPH_WAIT 800 ms; scroll-to-top happens inside it. Without the API, motion off or nothing on
+  screen: plain route(). Checked in Chromium and Firefox; motioncheck has two morph cases.
 
 ## Access
 - Cloudflare Access signs people in (one-time PIN) and passes a signed JWT; lightsout/access.py verifies it against the

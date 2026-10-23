@@ -5,6 +5,7 @@ This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit th
 
 ## October 23, 2026
 
+- **Improved: Tap a name and it grows into the page.** Tap a race, a driver, a team or a series and its name grows into the title of the page it opens, then shrinks back into place when you go back. Works in Chrome, Safari and Firefox; anywhere else pages open as before.
 - **New: Search.** Tap the magnifier at the top to find any driver, team, series or track as you type. Typos are fine ("verstapen", "antonneli"), and tracks show their next race.
 - **Improved: Switching series and tabs stays put.** Going from F1 to F2 in Standings, or between Drivers, Teams and Last race, the Wire's filters and the Pick'em series, no longer throws the whole page around or jumps you back to the top. The highlight slides across to what you picked, and only the new numbers fade in. Pages you open now build in from the top; prefer the old slide-in? Settings › Display › Slapshot.
 - **Improved: Smoother live timing, Upcoming and driver pages.** The live timing screen now changes only the times and positions that moved on each update, instead of redrawing the whole screen every two seconds. Scrolling, selecting text and tapping the filters no longer get interrupted mid-session. Upcoming's once-a-minute refresh works the same way, and on driver pages the photo and career now slot in as they arrive without closing anything you've opened.
