@@ -540,6 +540,7 @@ details.odds-help > div { margin-top: 8px; padding: 10px 12px; border-radius: 10
 details.odds-help p { margin: 0 0 6px; line-height: 1.4; }
 details.odds-help p:last-child { margin: 0; }
 .odds-intro { margin: -2px 0 6px; }
+.pick-mid .even { display: block; margin-top: 2px; font-size: 9.5px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--paid-fg); }
 details.odds > summary { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 12px; cursor: pointer; }
 .orow { display: grid; grid-template-columns: minmax(0, 1fr) 70px 38px 52px; gap: 8px; align-items: center; padding: 7px 12px;
   border-top: 1px solid var(--border); font-size: 13.5px; }

@@ -104,7 +104,8 @@ def winner(ev: dict | None, name: str) -> dict | None:
 
 # A Pick'em duel asks who finishes ahead, so it shows the market that tells the two apart: the race winner while one of
 # them has a real chance, else top 10 / top 5 / podium. Two drivers on the same price (back markers all sit on the
-# bookmaker's floor, +50000) say nothing, so that market is skipped; if none separates them, no odds are shown.
+# bookmaker's floor, +50000) say nothing, so that market is skipped. If no market separates them, the duel is even:
+# the first market where they have a real chance is shown, marked even (teammates often share every price).
 DUEL_MARKETS = ("Race Winner", "Podium Finish", "Top 3 Finish", "Top 5 Finish", "Top 10 Finish")
 WIN_FLOOR = 2.0  # %: below this for both, win prices are noise
 
@@ -115,4 +116,8 @@ def duel(ev: dict | None, a: str, b: str) -> tuple[dict, dict] | None:
         x, y = la.get(m), lb.get(m)
         if x and y and x["american"] != y["american"] and (m != "Race Winner" or max(x["pct"], y["pct"]) >= WIN_FLOOR):
             return x, y
+    for m in DUEL_MARKETS:
+        x, y = la.get(m), lb.get(m)
+        if x and y and (m != "Race Winner" or x["pct"] >= WIN_FLOOR):
+            return {**x, "even": True}, {**y, "even": True}
     return None
