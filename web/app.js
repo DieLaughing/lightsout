@@ -5,7 +5,7 @@ import { matchName, normalise, splitNames } from "./match.js?v=2";
 
 const view = document.getElementById("view");
 
-const SYNCED = ["series", "follows", "kinds", "dismissed", "notify", "seenSeries", "seenChanges", "units", "animations", "nickname", "show", "home", "nearMiles"];
+const SYNCED = ["series", "follows", "kinds", "dismissed", "notify", "seenSeries", "seenChanges", "units", "animations", "odds", "nickname", "show", "home", "nearMiles"];
 let SETTINGS = null;      // from /api/me once signed in
 let saveTimer = null;
 
@@ -692,6 +692,7 @@ async function eventView(id, key) {
       `<a href="#/event/${w.series}/${encodeURIComponent(w.key)}">${chip(w.series)}</a>`).join(" ")}</p>` : ""}
     ${yours.length ? `<h2>Your drivers</h2><div class="card standings">${yours.map(driverRow).join("")}</div>` : ""}
     ${!past ? watchList(e.watch_list) : ""}
+    ${!past ? oddsBlock(e.odds, n => isMine({ name: n })) : ""}
     ${e.results?.rows?.length ? `<h2>Results</h2>${standingsBody(id, "last", { last_results: e.results.rows, last_event: e.name, last_session: e.results.session })}` : ""}
     ${Object.keys(e.qualifying || {}).length ? `<h2>Qualifying</h2>${standingsBody(id, "quali", { qualifying: e.qualifying, quali_event: e.name })}` : ""}
     <h2>Schedule</h2>
@@ -705,6 +706,29 @@ async function eventView(id, key) {
         ? "Everyone entered for this event" : "The series' regular drivers; this event has no separate entry list"}</summary>
         <div class="standings">${e.drivers.map(driverRow).join("")}</div></details>` : ""}`;
   wireClassPicker(() => eventView(id, key));
+}
+
+// Betting odds (DraftKings, fetched from a home connection; see lightsout/odds.py). Shown as American odds plus the
+// implied chance, which includes the bookmaker's margin, so a market's chances add up to more than 100%.
+const oddsOn = () => SETTINGS?.odds !== false;
+const pctText = p => p < 1 ? "<1%" : `${Math.round(p)}%`;
+const MARKET_SHORT = { "Race Winner": "to win", "Podium Finish": "podium", "Top 3 Finish": "top 3", "Top 5 Finish": "top 5", "Top 10 Finish": "top 10" };
+// One line, opened on tap: what +110 / −360 / 48% mean.
+const oddsHelp = () => `<details class="odds-help"><summary>What do the odds mean?</summary><div class="small">
+  <p><b>+110</b> means a $100 bet wins $110. The bigger the number after the +, the less likely.</p>
+  <p><b>−360</b> marks a favourite: you'd bet $360 to win $100.</p>
+  <p><b>48%</b> is the same price as a chance. The bookmaker adds a margin, so everyone's chances add up to more than 100%.</p>
+  <p><b>+50000</b> is DraftKings' longest price: they rate that driver as having practically no chance.</p>
+  <p><b>even</b> on a duel: DraftKings gives both drivers exactly the same price, so it's a coin flip by the odds.</p></div></details>`;
+const oddsNote = o => `<p class="small muted">${esc(o.source)} odds, updated ${esc(ago(o.fetched))}. Chances include the bookmaker's margin. For fun, not advice.</p>`;
+function oddsBlock(o, mine) {
+  if (!o?.markets?.length || !oddsOn()) return "";
+  const row = r => `<div class="orow${mine(r.name) ? " followed" : ""}"><a class="who-link" href="#/driver/${encodeURIComponent(r.name)}"><b>${esc(r.name)}</b></a>
+    <span class="obar"><i style="width:${Math.min(100, r.pct)}%"></i></span><span class="num">${pctText(r.pct)}</span><span class="num muted">${esc(r.american)}</span></div>`;
+  return `<h2>Odds</h2>${oddsHelp()}${o.markets.map((m, i) => `<details class="card odds"${i ? "" : " open"}><summary><b>${esc(m.name)}</b>
+      <span class="muted small">${m.rows.length} drivers</span></summary>${m.rows.slice(0, 10).map(row).join("")}
+      ${m.rows.length > 10 ? `<details class="more-odds"><summary class="small muted">Everyone else (${m.rows.length - 10})</summary>${m.rows.slice(10).map(row).join("")}</details>` : ""}</details>`).join("")}
+    ${oddsNote(o)}`;
 }
 
 // F1 ACADEMY rounds: who to watch, for people who don't follow the series week to week.
@@ -973,7 +997,9 @@ async function settingsView() {
 
     <h2>Display</h2>
     <div class="card"><label class="item"><span>Animations between pages<span class="small muted" style="display:block">Quick slides between tabs and pages. Off for instant switching; also off when your phone's Reduce Motion is on.</span></span>
-      <input type="checkbox" id="animations" ${SETTINGS?.animations !== false ? "checked" : ""}></label></div>
+      <input type="checkbox" id="animations" ${SETTINGS?.animations !== false ? "checked" : ""}></label>
+      <label class="item"><span>Betting odds<span class="small muted" style="display:block">DraftKings' race odds on event pages, driver pages and Pick'em duels. Off hides them everywhere.</span></span>
+      <input type="checkbox" id="odds" ${oddsOn() ? "checked" : ""}></label></div>
 
     ${ME.admin ? `<a class="card whatsnew-link" href="#/admin" style="margin-top:22px"><b>Admin</b><span class="muted small">People, invites, sources →</span></a>` : ""}
 
@@ -1000,6 +1026,7 @@ async function settingsView() {
   view.querySelectorAll("[data-near]").forEach(b => b.addEventListener("click", () => { store.set("nearMiles", Number(b.dataset.near)); settingsView(); }));
   if (location.hash === "#/settings/near") view.querySelector("#near")?.scrollIntoView();
   view.querySelector("#animations").addEventListener("change", e => store.set("animations", e.target.checked));
+  view.querySelector("#odds").addEventListener("change", e => store.set("odds", e.target.checked));
   view.querySelector("#nickname").addEventListener("change", e => {
     store.set("nickname", e.target.value.trim().slice(0, 24));
     for (const k of GET_CACHE.keys()) if (k.startsWith("/api/pickem")) GET_CACHE.delete(k);
@@ -1068,13 +1095,15 @@ async function pickemView(series, eventKey, quiet = false) {
         const on = x.mine === drv.name;
         const res = on && x.outcome ? ` ${x.outcome === "won" ? "won" : x.outcome === "lost" ? "lost" : "void"}` : "";
         const sub = drv.finish != null ? finishText(drv.finish) : `${drv.pos && drv.pos < 999 ? `P${drv.pos} · ` : ""}${esc(drv.team)}`;
+        const line = !closed && drv.odds && oddsOn() ? `<span class="pk-odds">${esc(drv.odds.american)} ${MARKET_SHORT[drv.odds.market] || esc(drv.odds.market)} · ${pctText(drv.odds.pct)}</span>` : "";
         return `<button class="pk${on ? " on" : ""}${res}" data-duel="${x.slot}" data-name="${esc(drv.name)}" ${closed ? "disabled" : ""}>
-          <span class="pk-nm">${esc(drv.name)}</span><span class="pk-sub">${sub}</span></button>`;
+          <span class="pk-nm">${esc(drv.name)}</span><span class="pk-sub">${sub}</span>${line}</button>`;
       };
       const friends = x.everyone || [];
       const others = x.count - (x.mine ? 1 : 0);
       return `<div class="pick-row">
-        <div class="pick-line">${side(x.drivers[0])}<div class="pick-mid">vs</div>${side(x.drivers[1])}
+        <div class="pick-line">${side(x.drivers[0])}<div class="pick-mid">vs${!closed && oddsOn() && x.drivers[0].odds?.even
+          ? `<small class="even" title="DraftKings prices them exactly the same">even</small>` : ""}</div>${side(x.drivers[1])}
           <button class="lockbtn${x.lock ? " on" : ""}" data-lock="${x.slot}" ${closed ? "disabled" : ""} aria-pressed="${x.lock}" title="Lock: 2 points if right, nothing if wrong">★</button></div>
         ${x.outcome === "void" ? `<div class="pick-friends">No winner (one didn't start, or both retired): doesn't count.</div>` : ""}
         ${closed && friends.length ? `<div class="pick-friends">${friends.map(p => `${esc(p.name)}: ${esc(p.pick.split(" ").slice(-1)[0])}${p.lock ? " ★" : ""}`).join(" · ")}</div>`
@@ -1090,7 +1119,8 @@ async function pickemView(series, eventKey, quiet = false) {
           `<option value="${esc(f.name)}" ${f.name === mine ? "selected" : ""}>${esc(f.name)}${f.team ? ` (${esc(f.team)})` : ""}</option>`).join("")}</select>${res}</label>`;
     }).join("");
     const podFriends = (P.everyone || []).filter(p => p.picks.some(Boolean));
-    body = `<h2>Duels</h2>
+    const anyOdds = !closed && oddsOn() && sl.duels.some(x => x.drivers.some(d => d.odds));
+    body = `<h2>Duels</h2>${anyOdds ? `<div class="odds-intro small muted">Odds under each name: DraftKings' price for whichever bet best splits the pair (to win, podium or top 10).</div>${oddsHelp()}` : ""}
       <div class="card picks">${duelRows}</div>
       <h2>Podium</h2>
       <div class="card pad16">${podRows}
@@ -1446,6 +1476,9 @@ async function personView(type, name) {
       <div class="card standings">${academy.map(d => `<div class="srow"><span class="pos">${esc(d.number ? `#${d.number}` : "")}</span>
         <span class="who"><a class="who-link" href="#/driver/${encodeURIComponent(d.name)}"><b>${esc(d.name)}</b></a><span class="muted">${esc(d.team)}</span></span></div>`).join("")}</div>` : ""}
     ${seasonCards(p?.cards)}
+    ${oddsOn() && p?.odds?.length ? `<h2>Odds</h2><div class="card">${p.odds.map(x => `<a class="item" href="#/event/${x.series}/${encodeURIComponent(x.event_key)}"><div>${chip(x.series)} <b>${esc(x.event)}</b>
+      <div class="small">${x.lines.map(l => `${esc(l.market.replace(/ Finish$/, ""))} <b>${esc(l.american)}</b> <span class="muted">(${pctText(l.pct)})</span>`).join(" · ")}</div></div></a>`).join("")}</div>
+      ${oddsHelp()}` : ""}
     ${where ? `<h2>Where they race</h2><div class="card">${where}</div>` : `<p class="small muted">Not on any current grid or published entry list. If you follow them, every series is still watched.</p>`}
     ${upcoming.length ? `<h2>Coming up</h2><div class="card">${upcoming.map(x => sessionRow({ ...x }, new Set())).join("")}</div>` : ""}
     ${last ? `<h2>Last race</h2><div class="card">${last}</div>` : ""}
