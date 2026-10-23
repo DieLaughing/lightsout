@@ -5,9 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Lights Out</title>
   <meta name="description" content="Racing schedules, calendar and where to watch.">
-  <meta name="theme-color" content="#0f1115">
+  <!-- The status bar strip in the installed iPhone app, in the top bar's colour (light / dark). -->
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#181b21" media="(prefers-color-scheme: dark)">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <!-- "default": iOS paints the status bar solid and the app starts below it. Drawing under it (black-translucent) let
+       iOS fade the top bar near the Dynamic Island in the installed app, and iOS 26 keeps changing how that works. -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Lights Out">
   <!-- AGPL: people using the site can get its source. Point this at your fork. -->
   <meta name="source" content="https://github.com/DieLaughing/lightsout">
