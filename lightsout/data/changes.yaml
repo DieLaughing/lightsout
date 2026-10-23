@@ -4,6 +4,12 @@
 # and `.venv/bin/python tools/release.py` publishes the day's GitHub Release.
 
 - date: 2026-10-23
+  kind: improved
+  title: Tap a name and it grows into the page
+  text: Tap a race, a driver, a team or a series and its name grows into the title of the page it opens, then shrinks back into place when you go back. Works in Chrome, Safari and Firefox; anywhere else pages open as before.
+  link: "#/standings"
+
+- date: 2026-10-23
   kind: new
   title: Search
   text: Tap the magnifier at the top to find any driver, team, series or track as you type. Typos are fine ("verstapen", "antonneli"), and tracks show their next race.
