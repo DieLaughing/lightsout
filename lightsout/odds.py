@@ -1,0 +1,93 @@
+"""Betting odds next to races, drivers and Pick'em duels (DraftKings, via tools/odds_fetch.py).
+
+DraftKings refuses data-centre addresses, so the app never asks it: a machine on a home connection runs
+tools/odds_fetch.py on a timer and copies odds.json here (LIGHTSOUT_ODDS_FILE, default <data>/odds.json). This module
+only reads that file (re-read when it changes). Odds older than STALE aren't shown: a stale price is worse than none.
+"""
+from __future__ import annotations
+
+import json
+import logging
+import os
+import time
+from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
+
+from .follow import matches, normalise
+
+log = logging.getLogger("lightsout.odds")
+
+STALE = timedelta(hours=6)
+_path: Path | None = None
+_cache: tuple[float, dict] = (0.0, {})
+_warned = 0.0
+
+
+def setup(data_dir: Path) -> None:
+    global _path
+    _path = Path(os.environ.get("LIGHTSOUT_ODDS_FILE") or data_dir / "odds.json")
+
+
+def _load() -> dict:
+    """The file's contents when fresh enough, else {} (and a warning at most once an hour)."""
+    global _cache, _warned
+    if not _path:
+        return {}
+    try:
+        mtime = _path.stat().st_mtime
+    except FileNotFoundError:
+        return {}
+    if mtime != _cache[0]:
+        try:
+            _cache = (mtime, json.loads(_path.read_text()))
+        except (OSError, ValueError) as exc:
+            log.warning("odds file unreadable: %r", exc)
+            return {}
+    data = _cache[1]
+    fetched = data.get("fetched") or ""
+    try:
+        age = datetime.now(timezone.utc) - datetime.fromisoformat(fetched.replace("Z", "+00:00"))
+    except ValueError:
+        return {}
+    if age > STALE:
+        if time.time() - _warned > 3600:
+            _warned = time.time()
+            log.warning("odds file is stale (fetched %s): is the odds fetcher running?", fetched)
+        return {}
+    return data
+
+
+def _market_name(name: str) -> str:
+    return "Race Winner" if name == "Winner" else name
+
+
+def for_event(series: str, start_day: str | None, end_day: str | None) -> dict | None:
+    """The odds for one race weekend: the bookmaker's event dated within the weekend (a day's slack either side)."""
+    data = _load()
+    if not data or not start_day:
+        return None
+    lo = date.fromisoformat(start_day) - timedelta(days=1)
+    hi = date.fromisoformat(end_day or start_day) + timedelta(days=1)
+    for e in data.get("events") or []:
+        if e.get("series") == series and lo <= date.fromisoformat(e["start"][:10]) <= hi:
+            return {"source": data.get("source", ""), "fetched": data["fetched"], "name": e["name"],
+                    "markets": [{"name": _market_name(m["name"]), "rows": m["rows"]} for m in e["markets"]]}
+    return None
+
+
+def find(rows: list[dict], name: str) -> dict | None:
+    key = normalise(name)
+    return next((r for r in rows if normalise(r["name"]) == key), None) or next((r for r in rows if matches(name, r["name"])), None)
+
+
+def for_driver(ev: dict | None, name: str) -> list[dict]:
+    """One driver's line in each market of an event's odds: [{market, american, pct}]."""
+    out = []
+    for m in (ev or {}).get("markets") or []:
+        if r := find(m["rows"], name):
+            out.append({"market": m["name"], "american": r["american"], "pct": r["pct"]})
+    return out
+
+
+def winner(ev: dict | None, name: str) -> dict | None:
+    return next((x for x in for_driver(ev, name) if x["market"] == "Race Winner"), None)
