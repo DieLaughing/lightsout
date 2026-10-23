@@ -3,6 +3,10 @@
 Every update to [Lights Out](https://github.com/DieLaughing/lightsout), newest first. The same list is on the app's What's new page.
 This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit that file, not this one.
 
+## October 23, 2026
+
+- **New: Race odds.** Event pages for F1 and NASCAR (Cup, O'Reilly and Trucks) now show DraftKings' odds for the coming race, with each driver's chance as a percentage and a bar. That covers the race winner, plus podium or top 3, and top 10 where DraftKings offers them. Driver pages show their odds for their next race, and Pick'em duels show each driver's odds to win. Odds update about every hour; if they get more than a few hours old they're hidden rather than shown out of date. Don't want them? Turn off "Betting odds" in Settings.
+
 ## October 22, 2026
 
 - **New: Get to know the F1 ACADEMY grid.** F1 ACADEMY drivers now have proper driver pages, with their official photo and bio, age, team and number, and links to their Instagram and YouTube. Every F1 ACADEMY car races in an F1 team's or a sponsor's colours, and that now shows next to each driver's name in standings, results, entry lists and live timing. If you follow an F1 team, its F1 ACADEMY driver is highlighted too, and the F1 team's page lists them. Before each round, the event page has a "Who to watch" card with the championship top three, anyone racing at home and wild cards. The Race Wire now also carries F1 ACADEMY's own stories.
