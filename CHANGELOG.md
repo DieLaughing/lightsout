@@ -3,6 +3,12 @@
 Every update to [Lights Out](https://github.com/DieLaughing/lightsout), newest first. The same list is on the app's What's new page.
 This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit that file, not this one.
 
+## October 22, 2026
+
+- **New: Get to know the F1 ACADEMY grid.** F1 ACADEMY drivers now have proper driver pages, with their official photo and bio, age, team and number, and links to their Instagram and YouTube. Every F1 ACADEMY car races in an F1 team's or a sponsor's colours, and that now shows next to each driver's name in standings, results, entry lists and live timing. If you follow an F1 team, its F1 ACADEMY driver is highlighted too, and the F1 team's page lists them. Before each round, the event page has a "Who to watch" card with the championship top three, anyone racing at home and wild cards. The Race Wire now also carries F1 ACADEMY's own stories.
+- **Improved: Tap a name in live timing.** In live timing, tap any driver to open their page. A small PIT or OUT tag now sits next to the driver's code, so their gap is always visible.
+- **Fixed: Gaps after the flag.** Once an F2, F3 or F1 ACADEMY session finished, every gap read "PIT" because every car was back in the pits. You now see the real gaps. Wild-card drivers are labelled "Wild card" instead of having "(Wcd)" stuck to the end of their name.
+
 ## October 18, 2026
 
 - **New: Driver pages with photos and careers.** Tap any driver's name (in standings, results, entry lists, the Race Wire or your follows) to see their photo and a couple of lines about them, their season so far (points, position, wins and a bar for every race) and, for Formula 1 drivers, their whole F1 career - titles, wins, podiums, poles and every season. The first time anyone opens a driver it takes a few seconds to fetch; after that it's instant. Photos and bios come from Wikipedia, F1 stats from Jolpica.

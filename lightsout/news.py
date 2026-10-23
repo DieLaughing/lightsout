@@ -6,6 +6,7 @@ Motorsport.com has one feed per series, so its stories arrive knowing their seri
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 import re
 import xml.etree.ElementTree as ET
@@ -56,6 +57,17 @@ def _clean(s: str) -> str:
     return re.sub(r"\s+", " ", s).strip()
 
 
+def _item(title: str, text: str, link: str, when: str, source: str, series: list[str] | None, scope: list[str] | None,
+          tagger: Tagger) -> dict | None:
+    drivers, teams = tagger.tag(f"{title} {text}", scope)
+    tagged = sorted({s for d in drivers for s in tagger.people[d]} & set(scope or tagger.people_series()))
+    found = sorted(set(series or []) | set(tagged))
+    if not found:
+        return None  # a mixed feed's story about a series we don't cover (IMSA, MotoGP...)
+    return {"id": "news:" + hashlib.sha1(link.encode()).hexdigest()[:16], "time": when, "title": title,
+            "text": text, "url": link, "source": source, "series": found, "drivers": drivers, "teams": teams}
+
+
 def parse(xml: str, source: str, series: list[str] | None, scope: list[str] | None, tagger: Tagger) -> list[dict]:
     root = ET.fromstring(xml)
     out = []
@@ -69,13 +81,26 @@ def parse(xml: str, source: str, series: list[str] | None, scope: list[str] | No
             when = parsedate_to_datetime(item.findtext("pubDate")).astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         except Exception:
             continue
-        drivers, teams = tagger.tag(f"{title} {text}", scope)
-        tagged = sorted({s for d in drivers for s in tagger.people[d]} & set(scope or tagger.people_series()))
-        found = sorted(set(series or []) | set(tagged))
-        if not found:
-            continue  # a mixed feed's story about a series we don't cover (IMSA, MotoGP...)
-        out.append({"id": "news:" + hashlib.sha1(link.encode()).hexdigest()[:16], "time": when, "title": title,
-                    "text": text, "url": link, "source": source, "series": found, "drivers": drivers, "teams": teams})
+        if x := _item(title, text, link, when, source, series, scope, tagger):
+            out.append(x)
+    return out
+
+
+F1A_NEWS = "https://www.f1academy.com/Latest"
+
+
+def parse_f1a(page: str, tagger: Tagger) -> list[dict]:
+    """F1 ACADEMY's own stories (no RSS): the Latest page's Next.js data lists the newest 21."""
+    m = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', page, re.S)
+    out = []
+    for a in json.loads(m.group(1))["props"]["pageProps"]["pageData"].get("items") or []:
+        stamp = (a.get("updatedAt") or a.get("realUpdatedAt") or "")[:19]
+        if not a.get("id") or not a.get("slug") or not stamp:
+            continue
+        x = _item(" ".join(a["title"].split()), _clean(a.get("description") or a.get("metaDescription") or "")[:320],
+                  f"https://www.f1academy.com/Latest/{a['id']}/{a['slug']}", stamp + "Z", "F1 ACADEMY", ["f1a"], ["f1a"], tagger)
+        if x:
+            out.append(x)
     return out
 
 
@@ -89,4 +114,10 @@ async def fetch_all(tagger: Tagger) -> tuple[list[dict], dict[str, str | None]]:
         except Exception as exc:  # one broken feed never stops the rest
             log.warning("news feed %s failed: %r", url, exc)
             status[url] = f"{type(exc).__name__}: {exc}"[:200]
+    try:
+        items += parse_f1a(await get_text(F1A_NEWS), tagger)
+        status[F1A_NEWS] = None
+    except Exception as exc:
+        log.warning("news page %s failed: %r", F1A_NEWS, exc)
+        status[F1A_NEWS] = f"{type(exc).__name__}: {exc}"[:200]
     return items, status

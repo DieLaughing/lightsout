@@ -18,7 +18,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Red
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from . import access, bugs, adapters, alerts, changes, colors, follow, ics, news, picks, places, profiles, refresh, slow, tickets, usage, watch, weather
+from . import access, bugs, adapters, alerts, changes, colors, f1a, follow, ics, news, picks, places, profiles, refresh, slow, tickets, usage, watch, weather
 from .db import Store
 from .live.hub import LiveHub
 from .push import Pusher
@@ -156,6 +156,9 @@ def series_standings(series_id: str):
     if series_id not in BY_ID:
         raise HTTPException(404)
     table = store.standings(series_id)
+    if table and series_id == "f1a":
+        for rows in (table.get("drivers") or [], table.get("last_results") or [], *(table.get("qualifying") or {}).values()):
+            f1a.tag(store, rows)
     return colors.tint(table, series_id) if table else {}
 
 
@@ -166,7 +169,10 @@ def live_summary():
 
 @app.get("/api/live/{series_id}")
 def live_series(series_id: str):
-    return live.snapshot(series_id) or {}
+    snap = live.snapshot(series_id) or {}
+    if series_id == "f1a" and snap.get("rows"):
+        f1a.tag(store, snap["rows"], colour=True)
+    return snap
 
 
 @app.get("/api/entries")
@@ -544,7 +550,10 @@ def person(name: str):
         if last:
             results.append({"series": sid, "event": table.get("last_event"), "session": table.get("last_session"),
                             "pos": last["pos"], "time": last.get("time"), "points": last.get("points")})
-    return {"name": name, "series": st["series"], "found": st["found"], "rides": rides, "next": st["next"],
+    # An F1 team's page lists the F1 ACADEMY drivers racing in its colours.
+    academy = [{"name": d["name"], "team": d["team"], "number": d["number"]} for d in f1a.roster(store)
+               if (team := f1a.f1_team(d["backer"])) and follow.normalise(team) == follow.normalise(name)]
+    return {"name": name, "series": st["series"], "found": st["found"], "rides": rides, "next": st["next"], "academy": academy,
             "new": st["new"], "upcoming": upcoming[:8], "results": results,
             "cards": [c for c in (_card(name, sid, t) for sid, t in tables.items()) if c]}
 
@@ -688,6 +697,10 @@ def event_page(series_id: str, event_key: str):
     ev["entry_list"] = bool(entered)
     ev["drivers"] = [{"name": n, "team": (grid.get(n) or {}).get("team"), "number": (grid.get(n) or {}).get("number")}
                      for n in (entered or sorted(grid, key=lambda n: (grid[n].get("team") or "", n)))]
+    if series_id == "f1a":
+        f1a.tag(store, ev["drivers"])
+        if (ev.get("end_day") or ev.get("start_day") or "") >= _iso(datetime.now(timezone.utc))[:10]:
+            ev["watch_list"] = f1a.watch(store, ev, weather.place_for(ev.get("venue"), ev.get("name")))
 
     st = store.standings(series_id) or {}
     same = st.get("last_event") and weather.norm(st["last_event"]) in (weather.norm(ev["name"]), weather.norm(ev.get("venue") or ""))
