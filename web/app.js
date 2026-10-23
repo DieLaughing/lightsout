@@ -1,7 +1,7 @@
 // Lights Out web app. No build step: plain modules, hash routing.
 // Settings (series, follows, calendar kinds, alerts) live on your account so alerts know who you follow;
 // the first visit after that change copies this browser's old settings up.
-import { matchName, normalise, splitNames } from "./match.js?v=2";
+import { matchName, normalise, similarity, splitNames } from "./match.js?v=2";
 
 const view = document.getElementById("view");
 
@@ -279,6 +279,7 @@ document.addEventListener("click", e => {
 
 // "Loading…" only when a page takes a moment: fast loads swap straight to the new page, no flash.
 function showLoading(text) {
+  if (SWAP) return;   // an in-page switch keeps the page (dimmed) until the new data lands
   const before = view.firstElementChild;
   setTimeout(() => { if (view.firstElementChild === before) view.innerHTML = `<div class="empty">${text}</div>`; }, 350);
 }
@@ -293,8 +294,49 @@ const MORPH = { morphStyle: "innerHTML",
 // Quiet redraws (route(true): fresher data, a profile part landing, Home's minute tick) change only what moved, so an
 // open section, a scroll or a tap in progress survives; navigations replace the page.
 function paint(html) {
-  if (QUIET_ROUTE && morph) morph(view, html, MORPH);
+  if ((QUIET_ROUTE || SWAP) && morph) morph(view, html, MORPH);
   else view.innerHTML = html;
+  if (SWAP) settle();
+}
+
+// Brings a switch's option into view sideways only (scrollIntoView would move the whole page up or down too).
+function scrollRowTo(opt) {
+  const row = opt?.parentElement;
+  if (!row || (opt.offsetLeft >= row.scrollLeft && opt.offsetLeft + opt.offsetWidth <= row.scrollLeft + row.clientWidth)) return;
+  row.scrollLeft = opt.offsetLeft - (row.clientWidth - opt.offsetWidth) / 2;
+}
+
+// In-page switches (another series, tab, class or filter on the same page; marked data-swaps): the page stays put —
+// no slide, no jump to the top. The tapped option lights up (and its pill slides) straight away, the part that
+// changes (.swap) dims while its data loads, then idiomorph swaps in only what changed and it fades back in place.
+let SWAP = false, swapTimer = null;
+const SWAP_PAGES = new Set(["standings", "picks", "wire"]);
+const pageOf = hash => {
+  const p = (hash || "#/").replace(/^#/, "").split("/");
+  return p[1] === "series" ? `series/${p[2] || ""}` : SWAP_PAGES.has(p[1]) ? p[1] : hash;
+};
+view.addEventListener("click", e => {
+  const opt = e.target.closest("[data-swaps] > a, [data-swaps] > button");
+  const href = opt?.getAttribute("href");
+  if (!opt || opt.classList.contains("active") || (href?.startsWith("#") && pageOf(href) !== pageOf(location.hash))) return;
+  SWAP = true;
+  loadMorph();
+  view.style.minHeight = `${view.offsetHeight}px`;   // a shorter table mustn't pull the page up; cleared on the next page
+  if (opt.parentElement.matches(`${SWITCHES}, .chips`)) {
+    opt.parentElement.querySelectorAll(":scope > .active").forEach(x => x.classList.remove("active"));
+    opt.classList.add("active");
+  }
+  view.querySelectorAll(".swap").forEach(el => el.classList.add("swapping"));
+  clearTimeout(swapTimer);
+  swapTimer = setTimeout(settle, 4000);   // a tap that never redraws doesn't leave the page dimmed
+}, true);   // before the option's own listener: a redraw from the phone's copy can land before the tap bubbles up
+function settle() {
+  clearTimeout(swapTimer);
+  SWAP = false;
+  for (const el of view.querySelectorAll(".swap")) {
+    el.classList.remove("swapping");
+    if (motionOn()) el.animate([{ opacity: .45 }, { opacity: 1 }], { duration: 200, easing: "ease-out" });   // no movement: it read as a bounce
+  }
 }
 // Pages that paint() put their listeners on #view, not on controls (a morph keeps controls, so theirs would pile up):
 // each draw takes a fresh set, and every navigation drops the last page's.
@@ -306,20 +348,83 @@ function setNav(name) {
   movePill();
 }
 
-// The bottom bar's highlight is one pill that slides (with a little spring) to the active tab.
+// Liquid highlight (from OpenUI's trip planner demo): the leading edge gets to the new spot first and the trailing
+// edge follows, so the pill stretches across and snaps to size with a small overshoot. Positions are {x, w} in px.
+function liquid(pill, from, to) {
+  if (from.x === to.x || !motionOn()) return;
+  const lead = to.x > from.x ? [from.x + (to.x - from.x) * .25, to.x + to.w] : [to.x, from.x + from.w - (from.x + from.w - to.x - to.w) * .25];
+  const sw = pill.parentElement;
+  sw.classList.add("sliding");   // the other options' outlines fade while the pill passes behind them
+  pill.animate([
+    { transform: `translateX(${from.x}px)`, width: `${from.w}px`, easing: "cubic-bezier(.45, 0, .55, 1)" },
+    { transform: `translateX(${lead[0]}px)`, width: `${lead[1] - lead[0]}px`, offset: .45, easing: "cubic-bezier(.3, 1.3, .5, 1)" },
+    { transform: `translateX(${to.x}px)`, width: `${to.w}px` },
+  ], { duration: 380 }).finished.then(() => sw.classList.remove("sliding"), () => sw.classList.remove("sliding"));
+}
+
+// Puts `pill` under `on` (an option of its parent) and slides it there from `from` (or from where it was).
+function placePill(pill, on, from) {
+  const to = { x: on.offsetLeft, w: on.offsetWidth };
+  from ||= pill.dataset.w ? { x: +pill.dataset.x, w: +pill.dataset.w } : null;
+  Object.assign(pill.style, { width: `${to.w}px`, transform: `translateX(${to.x}px)`, opacity: "1" });
+  Object.assign(pill.dataset, to);
+  if (from) liquid(pill, from, to);
+}
+
+// The bottom bar's highlight is one pill that slides to the active tab.
 function movePill() {
   const bar = document.getElementById("tabs"), on = bar?.querySelector("a.active");
   if (!bar) return;
   let pill = bar.querySelector(".tab-pill");
   if (!pill) { pill = document.createElement("span"); pill.className = "tab-pill"; bar.prepend(pill); }
-  pill.classList.toggle("still", !motionOn() || !pill.dataset.placed);
-  if (!on) { pill.style.opacity = "0"; return; }
-  pill.style.opacity = "1";
-  pill.style.width = `${on.offsetWidth}px`;
-  pill.style.transform = `translateX(${on.offsetLeft}px)`;
-  pill.dataset.placed = "1";
+  if (on) placePill(pill, on); else pill.style.opacity = "0";
 }
-window.addEventListener("resize", () => movePill());
+
+// Every switch (.series-pick: F1 / F2 / ..., .tabs: Drivers / Teams / ..., .seg) gets the same pill. Pages that redraw
+// on a tap make a new switch, so the spot being left is noted on pointerdown under the switch's option labels and the
+// new switch's pill slides from there; a switch whose .active just moves slides from its old spot.
+const SWITCHES = ".series-pick, .tabs, .seg";
+const leaving = new Map();   // option labels -> {x, w, at}
+const switchKey = sw => [...sw.children].filter(c => c.matches("button, a")).map(c => c.textContent.trim()).join("|");
+document.addEventListener("pointerdown", e => {
+  const sw = e.target.closest(SWITCHES), on = sw?.querySelector(":scope > .active");
+  if (on) leaving.set(switchKey(sw), { x: on.offsetLeft, w: on.offsetWidth, at: Date.now() });
+}, true);
+function placeSwitches() {
+  for (const sw of document.querySelectorAll(SWITCHES)) {
+    const on = sw.querySelector(":scope > .active");
+    let pill = sw.querySelector(":scope > .seg-pill");
+    if (!on) {   // nothing picked: only touch the switch if it had a pill (any class write wakes the observer again)
+      if (pill) { pill.remove(); sw.classList.remove("has-pill"); }
+      continue;
+    }
+    if (pill && +pill.dataset.x === on.offsetLeft && +pill.dataset.w === on.offsetWidth) continue;
+    let from = null;
+    if (!pill) {
+      pill = document.createElement("span");
+      pill.className = "seg-pill";
+      Object.assign(pill.style, { top: `${on.offsetTop}px`, height: `${on.offsetHeight}px`, borderRadius: getComputedStyle(on).borderRadius });
+      sw.prepend(pill);
+      sw.classList.add("has-pill");
+      const k = switchKey(sw), left = leaving.get(k);
+      if (left && Date.now() - left.at < 1500) from = left;
+      leaving.delete(k);
+    }
+    placePill(pill, on, from);
+  }
+  switchWatch.takeRecords();   // our own changes aren't news: never wake ourselves up
+}
+// Any change to a switch (a redraw, a morph, a class flip) places its pill once, in the next frame: a page built in
+// several steps is measured once, not after every step. Until then a new switch shows its own .active highlight
+// (has-pill isn't on yet), so the frame in between looks the same. Changes elsewhere are skipped without measuring.
+const touchesSwitch = r => r.target.closest?.(SWITCHES) ||
+  [...r.addedNodes].some(n => n.nodeType === 1 && (n.matches(SWITCHES) || n.querySelector(SWITCHES)));
+let switchFrame = 0;
+const switchWatch = new MutationObserver(records => {
+  if (!switchFrame && records.some(touchesSwitch)) switchFrame = requestAnimationFrame(() => { switchFrame = 0; placeSwitches(); });
+});
+switchWatch.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+window.addEventListener("resize", () => { movePill(); placeSwitches(); });
 
 // Scrolling down folds the bottom bar's icons away and slides the top bar off; any scroll up (or the top of the
 // page, or a new page) brings both back. One passive listener, read once per frame.
@@ -645,6 +750,57 @@ async function nearTracks(list) {
   NEAR_BOX = box.innerHTML;
 }
 
+// ---- search ---------------------------------------------------------------------------------
+// Drivers, teams, series and tracks, filtered on the phone as you type (the lists are ones the app already keeps:
+// /api/names, /api/tracks, the series list). Accents, apostrophes and case don't matter; when fewer than 3 names
+// start with or contain what's typed, names with a word that looks like it (match.js similarity) come in too.
+let searchText = "";
+function searchResults(q, dir, tracks) {
+  const f = normalise(q);
+  if (f.length < 2) return null;
+  const score = name => { const t = normalise(name); return t.startsWith(f) ? 0 : t.split(" ").some(w => w.startsWith(f)) ? 1 : t.includes(f) ? 2 : -1; };
+  const close = name => !f.includes(" ") && f.length >= 4 && normalise(name).split(" ").some(w => similarity(f, w) >= 0.88);
+  const find = (list, name, mine = () => false) => {
+    let hits = list.map(x => [x, score(name(x))]).filter(([, sc]) => sc >= 0);
+    if (hits.length < 3) hits = hits.concat(list.filter(x => !hits.some(([h]) => h === x) && close(name(x))).map(x => [x, 3]));
+    return hits.sort((a, b) => a[1] - b[1] || mine(b[0]) - mine(a[0]) || name(a[0]).localeCompare(name(b[0]))).map(([x]) => x);
+  };
+  const followed = new Set(follows().map(normalise));
+  return {
+    series: find(SERIES, x => `${x.short} ${x.name}`).slice(0, 6),
+    drivers: find(dir.drivers, d => d.name, d => followed.has(normalise(d.name))).slice(0, 25),
+    teams: find(dir.teams, t => t.name, t => followed.has(normalise(t.name))).slice(0, 10),
+    tracks: find(tracks, t => `${t.name} ${t.label} ${t.next?.name || ""}`).slice(0, 8),
+  };
+}
+
+async function searchView() {
+  setNav("search");
+  view.innerHTML = `<h1>Search</h1>
+    <input class="search-box" id="q" type="search" placeholder="Drivers, teams, series, tracks" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(searchText)}">
+    <div id="results"></div>`;
+  const box = view.querySelector("#q"), out = view.querySelector("#results");
+  if (!searchText) box.focus();
+  let lists = null;
+  const seriesTags = ids => ids.filter(id => BY_ID[id]).map(chip).join(" ");
+  const section = (title, rows) => rows.length ? `<h2>${title}</h2><div class="card">${rows.join("")}</div>` : "";
+  const draw = () => {
+    searchText = box.value;
+    if (searchText.trim().length < 2) { out.innerHTML = `<p class="help small muted">Type a name: Verstappen, Penske, IMSA, Daytona, Monaco…</p>`; return; }
+    if (!lists) { out.innerHTML = `<div class="empty">Loading…</div>`; return; }
+    const r = searchResults(searchText, ...lists);
+    const html = section("Series", r.series.map(x => `<a class="item" href="#/series/${x.id}"><div>${chip(x.id)} <b>${esc(x.name)}</b></div><span class="muted">›</span></a>`))
+      + section("Drivers", r.drivers.map(d => `<a class="item" href="#/driver/${encodeURIComponent(d.name)}"><b>${esc(d.name)}</b><span>${seriesTags(d.series)}</span></a>`))
+      + section("Teams", r.teams.map(t => `<a class="item" href="#/team/${encodeURIComponent(t.name)}"><b>${esc(t.name)}</b><span>${seriesTags(t.series)}</span></a>`))
+      + section("Tracks", r.tracks.map(t => `<a class="item" href="#/track/${esc(t.slug)}"><div><b>${esc(t.name)}</b><div class="muted small">${esc(t.label)}${t.next ? ` · next: ${esc(t.next.name)}, ${esc(shortDate(t.next.start_day))}` : ""}</div></div><span>${seriesTags(t.series)}</span></a>`));
+    out.innerHTML = html || `<div class="card"><div class="empty">Nothing matches “${esc(searchText.trim())}”.</div></div>`;
+  };
+  box.addEventListener("input", draw, listen());
+  draw();
+  try { lists = await Promise.all([loadNames(), fast("/api/tracks")]); } catch (e) { out.innerHTML = `<div class="empty">Couldn't load the lists. ${esc(e.message)}</div>`; return; }
+  if (box.isConnected) draw();
+}
+
 async function seriesListView() {
   setNav("series");
   const on = new Set(enabledSeries());
@@ -825,7 +981,7 @@ async function seriesView(id, tab = "schedule") {
   const shown = SERIES_TABS.filter(([t]) => hasTab(t, st));
   if (!shown.some(([t]) => t === tab)) tab = "schedule";
   const liveNow = feeds.some(f => f.series === id);
-  const tabs = s.has_standings || liveNow ? `<div class="tabs" role="tablist">${liveNow ? `<a role="tab" href="#/live/${id}" class="live-tab">● Live</a>` : ""}${(s.has_standings ? shown : SERIES_TABS.slice(0, 1)).map(([t, label]) =>
+  const tabs = s.has_standings || liveNow ? `<div class="tabs" role="tablist" data-swaps>${liveNow ? `<a role="tab" href="#/live/${id}" class="live-tab">● Live</a>` : ""}${(s.has_standings ? shown : SERIES_TABS.slice(0, 1)).map(([t, label]) =>
     `<a role="tab" href="#/series/${id}/${t}" class="${t === tab ? "active" : ""}" aria-selected="${t === tab}">${label}</a>`).join("")}</div>` : "";
   const links = [s.site && `<a class="btn" href="${esc(s.site)}" target="_blank" rel="noopener">Official site ↗</a>`,
     s.timing && `<a class="btn" href="${esc(s.timing)}" target="_blank" rel="noopener">Official timing ↗</a>`].filter(Boolean).join("");
@@ -833,16 +989,16 @@ async function seriesView(id, tab = "schedule") {
   const showBar = enabledSeries().includes(id) ? `<div class="show-bar"><span class="muted small">On Upcoming</span><div class="chips">${SHOW_LEVELS.map(([v, l]) =>
     `<button class="chip-btn${v === level ? " active" : ""}" data-level="${v}" aria-pressed="${v === level}">${l}</button>`).join("")}</div></div>` : "";
   const head = `${backLink("#/series")}<h1>${chip(id)} ${esc(s.name)}</h1>${links ? `<div class="series-links">${links}</div>` : ""}${showBar}${tabs}`;
-  const bindShow = () => view.querySelectorAll("[data-level]").forEach(b => b.addEventListener("click", () => {
+  const bindShow = on => view.querySelectorAll("[data-level]").forEach(b => b.addEventListener("click", () => {
     setShowLevel(id, b.dataset.level);
     view.querySelectorAll("[data-level]").forEach(x => { x.classList.toggle("active", x === b); x.setAttribute("aria-pressed", x === b); });
-  }));
+  }, on));
   if (tab === "schedule") {
     const [events, storyKeys] = await (early || schedule());
     const hasStory = new Set(storyKeys);
     const today = localDay({ start_utc: new Date().toISOString() });
     const followed = followedSeries();
-    view.innerHTML = `${head}${seasonProgress(events, today)}<p class="muted small">${statusText(s.status)}</p>
+    paint(`${head}<div class="swap">${seasonProgress(events, today)}<p class="muted small">${statusText(s.status)}</p>
       <div class="list">${events.map(e => {
         const past = e.end_day && e.end_day < today;
         return `<div class="card${past ? " past" : ""}">
@@ -850,13 +1006,14 @@ async function seriesView(id, tab = "schedule") {
           <div class="muted small">${placeLine(e.venue, e.name, e.place, e.country)} · ${esc(shortDate(e.start_day))}${e.end_day && e.end_day !== e.start_day ? ` – ${esc(shortDate(e.end_day))}` : ""}</div>${commonWatch(e.sessions) ? `<div class="evh-badge">${badge(e.sessions[0].watch)}</div>` : ""}</div>
           ${seriesRows(e.sessions)}
         </div>`;
-      }).join("") || `<div class="empty">No events yet.</div>`}</div>`;
-    bindShow();
+      }).join("") || `<div class="empty">No events yet.</div>`}</div></div>`);
+    bindShow(listen());
     return;
   }
-  view.innerHTML = head + standingsBody(id, tab, st);
-  bindShow();
-  wireClassPicker(() => seriesView(id, tab));
+  paint(`${head}<div class="swap">${standingsBody(id, tab, st)}</div>`);
+  const on = listen();
+  bindShow(on);
+  wireClassPicker(() => seriesView(id, tab), on);
 }
 
 // Drivers / Teams / Last race for one series (shared by the series page and the Standings tab).
@@ -892,7 +1049,7 @@ function standingsBody(id, tab, st) {
     const sessions = Object.keys(st.qualifying || {});
     if (!sessions.length) return `<div class="empty">No qualifying results yet.</div>`;
     const pick = sessions.includes(seriesQuali[id]) ? seriesQuali[id] : sessions[0];
-    const picker = sessions.length > 1 ? `<div class="chips">${sessions.map(q =>
+    const picker = sessions.length > 1 ? `<div class="chips" data-swaps>${sessions.map(q =>
       `<button class="chip-btn${q === pick ? " active" : ""}" data-quali="${esc(q)}" data-for="${id}">${esc(q)}</button>`).join("")}</div>` : "";
     return `${picker}<p class="muted small">${[st.quali_event, pick, updated].filter(Boolean).map(esc).join(" · ")}</p>
       ${resultRows(st.qualifying[pick])}${pick === "Combined" ? `<p class="muted small">The average of the crew's qualifying times sets the grid.</p>` : ""}`;
@@ -901,7 +1058,7 @@ function standingsBody(id, tab, st) {
   const cls = classes.includes(seriesClass[id]) ? seriesClass[id] : null;
   const rows = tab === "drivers" ? (cls ? st.classes[cls] : st.drivers) : st.teams;
   const lead = rows?.[0]?.points ?? 0;
-  const picker = classes.length ? `<div class="chips">${[s.short, ...classes].map((c, i) =>
+  const picker = classes.length ? `<div class="chips" data-swaps>${[s.short, ...classes].map((c, i) =>
     `<button class="chip-btn${(i === 0 ? !cls : c === cls) ? " active" : ""}" data-class="${i === 0 ? "" : esc(c)}" data-for="${id}">${esc(c)}</button>`).join("")}</div>` : "";
   return rows?.length ? `${picker}<p class="muted small">${esc(st.season_label)} · ${updated}</p>
     <div class="card standings">${rows.map(r => `<div class="srow${isMine(r.name, tab === "teams" ? r.name : null, r.f1_team) ? " followed" : ""}"${tc(r)}>
@@ -911,13 +1068,13 @@ function standingsBody(id, tab, st) {
     : `<div class="empty">${tab === "teams" ? "This series doesn't publish a team championship we can read." : "No standings yet."}</div>`;
 }
 
-function wireClassPicker(rerender) {
+function wireClassPicker(rerender, on = listen()) {
   view.querySelectorAll("[data-class]").forEach(b => b.addEventListener("click", () => {
     seriesClass[b.dataset.for] = b.dataset.class || null; rerender();
-  }));
+  }, on));
   view.querySelectorAll("[data-quali]").forEach(b => b.addEventListener("click", () => {
     seriesQuali[b.dataset.for] = b.dataset.quali; rerender();
-  }));
+  }, on));
 }
 
 // Standings tab: every championship in one place. Series you have switched on come first; the last one picked is remembered.
@@ -945,14 +1102,14 @@ async function standingsView(id, tab) {
   const st = await fast(`/api/series/${id}/standings`);
   const tabs = STANDINGS_TABS.filter(([t]) => hasTab(t, st));
   if (!tabs.some(([t]) => t === tab)) tab = tabs.some(([t]) => t === "drivers") ? "drivers" : tabs[0][0];
-  view.innerHTML = `<h1>Standings</h1>
-    <div class="series-pick" role="tablist" aria-label="Series">${list.map(x =>
+  paint(`<h1>Standings</h1>
+    <div class="series-pick" role="tablist" aria-label="Series" data-swaps>${list.map(x =>
       `<a role="tab" href="#/standings/${x.id}/${["teams", "quali"].includes(tab) ? "drivers" : tab}" class="${x.id === id ? "active" : ""}${on.has(x.id) ? "" : " off"}" aria-selected="${x.id === id}">${esc(x.short)}</a>`).join("")}</div>
     <div class="standings-title">${chip(id)} <b>${esc(BY_ID[id].name)}</b> <a class="small" href="#/series/${id}">Schedule →</a></div>
-    <div class="tabs" role="tablist">${tabs.map(([t, label]) =>
+    <div class="tabs" role="tablist" data-swaps>${tabs.map(([t, label]) =>
       `<a role="tab" href="#/standings/${id}/${t}" class="${t === tab ? "active" : ""}" aria-selected="${t === tab}">${label}</a>`).join("")}</div>
-    ${standingsBody(id, tab, st)}`;
-  view.querySelector(".series-pick a.active")?.scrollIntoView({ block: "nearest", inline: "center" });
+    <div class="swap">${standingsBody(id, tab, st)}</div>`);
+  scrollRowTo(view.querySelector(".series-pick a.active"));
   wireClassPicker(() => standingsView(id, tab));
 }
 const seriesClass = {};  // picked support championship per series (e.g. WRC2), for this page visit
@@ -1014,6 +1171,9 @@ async function settingsView() {
     <h2>Display</h2>
     <div class="card"><label class="item"><span>Animations between pages<span class="small muted" style="display:block">Quick slides between tabs and pages. Off for instant switching; also off when your phone's Reduce Motion is on.</span></span>
       <input type="checkbox" id="animations" ${SETTINGS?.animations !== false ? "checked" : ""}></label>
+      <div class="item"><span>Page motion<span class="small muted" style="display:block">Rise: each page builds in from the top. Slapshot: it flies in from the side.</span></span>
+      <div class="seg" role="group" aria-label="Page motion">${[["rise", "Rise"], ["slapshot", "Slapshot"]].map(([k, l]) =>
+        `<button data-motion="${k}" class="${motionStyle() === k ? "active" : ""}">${l}</button>`).join("")}</div></div>
       <label class="item"><span>Betting odds<span class="small muted" style="display:block">DraftKings' race odds on event pages, driver pages and Pick'em duels. Off hides them everywhere.</span></span>
       <input type="checkbox" id="odds" ${oddsOn() ? "checked" : ""}></label></div>
 
@@ -1042,6 +1202,11 @@ async function settingsView() {
   view.querySelectorAll("[data-near]").forEach(b => b.addEventListener("click", () => { store.set("nearMiles", Number(b.dataset.near)); settingsView(); }));
   if (location.hash === "#/settings/near") view.querySelector("#near")?.scrollIntoView();
   view.querySelector("#animations").addEventListener("change", e => store.set("animations", e.target.checked));
+  view.querySelectorAll("[data-motion]").forEach(b => b.addEventListener("click", () => {
+    try { localStorage.setItem("motion", JSON.stringify(b.dataset.motion)); } catch { /* fine */ }
+    view.querySelectorAll("[data-motion]").forEach(x => x.classList.toggle("active", x === b));
+    if (motionOn()) b.dataset.motion === "rise" ? rise() : slapshot(1);   // a taste of it
+  }));
   view.querySelector("#odds").addEventListener("change", e => store.set("odds", e.target.checked));
   view.querySelector("#nickname").addEventListener("change", e => {
     store.set("nickname", e.target.value.trim().slice(0, 24));
@@ -1084,13 +1249,13 @@ async function pickemView(series, eventKey, quiet = false) {
   const r = d.race, sl = d.slate;
   const here = `#/picks/${series}`;
   const head = `<h1>Pick'em</h1>
-    <div class="series-pick" role="tablist" aria-label="Series">${choices.map(id =>
+    <div class="series-pick" role="tablist" aria-label="Series" data-swaps>${choices.map(id =>
       `<a role="tab" href="#/picks/${id}" class="${id === series ? "active" : ""}" aria-selected="${id === series}">${esc(BY_ID[id].short)}</a>`).join("")}</div>`;
-  if (!r) { view.innerHTML = `${head}<div class="empty">No ${esc(BY_ID[series].name)} races on the schedule yet.</div>`; return; }
+  if (!r) { paint(`${head}<div class="swap"><div class="empty">No ${esc(BY_ID[series].name)} races on the schedule yet.</div></div>`); return; }
 
   const status = !sl ? "" : sl.graded ? `<span class="pill ok">Scored</span>` : sl.started ? `<span class="pill warn">Picks closed</span>`
     : `<span class="pill">Open until lights out</span>`;
-  const racebar = `<div class="racebar">
+  const racebar = `<div class="racebar" data-swaps>
       ${d.prev ? `<a href="${here}/${encodeURIComponent(d.prev)}" aria-label="Previous race">←</a>` : "<span></span>"}
       <div><b><a class="ev-link" href="#/event/${series}/${encodeURIComponent(r.event_key)}">${esc(r.name)}</a></b>
         <div class="small muted">Round ${r.round} of ${r.rounds} · ${esc(raceWhen(r.start))}</div></div>
@@ -1146,7 +1311,7 @@ async function pickemView(series, eventKey, quiet = false) {
       </div>
       ${sl.graded && myPts.length ? `<p class="small"><b>You scored ${myPts.reduce((a, b) => a + b, 0)}</b> this race.</p>` : ""}
       <p class="small muted" id="pickmsg" role="status"></p>`;
-    bindPicks = () => {
+    bindPicks = on => {
       const msg = t => { const m = document.getElementById("pickmsg"); if (m) m.textContent = t; };
       const send = async pick => {
         try { await postJSON("/api/pickem", { series, event: r.event_key, ...pick }); }
@@ -1158,15 +1323,15 @@ async function pickemView(series, eventKey, quiet = false) {
         const x = sl.duels[+b.dataset.duel], name = x.mine === b.dataset.name ? null : b.dataset.name;  // tap again to clear
         b.closest(".pick-line").querySelectorAll(".pk").forEach(o => o.classList.toggle("on", o === b && !!name));
         send({ kind: "duel", slot: x.slot, name, lock: name ? x.lock : false });
-      }));
+      }, on));
       view.querySelectorAll("[data-lock]").forEach(b => b.addEventListener("click", () => {
         const x = sl.duels[+b.dataset.lock];
         if (!x.mine) { msg("Pick a driver in that duel first, then lock it."); return; }
         view.querySelectorAll(".lockbtn").forEach(o => o.classList.toggle("on", o === b && !x.lock));
         send({ kind: "duel", slot: x.slot, name: x.mine, lock: !x.lock });
-      }));
+      }, on));
       view.querySelectorAll("[data-podium]").forEach(sel => sel.addEventListener("change", () =>
-        send({ kind: "podium", slot: +sel.dataset.podium, name: sel.value || null })));
+        send({ kind: "podium", slot: +sel.dataset.podium, name: sel.value || null }), on));
     };
   }
 
@@ -1174,14 +1339,14 @@ async function pickemView(series, eventKey, quiet = false) {
     ${list.map((p, i) => `<tr class="${p.me ? "me" : ""}"><td class="muted">${i + 1}</td><td>${esc(p.name)}${p.me ? " (you)" : ""}</td><td><b>${p.pts}</b></td><td>${p.w}–${p.l}</td><td>${p.podium}</td></tr>`).join("")}</table></div>`
     : `<div class="card"><div class="empty">No scored races yet this season.</div></div>`;
   const b = d.board;
-  view.innerHTML = `${head}${racebar}
+  paint(`${head}<div class="swap">${racebar}
     ${status ? `<div class="pick-status">${status}</div>` : ""}
     <p class="help small muted">Tap who finishes ahead in each duel: <b>1 point</b> each. Tap ★ on one duel to make it your lock, worth <b>2</b> (nothing if it's wrong). Call the podium too: <b>1 point</b> for each driver who makes it, <b>2</b> for the exact spot. Picks close at lights out.</p>
     ${body}
     ${b?.last ? `<h2>Last scored race · ${esc(b.last.race)}</h2>${table(b.last.table)}` : ""}
     <h2>${esc(BY_ID[series].short)} season ${esc(b?.season ?? "")}</h2>${table(b?.table)}
-    <p class="help small muted">You show up as <b>${esc(d.name)}</b>. <a href="#/settings">Change your name in Settings</a>.</p>`;
-  bindPicks?.();
+    <p class="help small muted">You show up as <b>${esc(d.name)}</b>. <a href="#/settings">Change your name in Settings</a>.</p></div>`);
+  bindPicks?.(listen());
 }
 
 // ---- following ----------------------------------------------------------------
@@ -1418,10 +1583,10 @@ async function wireView() {
   const [items, dir] = await Promise.all([fast(wirePath(st)), loadNames()]);
   const shown = st.series ? [st.series] : enabledSeries();
   const inScope = x => x.series.some(id => shown.includes(id));
-  view.innerHTML = `<h1>Wire</h1>
-    <div class="tabs">${[["", "All"], ["news", "News"], ["events", "Race events"]].map(([k, l]) =>
+  paint(`<h1>Wire</h1>
+    <div class="tabs" data-swaps>${[["", "All"], ["news", "News"], ["events", "Race events"]].map(([k, l]) =>
       `<a href="javascript:void 0" data-kind="${k}" class="${st.kind === k ? "active" : ""}">${l}</a>`).join("")}</div>
-    <div class="chips"><button class="chip-btn${st.series ? "" : " active"}" data-series="">My series</button>${enabledSeries().map(id =>
+    <div class="chips" data-swaps><button class="chip-btn${st.series ? "" : " active"}" data-series="">My series</button>${enabledSeries().map(id =>
       `<button class="chip-btn${st.series === id ? " active" : ""}" data-series="${id}">${esc(BY_ID[id].short)}</button>`).join("")}</div>
     <div class="filters">
       <input list="dl-drivers" id="f-driver" placeholder="Driver" value="${esc(st.driver)}">
@@ -1431,15 +1596,16 @@ async function wireView() {
     </div>
     <datalist id="dl-drivers">${dir.drivers.filter(inScope).map(d => `<option value="${esc(d.name)}">`).join("")}</datalist>
     <datalist id="dl-teams">${dir.teams.filter(inScope).map(t => `<option value="${esc(t.name)}">`).join("")}</datalist>
-    ${items.length ? `<div class="card">${items.map(wireItem).join("")}</div>`
-      : `<div class="empty">Nothing matches.${st.mine ? " Try turning off \"Only who I follow\"." : ""}</div>`}
-    <p class="small muted">News from Motorsport.com, Autosport, RACER, The Race, DirtFish and the series' own sites. Race events come from each series' live timing.</p>`;
-  view.querySelectorAll("[data-kind]").forEach(b => b.addEventListener("click", () => save({ ...st, kind: b.dataset.kind })));
-  view.querySelectorAll("[data-series]").forEach(b => b.addEventListener("click", () => save({ ...st, series: b.dataset.series })));
-  view.querySelector("#f-driver").addEventListener("change", e => save({ ...st, driver: e.target.value.trim() }));
-  view.querySelector("#f-team").addEventListener("change", e => save({ ...st, team: e.target.value.trim() }));
-  view.querySelector("#f-mine").addEventListener("change", e => save({ ...st, mine: e.target.checked }));
-  view.querySelector("#f-clear")?.addEventListener("click", () => save({ ...st, driver: "", team: "" }));
+    <div class="swap">${items.length ? `<div class="card">${items.map(wireItem).join("")}</div>`
+      : `<div class="empty">Nothing matches.${st.mine ? " Try turning off \"Only who I follow\"." : ""}</div>`}</div>
+    <p class="small muted">News from Motorsport.com, Autosport, RACER, The Race, DirtFish and the series' own sites. Race events come from each series' live timing.</p>`);
+  const on = listen();
+  view.querySelectorAll("[data-kind]").forEach(b => b.addEventListener("click", () => save({ ...st, kind: b.dataset.kind }), on));
+  view.querySelectorAll("[data-series]").forEach(b => b.addEventListener("click", () => save({ ...st, series: b.dataset.series }), on));
+  view.querySelector("#f-driver").addEventListener("change", e => save({ ...st, driver: e.target.value.trim() }), on);
+  view.querySelector("#f-team").addEventListener("change", e => save({ ...st, team: e.target.value.trim() }), on);
+  view.querySelector("#f-mine").addEventListener("change", e => save({ ...st, mine: e.target.checked }), on);
+  view.querySelector("#f-clear")?.addEventListener("click", () => save({ ...st, driver: "", team: "" }), on);
 }
 
 // ---- driver and team pages ------------------------------------------------------------------
@@ -1930,7 +2096,7 @@ function reportView(kind = "bug") {
 // snaps back. Upcoming -> Wire -> Standings -> Series in tab order; deeper pages from the right, back from the left.
 // Plays once the new page's content is on screen; never for quiet redraws or the same page re-shown; off with
 // Settings > Display or the phone's Reduce Motion. Whole-pixel moves only, so text doesn't shift when it stops.
-const NAV_ORDER = { "": 0, wire: 1, picks: 2, standings: 3, series: 4, settings: 5, new: 6, app: 6, report: 6, admin: 6 };
+const NAV_ORDER = { "": 0, wire: 1, picks: 2, standings: 3, series: 4, search: 5, settings: 5, new: 6, app: 6, report: 6, admin: 6 };
 const DEEP = new Set(["event", "driver", "team", "story", "live"]);
 let QUIET_ROUTE = false, lastHash = null, lastPage = null, pendingShot = 0;
 const motionOn = () => SETTINGS?.animations !== false && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1939,16 +2105,30 @@ function shotFrom(prev, next, prevHash, nextHash) {
   if (DEEP.has(prev) || (prev === "series" && prevHash.split("/").length > 2)) return -1;
   return (NAV_ORDER[next] ?? 0) >= (NAV_ORDER[prev] ?? 0) ? 1 : -1;
 }
-new MutationObserver(() => {
-  if (!pendingShot || !view.firstElementChild) return;
-  const d = pendingShot;
-  pendingShot = 0;
+// Page motion: "rise" (default) or "slapshot", per device (Settings > Display).
+const motionStyle = () => local("motion", "rise");
+// "Rise" (from OpenUI's trip planner demo): the new page's blocks fade up into place one after another, 35 ms apart,
+// so it assembles top-down; the heading comes into focus. Only the first 8 stagger (the rest arrive with the 8th), so
+// the whole page is in place within ~0.6 s and the top of it at once.
+function rise() {
+  [...view.children].slice(0, 16).forEach((el, i) => el.animate([
+    { transform: "translate3d(0, 14px, 0)", opacity: 0, filter: el.tagName === "H1" ? "blur(4px)" : "none" },
+    { transform: "translate3d(0, 0, 0)", opacity: 1, filter: "none" },
+  ], { duration: 340, delay: Math.min(i, 7) * 35, easing: "cubic-bezier(.2, .9, .3, 1)", fill: "backwards" }));
+}
+function slapshot(d) {
   view.animate([
     { transform: `translate3d(${56 * d}px, 0, 0)`, opacity: 0, offset: 0 },
     { transform: `translate3d(${-7 * d}px, 0, 0)`, opacity: 1, offset: 0.55 },
     { transform: `translate3d(${2 * d}px, 0, 0)`, offset: 0.8 },
     { transform: "translate3d(0, 0, 0)", opacity: 1, offset: 1 },
   ], { duration: 280, easing: "cubic-bezier(.12, .8, .3, 1)" });
+}
+new MutationObserver(() => {
+  if (!pendingShot || !view.firstElementChild) return;
+  const d = pendingShot;
+  pendingShot = 0;
+  if (motionStyle() === "rise") rise(); else slapshot(d);
 }).observe(view, { childList: true });
 
 // After the app opens (and every 90 s while it's visible): load the other tabs in the background, so switching tabs
@@ -1971,7 +2151,7 @@ setInterval(() => { if (!document.hidden) prefetch(); }, 90000);
 // Page views for /admin: counted per page pattern on the phone, sent in batches (sendBeacon: never in a page's way).
 // Anonymous on the server; the owner's own views aren't counted. Patterns follow route()'s matches below.
 const VIEWS = {};
-const VIEW_PLAIN = new Set(["/report", "/wire", "/new", "/app", "/series", "/settings", "/settings/near", "/standings", "/picks"]);
+const VIEW_PLAIN = new Set(["/report", "/wire", "/new", "/app", "/series", "/settings", "/settings/near", "/standings", "/picks", "/search"]);
 const VIEW_DEEP = [[/^\/series\/[\w-]+(?:\/\w+)?$/, "series/:id"], [/^\/live\/[\w-]+$/, "live/:series"],
   [/^\/driver\/.+$/, "driver/:name"], [/^\/team\/.+$/, "team/:name"], [/^\/story\/[\w-]+\/.+$/, "story/:id"],
   [/^\/event\/[\w-]+\/.+$/, "event/:id"], [/^\/track\/[\w-]+$/, "track/:id"],
@@ -2007,9 +2187,9 @@ async function route(quiet = false) {
   const navigated = !quiet && location.hash !== lastHash;   // a navigation, not a redraw of the same page
   if (!quiet) {
     const changed = lastHash !== null && location.hash !== lastHash;
-    pendingShot = changed && motionOn() && ME?.status === "approved" ? shotFrom(lastPage, page, lastHash || "", location.hash) : 0;
+    pendingShot = changed && !SWAP && motionOn() && ME?.status === "approved" ? shotFrom(lastPage, page, lastHash || "", location.hash) : 0;
     lastHash = location.hash; lastPage = page;
-    setCompact(false);
+    if (!SWAP) { setCompact(false); view.style.minHeight = ""; }   // an in-page switch leaves the bars and height as they are
     viewOff.abort();
   }
   try {
@@ -2053,6 +2233,7 @@ async function route(quiet = false) {
     else if (hash === "/admin") await adminView();
     else if (hash === "/wire") await wireView();
     else if (hash === "/new") whatsNewView();
+    else if (hash === "/search") await searchView();
     else if (hash === "/app") appView();
     else if (trk) await trackView(trk[1]);
     else if (person) await personView(person[1], decodeURIComponent(person[2]));
@@ -2072,7 +2253,7 @@ async function route(quiet = false) {
   }
 }
 
-window.addEventListener("hashchange", () => { CAME_FROM_APP = true; window.scrollTo(0, 0); route(); });
+window.addEventListener("hashchange", () => { CAME_FROM_APP = true; if (!SWAP) window.scrollTo(0, 0); route(); });
 route();
 setInterval(sendViews, 60000);
 // Coming back after a while counts as opening the app again; leaving sends what's been counted.
