@@ -39,10 +39,30 @@ Operating rules shared with the sibling app (standards, speed budget, shared par
   own data (other pages wait for it), later ones refresh behind the scenes. Home's get-the-app/alerts banner fills its
   slot after the page draws (BANNER keeps the last one). Pages fetch in parallel (series: standings + live + events;
   person: the Wire from the phone's copy of the person). showLoading() paints after 350 ms.
-- Navigation: bottom .tabbar (#tabs; icons + labels; one .tab-pill moved by movePill()), Settings = gear .top-link,
-  Admin is a link in Settings. Scrolling down folds the tab icons (.compact) and slides the header off (.tucked);
-  any scroll up restores both. Slapshot page animation (Web Animations API, whole-pixel translate) when a navigation's
-  content lands in #view; off with settings.animations = false or prefers-reduced-motion. backLink() has a chevron.
+- Navigation: bottom .tabbar (#tabs; icons + labels; one .tab-pill moved by movePill()), Search = magnifier .top-link,
+  Settings = gear .top-link, Admin is a link in Settings. Scrolling down folds the tab icons (.compact) and slides the
+  header off (.tucked); any scroll up restores both. Page animation when a navigation's content lands in #view
+  (Web Animations API): Rise (default; #view's blocks fade up 14 px, 35 ms apart, first 8 staggered, h1 un-blurs) or
+  Slapshot (whole-pixel slide), per device in localStorage `motion` (Settings > Display); off with settings.animations
+  = false or prefers-reduced-motion. backLink() has a chevron. Both from / like OpenUI's trip planner demo, as in SOG.
+- Pills: liquid() stretches a highlight to the picked option (leading edge first, small overshoot, 380 ms): the tab
+  bar (movePill) and every switch (.series-pick, .tabs, .seg via placeSwitches). A MutationObserver that only reacts
+  to changes touching a switch places pills once per frame (rAF), so a page built in steps is measured once (placing
+  them synchronously cost ~45 ms on a first visit); placeSwitches drops its own mutation records and only writes when
+  something changed (any class write wakes the observer: a switch with nothing picked froze SOG once). Redrawn
+  switches are matched by option labels (pointerdown notes the spot being left, 1.5 s). While a pill slides the other
+  options' outlines fade (.sliding); with a pill, options are see-through so it shows as it travels.
+- In-page switches (data-swaps on the switch; standings series/tabs/classes, series tabs, Pick'em series and race
+  arrows, Wire kinds/series): a capture-phase click on #view sets SWAP and lights the option at once; the hash change
+  then skips scroll-to-top, the page animation and the bar reset, showLoading() stays away, and paint() morphs
+  (idiomorph) so heading and pickers stay put; .swap regions dim while data loads and cross-fade back (settle(), no
+  movement: a 6 px rise read as a bounce). #view keeps its height (min-height) until the next real page, so a shorter
+  table can't pull the scroll up; scrollRowTo() scrolls the series row sideways only (scrollIntoView moved the page). A
+  tap that never redraws un-dims after 4 s. Those pages bind listeners per draw with listen() (a morph keeps
+  elements, so per-draw listeners would pile up).
+- Search (#/search, web/app.js searchView): series, drivers, teams (/api/names) and tracks (/api/tracks, with the next
+  race) filtered on the phone; accents/apostrophes/case ignored; under 3 hits adds names with a word whose
+  match.js similarity >= 0.88 ("verstapen"). Followed names first.
 
 ## Access
 - Cloudflare Access signs people in (one-time PIN) and passes a signed JWT; lightsout/access.py verifies it against the
