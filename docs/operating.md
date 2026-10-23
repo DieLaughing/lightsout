@@ -14,6 +14,8 @@ This file is identical in both repos. Change it in both in the same session.
 - **Checked, not hoped.** `tools/perfcheck.py` runs every tab and API route through the 200 ms slow relay before
   staging. CI runs a page-speed audit on every release (local-email mode, no pollers, database from test fixtures);
   a failed budget blocks the image unless the release is overridden, with the reason in the release notes.
+- **Smooth.** How things move is in `docs/motion.md`; `tools/motioncheck.py` checks it on every push (pages open
+  without freezing, in-page switches hold still, pills land under the picked option).
 - **Watched in production.** Each app sends the admin a 9am ntfy summary of the past day's slow requests (top routes,
   worst times, tagged "during live" or "quiet"), only on days that had any.
 
@@ -41,6 +43,8 @@ they have drifted, the newer and better-tested version wins.
 | Page-view counts (anonymous, per page and day) | `lightsout/usage.py`, `countView()`/`sendViews()` in `web/app.js` | `sog/usage.py`, `countView()`/`sendViews()` in `web/app.js` |
 | Slow-request log + 9am ntfy summary | `lightsout/slow.py` | `sog/slow.py` |
 | Speed budget check | `tools/perfcheck.py`, `tools/perf_server.py` | `tools/perfcheck.py`, `tools/perf_server.py` |
+| Motion: pills, Rise / Slapshot, in-page switches (`docs/motion.md`) | `liquid()`, `placeSwitches()`, `settle()` in `web/app.js` | `liquid()`, `placeSwitches()` in `web/app.js` |
+| Motion check | `tools/motioncheck.py` | `tools/motioncheck.py` |
 | Deploy, Docker, CI | `deploy.sh`, `Dockerfile`, `.github/workflows/` | `deploy.sh`, `Dockerfile`, `.github/workflows/` |
 
 New shared parts get a row here when they land.

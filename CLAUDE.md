@@ -5,6 +5,8 @@ a Race Wire, alerts, a calendar feed and US where-to-watch. Built with Claude Co
 Personal deployment notes (if any) live in CLAUDE.local.md, which is not committed.
 
 Operating rules shared with the sibling app (standards, speed budget, shared parts, ideas): docs/operating.md.
+How the app moves (what animates, what must hold still, timings, rules for new UI): docs/motion.md, checked by
+`.venv/bin/python tools/motioncheck.py` (PERF_CHROMIUM=/usr/bin/chromium locally; CI on every push).
 
 ## Shipping a feature (do this every time)
 - Add an entry at the top of `lightsout/data/changes.yaml` (date, kind new|improved|fixed, title, text written for the
