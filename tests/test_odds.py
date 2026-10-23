@@ -54,3 +54,22 @@ def test_middle_names_and_initials():
     assert odds.find(rows, "Austin J Hill")["name"] == "Austin Hill"
     assert odds.find(rows, "John H. Nemechek")["name"] == "John Hunter Nemechek"
     assert odds.find(rows, "Kurt Busch") is None
+
+
+def test_duels_use_the_market_that_separates_the_drivers():
+    ev = {"markets": [
+        {"name": "Race Winner", "rows": [{"name": "Max Verstappen", "american": "+110", "pct": 47.6},
+                                          {"name": "George Russell", "american": "+1000", "pct": 9.1},
+                                          {"name": "Liam Lawson", "american": "+50000", "pct": 0.2},
+                                          {"name": "Arvid Lindblad", "american": "+50000", "pct": 0.2},
+                                          {"name": "Pierre Gasly", "american": "+50000", "pct": 0.2},
+                                          {"name": "Franco Colapinto", "american": "+50000", "pct": 0.2}]},
+        {"name": "Top 10 Finish", "rows": [{"name": "Liam Lawson", "american": "-120", "pct": 54.5},
+                                            {"name": "Arvid Lindblad", "american": "+150", "pct": 40.0},
+                                            {"name": "Pierre Gasly", "american": "+300", "pct": 25.0},
+                                            {"name": "Franco Colapinto", "american": "+300", "pct": 25.0}]}]}
+    a, b = odds.duel(ev, "George Russell", "Max Verstappen")
+    assert (a["market"], a["american"], b["american"]) == ("Race Winner", "+1000", "+110")
+    a, b = odds.duel(ev, "Liam Lawson", "Arvid Lindblad")
+    assert (a["market"], a["pct"], b["pct"]) == ("Top 10 Finish", 54.5, 40.0)
+    assert odds.duel(ev, "Pierre Gasly", "Franco Colapinto") is None

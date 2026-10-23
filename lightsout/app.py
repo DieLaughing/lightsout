@@ -836,10 +836,11 @@ def pickem(request: Request, series: str = "f1", event: str | None = None):
     out["slate"] = picks.view(store, me, sl, names) if sl else None
     ev = next((e for e in store.events(series) if e["key"] == race["event_key"]), None)
     book = odds.for_event(series, ev.get("start_day"), ev.get("end_day")) if ev and out["slate"] else None
-    if book:  # each duel driver's chance to win the race, from the bookmaker
+    if book:  # the bookmaker's line that best tells each duel's drivers apart (odds.duel)
         for x in out["slate"]["duels"]:
-            for d in x["drivers"]:
-                d["odds"] = odds.winner(book, d["name"])
+            pair = odds.duel(book, x["drivers"][0]["name"], x["drivers"][1]["name"])
+            for d, line in zip(x["drivers"], pair or (None, None)):
+                d["odds"] = line
         out["odds_source"] = book["source"]
     out["board"] = picks.board(store, series, race["season"], names, me)
     return out

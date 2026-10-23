@@ -6,7 +6,7 @@
 - date: 2026-10-23
   kind: new
   title: Race odds
-  text: Event pages for F1 and NASCAR (Cup, O'Reilly and Trucks) now show DraftKings' odds for the coming race, with each driver's chance as a percentage and a bar. That covers the race winner, plus podium or top 3, and top 10 where DraftKings offers them. Driver pages show their odds for their next race, and Pick'em duels show each driver's odds to win. Odds update about every hour; if they get more than a few hours old they're hidden rather than shown out of date. Don't want them? Turn off "Betting odds" in Settings.
+  text: Event pages for F1 and NASCAR (Cup, O'Reilly and Trucks) now show DraftKings' odds for the coming race, with each driver's chance as a percentage and a bar. That covers the race winner, plus podium or top 3, and top 10 where DraftKings offers them. Driver pages show their odds for their next race, and Pick'em duels show the odds that best split each pair (to win, podium or top 10), and a short "What do the odds mean?" note explains the numbers. Odds update about every hour; if they get more than a few hours old they're hidden rather than shown out of date. Don't want them? Turn off "Betting odds" in Settings.
   link: "#/series/f1"
 
 - date: 2026-10-22

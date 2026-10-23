@@ -100,3 +100,19 @@ def for_driver(ev: dict | None, name: str) -> list[dict]:
 
 def winner(ev: dict | None, name: str) -> dict | None:
     return next((x for x in for_driver(ev, name) if x["market"] == "Race Winner"), None)
+
+
+# A Pick'em duel asks who finishes ahead, so it shows the market that tells the two apart: the race winner while one of
+# them has a real chance, else top 10 / top 5 / podium. Two drivers on the same price (back markers all sit on the
+# bookmaker's floor, +50000) say nothing, so that market is skipped; if none separates them, no odds are shown.
+DUEL_MARKETS = ("Race Winner", "Podium Finish", "Top 3 Finish", "Top 5 Finish", "Top 10 Finish")
+WIN_FLOOR = 2.0  # %: below this for both, win prices are noise
+
+
+def duel(ev: dict | None, a: str, b: str) -> tuple[dict, dict] | None:
+    la, lb = ({x["market"]: x for x in for_driver(ev, n)} for n in (a, b))
+    for m in DUEL_MARKETS:
+        x, y = la.get(m), lb.get(m)
+        if x and y and x["american"] != y["american"] and (m != "Race Winner" or max(x["pct"], y["pct"]) >= WIN_FLOOR):
+            return x, y
+    return None
