@@ -718,7 +718,8 @@ const oddsHelp = () => `<details class="odds-help"><summary>What do the odds mea
   <p><b>+110</b> means a $100 bet wins $110. The bigger the number after the +, the less likely.</p>
   <p><b>−360</b> marks a favourite: you'd bet $360 to win $100.</p>
   <p><b>48%</b> is the same price as a chance. The bookmaker adds a margin, so everyone's chances add up to more than 100%.</p>
-  <p><b>+50000</b> is DraftKings' longest price: they rate that driver as having practically no chance.</p></div></details>`;
+  <p><b>+50000</b> is DraftKings' longest price: they rate that driver as having practically no chance.</p>
+  <p><b>even</b> on a duel: DraftKings gives both drivers exactly the same price, so it's a coin flip by the odds.</p></div></details>`;
 const oddsNote = o => `<p class="small muted">${esc(o.source)} odds, updated ${esc(ago(o.fetched))}. Chances include the bookmaker's margin. For fun, not advice.</p>`;
 function oddsBlock(o, mine) {
   if (!o?.markets?.length || !oddsOn()) return "";
@@ -1101,7 +1102,8 @@ async function pickemView(series, eventKey, quiet = false) {
       const friends = x.everyone || [];
       const others = x.count - (x.mine ? 1 : 0);
       return `<div class="pick-row">
-        <div class="pick-line">${side(x.drivers[0])}<div class="pick-mid">vs</div>${side(x.drivers[1])}
+        <div class="pick-line">${side(x.drivers[0])}<div class="pick-mid">vs${!closed && oddsOn() && x.drivers[0].odds?.even
+          ? `<small class="even" title="DraftKings prices them exactly the same">even</small>` : ""}</div>${side(x.drivers[1])}
           <button class="lockbtn${x.lock ? " on" : ""}" data-lock="${x.slot}" ${closed ? "disabled" : ""} aria-pressed="${x.lock}" title="Lock: 2 points if right, nothing if wrong">★</button></div>
         ${x.outcome === "void" ? `<div class="pick-friends">No winner (one didn't start, or both retired): doesn't count.</div>` : ""}
         ${closed && friends.length ? `<div class="pick-friends">${friends.map(p => `${esc(p.name)}: ${esc(p.pick.split(" ").slice(-1)[0])}${p.lock ? " ★" : ""}`).join(" · ")}</div>`

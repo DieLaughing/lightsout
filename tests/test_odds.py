@@ -72,4 +72,6 @@ def test_duels_use_the_market_that_separates_the_drivers():
     assert (a["market"], a["american"], b["american"]) == ("Race Winner", "+1000", "+110")
     a, b = odds.duel(ev, "Liam Lawson", "Arvid Lindblad")
     assert (a["market"], a["pct"], b["pct"]) == ("Top 10 Finish", 54.5, 40.0)
-    assert odds.duel(ev, "Pierre Gasly", "Franco Colapinto") is None
+    a, b = odds.duel(ev, "Pierre Gasly", "Franco Colapinto")  # same price everywhere: shown, marked even
+    assert (a["market"], a["american"], a["even"], b["even"]) == ("Top 10 Finish", "+300", True, True)
+    assert odds.duel({"markets": ev["markets"][:1]}, "Pierre Gasly", "Franco Colapinto") is None  # only the +50000 floor
