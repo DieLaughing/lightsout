@@ -5,6 +5,8 @@ checks the motion rules that can be measured.
   still    an in-page switch tapped while scrolled down moves nothing: scroll position and the anchors (heading,
            the switch) stay within STILL_PX for STILL_MS
   pill     every visible switch's pill ends up under its picked option, within PILL_PX
+  morph    tapping a card plays its shared-element transition (where the browser has View Transitions), lands on
+           the page it opens and leaves no view-transition-name behind
 
     .venv/bin/python tools/motioncheck.py              # starts tools/perf_server.py on a spare port
     .venv/bin/python tools/motioncheck.py --url http://127.0.0.1:8788    # an app you're already running
@@ -32,6 +34,8 @@ STILL = [
     ("#/wire", '#view .tabs [data-kind="news"]', ["#view h1", "#view .tabs"]),
     ("#/picks", ".series-pick a:not(.active)", ["#view h1", ".series-pick"]),
 ]
+# Shared-element page changes (View Transitions): (page, card to tap, what it must land on, transition name).
+MORPH: list[tuple[str, str, str, str]] = []
 SWITCHES, ON, PILL = ".series-pick, .tabs, .seg", ".active", ".seg-pill"
 
 # ---- the checks (the same in both apps) ---------------------------------------------------------------------------
@@ -47,6 +51,18 @@ PILLS = """([sel, on, pill]) => [...document.querySelectorAll(sel)].filter(sw =>
   if (!p) return [[name, "no pill"]];
   const a = p.getBoundingClientRect(), b = opt.getBoundingClientRect();
   return [[name, Math.max(Math.abs(a.left - b.left), Math.abs(a.width - b.width))]]; })"""
+# Taps the first card on screen and lists the view-transition animations that run in the next 1.2 s.
+MORPHS = """async tap => {
+  const a = [...document.querySelectorAll(tap)].find(a => { const r = a.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; });
+  if (!a) return null;
+  const seen = new Set(), t0 = performance.now();
+  a.click();
+  while (performance.now() - t0 < 1200) {
+    for (const an of document.getAnimations()) if (an.effect?.pseudoElement) seen.add(an.effect.pseudoElement);
+    await new Promise(r => requestAnimationFrame(r));
+  }
+  return { vt: !!document.startViewTransition, seen: [...seen] };
+}"""
 
 
 def check(url: str) -> list[tuple[str, str, str, bool]]:
@@ -101,6 +117,19 @@ def check(url: str) -> list[tuple[str, str, str, bool]]:
                 worst = max(worst, *moves)
             ok = worst <= STILL_PX and not errors
             rows.append(("still", f"{hash_} {tap}", "; ".join(errors) or f"moved {worst:.1f} px", ok))
+            page.close()
+
+        for hash_, tap, lands, name in MORPH:
+            page, errors = fresh(hash_)
+            got = page.evaluate(MORPHS, tap)
+            page.wait_for_timeout(300)
+            landed = page.query_selector(lands) is not None
+            left = page.evaluate("() => document.querySelectorAll('[style*=view-transition-name]').length")
+            played = not got or not got["vt"] or f"::view-transition-group({name})" in got["seen"]
+            ok = bool(got) and played and landed and not left and not errors
+            res = ("nothing to tap" if not got else "; ".join(errors) or ("no morph" if not played else "didn't land" if not landed
+                   else f"{left} names left behind" if left else "morphed" if got["vt"] else "no View Transitions: plain change"))
+            rows.append(("morph", f"{hash_} {tap}", res, ok))
             page.close()
         browser.close()
     return rows
