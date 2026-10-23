@@ -529,6 +529,17 @@ details.more-bio summary { cursor: pointer; font-size: 13.5px; color: var(--mute
 .tstat.bad { background: #e10600; color: #fff; }
 /* Betting odds: one row per driver, a bar for the implied chance */
 details.odds { margin-bottom: 8px; }
+details.odds-help { margin: 0 0 10px; }
+details.odds-help > summary { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: var(--muted);
+  list-style: none; padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px; }
+details.odds-help > summary::-webkit-details-marker { display: none; }
+details.odds-help > summary::before { content: "i"; display: inline-grid; place-items: center; width: 15px; height: 15px; border-radius: 50%;
+  border: 1.5px solid currentColor; font: italic 700 10px/1 Georgia, serif; }
+details.odds-help[open] > summary { color: var(--text); }
+details.odds-help > div { margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); }
+details.odds-help p { margin: 0 0 6px; line-height: 1.4; }
+details.odds-help p:last-child { margin: 0; }
+.odds-intro { margin: -2px 0 6px; }
 details.odds > summary { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 12px; cursor: pointer; }
 .orow { display: grid; grid-template-columns: minmax(0, 1fr) 70px 38px 52px; gap: 8px; align-items: center; padding: 7px 12px;
   border-top: 1px solid var(--border); font-size: 13.5px; }
