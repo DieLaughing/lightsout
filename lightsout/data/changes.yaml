@@ -4,6 +4,12 @@
 # and `.venv/bin/python tools/release.py` publishes the day's GitHub Release.
 
 - date: 2026-10-23
+  kind: fixed
+  title: The top and bottom bars sit right on iPhone
+  text: In the app saved to an iPhone home screen, the top bar no longer fades out under the Dynamic Island, and the clock now sits on a solid strip that matches the app. On short pages, the bottom bar sits flush with the bottom of the screen again. If you saved the app before today, delete its icon and add it to your home screen again to get the new top.
+  link: "#/"
+
+- date: 2026-10-23
   kind: improved
   title: Tap a name and it grows into the page
   text: Tap a race, a driver, a team or a series and its name grows into the title of the page it opens, then shrinks back into place when you go back. Works in Chrome, Safari and Firefox; anywhere else pages open as before.

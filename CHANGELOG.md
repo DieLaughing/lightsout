@@ -5,6 +5,7 @@ This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit th
 
 ## October 23, 2026
 
+- **Fixed: The top and bottom bars sit right on iPhone.** In the app saved to an iPhone home screen, the top bar no longer fades out under the Dynamic Island, and the clock now sits on a solid strip that matches the app. On short pages, the bottom bar sits flush with the bottom of the screen again. If you saved the app before today, delete its icon and add it to your home screen again to get the new top.
 - **Improved: Tap a name and it grows into the page.** Tap a race, a driver, a team or a series and its name grows into the title of the page it opens, then shrinks back into place when you go back. Works in Chrome, Safari and Firefox; anywhere else pages open as before.
 - **New: Search.** Tap the magnifier at the top to find any driver, team, series or track as you type. Typos are fine ("verstapen", "antonneli"), and tracks show their next race.
 - **Improved: Switching series and tabs stays put.** Going from F1 to F2 in Standings, or between Drivers, Teams and Last race, the Wire's filters and the Pick'em series, no longer throws the whole page around or jumps you back to the top. The highlight slides across to what you picked, and only the new numbers fade in. Pages you open now build in from the top; prefer the old slide-in? Settings › Display › Slapshot.
