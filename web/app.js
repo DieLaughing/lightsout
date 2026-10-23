@@ -671,7 +671,7 @@ async function eventView(id, key) {
   const today = localDay({ start_utc: new Date().toISOString() });
   const past = (e.end_day || e.start_day) < today;
   const mine = new Set(follows().map(f => normalise(f.name)));
-  const isMine = d => mine.has(normalise(d.name)) || (d.team && mine.has(normalise(d.team)));
+  const isMine = d => [d.name, d.team, d.f1_team].some(n => n && mine.has(normalise(n)));
   const yours = e.drivers.filter(isMine);
   const live = feeds.some(f => f.series === id);
   const dates = `${shortDate(e.start_day)}${e.end_day && e.end_day !== e.start_day ? ` – ${shortDate(e.end_day)}` : ""}`;
@@ -683,7 +683,7 @@ async function eventView(id, key) {
     s?.timing && `<a class="btn" href="${esc(s.timing)}" target="_blank" rel="noopener">Official timing ↗</a>`,
   ].filter(Boolean).join("");
   const driverRow = d => `<div class="srow${isMine(d) ? " followed" : ""}"><span class="pos">${esc(d.number ? `#${d.number}` : "")}</span>
-    <span class="who"><a class="who-link" href="#/driver/${encodeURIComponent(d.name)}"><b>${esc(d.name)}</b></a><span class="muted">${esc(d.team || "")}</span></span></div>`;
+    <span class="who"><a class="who-link" href="#/driver/${encodeURIComponent(d.name)}"><b>${esc(d.name)}</b></a><span class="muted">${esc(d.team || "")}${backerTag(d)}</span></span></div>`;
   view.innerHTML = `${backLink(`#/series/${id}`)}
     <h1>${chip(id)} ${esc(e.name)}</h1>
     <p class="muted event-meta">${placeLine(e.venue, e.name, e.place, e.country)} · ${esc(dates)} · Round ${e.round} of ${e.rounds}</p>
@@ -691,6 +691,7 @@ async function eventView(id, key) {
     ${e.weekend.length ? `<p class="small">Also racing here: ${e.weekend.map(w =>
       `<a href="#/event/${w.series}/${encodeURIComponent(w.key)}">${chip(w.series)}</a>`).join(" ")}</p>` : ""}
     ${yours.length ? `<h2>Your drivers</h2><div class="card standings">${yours.map(driverRow).join("")}</div>` : ""}
+    ${!past ? watchList(e.watch_list) : ""}
     ${e.results?.rows?.length ? `<h2>Results</h2>${standingsBody(id, "last", { last_results: e.results.rows, last_event: e.name, last_session: e.results.session })}` : ""}
     ${Object.keys(e.qualifying || {}).length ? `<h2>Qualifying</h2>${standingsBody(id, "quali", { qualifying: e.qualifying, quali_event: e.name })}` : ""}
     <h2>Schedule</h2>
@@ -704,6 +705,19 @@ async function eventView(id, key) {
         ? "Everyone entered for this event" : "The series' regular drivers; this event has no separate entry list"}</summary>
         <div class="standings">${e.drivers.map(driverRow).join("")}</div></details>` : ""}`;
   wireClassPicker(() => eventView(id, key));
+}
+
+// F1 ACADEMY rounds: who to watch, for people who don't follow the series week to week.
+function watchList(w) {
+  if (!w) return "";
+  const who = d => `<a class="who-link" href="#/driver/${encodeURIComponent(d.name)}"><b>${esc(d.name)}</b></a>${backerTag(d)}`;
+  const lead = w.leaders?.[0]?.points ?? 0;
+  const rows = [
+    ...(w.leaders || []).map(d => [`P${d.pos} in the championship`, `${who(d)} <span class="muted small">${d.pos > 1 ? `−${pts(lead - d.points)}` : `${pts(d.points)} pts`}</span>`]),
+    ...(w.home || []).map(d => ["Home race", who(d)]),
+    ...(w.wildcards || []).map(d => ["Wild card entry", who(d)]),
+  ];
+  return `<h2>Who to watch</h2><div class="card">${rows.map(([k, v]) => `<div class="item watch-row"><div><div class="muted small">${esc(k)}</div>${v}</div></div>`).join("")}</div>`;
 }
 
 async function trackView(slug) {
@@ -817,13 +831,17 @@ const tc = r => r.color ? ` style="--tc:${esc(r.color)}"` : "";
 const whoLink = (name, kind = "driver", cls = "") => `<div>${String(name).split(" / ").map(n =>
   `<a class="who-link" href="#/${kind}/${encodeURIComponent(n)}"><b${cls ? ` class="${cls}"` : ""}>${esc(n)}</b></a>`).join(" / ")}</div>`;
 
+// F1 ACADEMY: every car runs in a backer's colours, an F1 team (shown in that team's colour) or a sponsor; plus wild cards.
+const backerTag = r => `${r.wildcard ? `<i class="btag wild">Wild card</i>` : ""}${r.backer ? `<i class="btag${r.f1_team ? " f1" : ""}"${r.f1_color
+  ? ` style="--bc:${esc(r.f1_color)}"` : ""} title="Backed by ${esc(r.backer)}">${esc(r.f1_team || r.backer)}</i>` : ""}`;
+
 function standingsBody(id, tab, st) {
   const s = BY_ID[id];
   const mine = new Set(follows().map(f => normalise(f.name)));
   const isMine = (...names) => names.some(n => n && mine.has(normalise(n)));
   const updated = st.updated ? `Updated ${new Date(st.updated).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}` : "";
-  const resultRows = rows => `<div class="card standings">${rows.map(r => `<div class="srow${isMine(r.name, r.team) ? " followed" : ""}"${tc(r)}>
-        <span class="pos">${esc(r.pos)}</span><span class="who">${whoLink(r.name)}<span class="tteam">${esc(r.team)}</span></span>
+  const resultRows = rows => `<div class="card standings">${rows.map(r => `<div class="srow${isMine(r.name, r.team, r.f1_team) ? " followed" : ""}"${tc(r)}>
+        <span class="pos">${esc(r.pos)}</span><span class="who">${whoLink(r.name)}<span class="tteam">${esc(r.team)}${backerTag(r)}</span></span>
         <span class="num">${esc(r.time)}</span><span class="num pts">${r.points ? pts(r.points) : ""}</span></div>`).join("")}</div>`;
   if (tab === "last") {
     return st.last_results?.length ? `<p class="muted small">${[st.last_event, st.last_session, updated].filter(Boolean).map(esc).join(" · ")}</p>
@@ -846,8 +864,8 @@ function standingsBody(id, tab, st) {
   const picker = classes.length ? `<div class="chips">${[s.short, ...classes].map((c, i) =>
     `<button class="chip-btn${(i === 0 ? !cls : c === cls) ? " active" : ""}" data-class="${i === 0 ? "" : esc(c)}" data-for="${id}">${esc(c)}</button>`).join("")}</div>` : "";
   return rows?.length ? `${picker}<p class="muted small">${esc(st.season_label)} · ${updated}</p>
-    <div class="card standings">${rows.map(r => `<div class="srow${isMine(r.name, tab === "teams" ? r.name : null) ? " followed" : ""}"${tc(r)}>
-      <span class="pos">${r.pos}</span><span class="who">${tab === "teams" ? whoLink(r.name, "team", "tteam-name") : whoLink(r.name)}<span class="tteam">${esc(r.team)}</span></span>
+    <div class="card standings">${rows.map(r => `<div class="srow${isMine(r.name, tab === "teams" ? r.name : null, r.f1_team) ? " followed" : ""}"${tc(r)}>
+      <span class="pos">${r.pos}</span><span class="who">${tab === "teams" ? whoLink(r.name, "team", "tteam-name") : whoLink(r.name)}<span class="tteam">${esc(r.team)}${backerTag(r)}</span></span>
       <span class="num muted">${r.pos > 1 ? `−${pts(lead - r.points)}` : ""}</span><span class="num pts">${pts(r.points)}</span></div>`).join("")}</div>
     ${tab === "teams" && TEAMS_NOTE[id] ? `<p class="muted small">${esc(TEAMS_NOTE[id])}</p>` : ""}`
     : `<div class="empty">${tab === "teams" ? "This series doesn't publish a team championship we can read." : "No standings yet."}</div>`;
@@ -1200,6 +1218,7 @@ async function liveView(id) {
       return;
     }
     const mine = new Set(follows().map(f => normalise(f.name)));
+    const isMine = r => [r.name, r.team, r.f1_team].some(n => n && mine.has(normalise(n)));
     if (d.kind === "rally") { view.innerHTML = rallyLive(id, d, mine); bindRally(id); return; }
     const race = d.kind === "race";
     const blank = v => (v === "." || v === "-" ? "" : v);
@@ -1214,14 +1233,20 @@ async function liveView(id) {
       </div>
       <div class="card standings timing">
         <div class="trow head muted"><span>Pos</span><span>Driver</span><span>${race ? "Gap" : "Gap"}</span><span>${race ? "Int" : "Best"}</span><span>Last</span><span>${d.rows.some(r => r.tyre) ? "Tyre" : "Pits"}</span></div>
-        ${d.rows.map(r => `<div class="trow${mine.has(normalise(r.name)) || mine.has(normalise(r.team)) ? " followed" : ""}${r.status === "OUT" ? " out" : ""}">
+        ${d.rows.map(r => {
+          // In the pits only means something while the session runs; it sits by the name so the gap stays readable.
+          const flag = r.status === "OUT" || (r.status === "PIT" && d.connected) ? r.status : "";
+          const code = `<b>${esc(r.code)}</b>${flag ? ` <small class="tstat${flag === "OUT" ? " bad" : ""}">${flag}</small>` : ""}`;
+          return `<div class="trow${isMine(r) ? " followed" : ""}${r.status === "OUT" ? " out" : ""}">
           <span class="pos">${r.pos < 99 ? r.pos : ""}</span>
-          <span class="who"><i class="bar" style="background:${esc(r.colour || "var(--border)")}"></i><b>${esc(r.code)}</b><span class="muted">${esc(r.team || r.name)}</span></span>
-          <span class="num">${esc(r.status || r.gap || (r.pos === 1 ? (race ? "Leader" : r.best) : ""))}</span>
+          <span class="who"><i class="bar" style="background:${esc(r.colour || "var(--border)")}"></i>${r.name
+            ? `<a class="who-link" href="#/driver/${encodeURIComponent(r.name)}">${code}</a>` : code}<span class="muted">${esc(r.team || r.name)}${backerTag(r)}</span></span>
+          <span class="num">${esc(r.gap || (r.pos === 1 ? (race ? "Leader" : r.best) : ""))}</span>
           <span class="num muted">${esc(race ? (r.pos === 1 ? "" : r.interval) : r.best)}</span>
           <span class="num">${esc(r.last)}</span>
           <span class="tyre">${r.tyre ? `<i style="background:${TYRES[r.tyre] || "#888"}">${esc(r.tyre)}</i>` : ""}${r.pits ? `<small>${r.pits}</small>` : ""}</span>
-        </div>`).join("")}
+        </div>`;
+        }).join("")}
       </div>
       ${eventsPanel(id)}`;
     bindEventsPanel(id);
@@ -1354,7 +1379,7 @@ async function wireView() {
     <datalist id="dl-teams">${dir.teams.filter(inScope).map(t => `<option value="${esc(t.name)}">`).join("")}</datalist>
     ${items.length ? `<div class="card">${items.map(wireItem).join("")}</div>`
       : `<div class="empty">Nothing matches.${st.mine ? " Try turning off \"Only who I follow\"." : ""}</div>`}
-    <p class="small muted">News from Motorsport.com, Autosport, RACER, The Race and DirtFish. Race events come from each series' live timing.</p>`;
+    <p class="small muted">News from Motorsport.com, Autosport, RACER, The Race, DirtFish and the series' own sites. Race events come from each series' live timing.</p>`;
   view.querySelectorAll("[data-kind]").forEach(b => b.addEventListener("click", () => save({ ...st, kind: b.dataset.kind })));
   view.querySelectorAll("[data-series]").forEach(b => b.addEventListener("click", () => save({ ...st, series: b.dataset.series })));
   view.querySelector("#f-driver").addEventListener("change", e => save({ ...st, driver: e.target.value.trim() }));
@@ -1400,20 +1425,37 @@ async function personView(type, name) {
   const last = (p?.results || []).map(x => `<div class="item"><div>${chip(x.series)} <b>${/^\d+$/.test(x.pos) ? `P${esc(x.pos)}` : esc(x.pos)}</b> · ${esc(x.event)}
       <div class="muted small">${esc(x.session || "")}${x.time ? ` · ${esc(x.time)}` : ""}${x.points ? ` · ${x.points} pts` : ""}</div></div></div>`).join("");
   const upcoming = p?.upcoming || [];
-  const w = prof?.wiki;
-  view.innerHTML = `${backLink("#/")}<div class="dhead">${w?.photo ? `<img class="dphoto" src="${esc(w.photo)}" alt="" width="88" height="88">` : ""}
-      <div><h1>${esc(name)}</h1>${w?.description ? `<div class="muted small">${esc(w.description)}</div>` : ""}</div></div>
+  const w = prof?.wiki, a = prof?.f1a;   // a = the F1 ACADEMY profile: its photo and bio come first
+  const photo = a?.photo || w?.photo;
+  const about = a ? [a.wildcard ? "Wild card" : "", [a.team, a.number ? `#${a.number}` : ""].filter(Boolean).join(" "), a.nationality,
+    a.born ? `${ageOn(a.born)} years old` : ""].filter(Boolean).join(" · ") : w?.description;
+  const bio = a?.bio?.length ? `<p class="bio">${esc(a.bio[0])}</p>${a.quote ? `<blockquote class="quote">“${esc(a.quote)}”</blockquote>` : ""}
+      ${a.bio.length > 1 ? `<details class="more-bio"><summary>More about ${esc(name.split(" ")[0])}</summary>${a.bio.slice(1).map(x => `<p class="bio">${esc(x)}</p>`).join("")}</details>` : ""}`
+    : w?.extract ? `<p class="bio">${esc(w.extract)}</p>` : prof?.pending ? `<p class="small muted">Looking up their photo and career…</p>` : "";
+  const outLinks = a ? [["F1 ACADEMY profile", a.url], ["Instagram", a.links?.instagram], ["YouTube", a.links?.youtube]].filter(([, u]) => u)
+    .map(([k, u]) => `<a class="btn" href="${esc(u)}" target="_blank" rel="noopener">${k} ↗</a>`).join("") : "";
+  const academy = p?.academy || [];
+  view.innerHTML = `${backLink("#/")}<div class="dhead">${photo ? `<img class="dphoto" src="${esc(photo)}" alt="" width="88" height="88">` : ""}
+      <div><h1>${esc(name)}</h1>${about ? `<div class="muted small">${esc(about)}</div>` : ""}
+      ${a?.backer ? `<div class="small backed">Races in ${a.f1_team ? "the colours of " : ""}${backerTag({ ...a, wildcard: false })}${a.f1_team ? "" : " colours"}</div>` : ""}</div></div>
     <div class="person-head">${seriesIds.map(chip).join(" ")} <span class="muted small">${tagged === "team" ? "Team" : "Driver"}</span>
       <button class="btn${followed ? "" : " primary"}" id="follow">${followed ? "Following ✓" : "Follow"}</button></div>
-    ${w?.extract ? `<p class="bio">${esc(w.extract)}</p>` : prof?.pending ? `<p class="small muted">Looking up their photo and career…</p>` : ""}
+    ${bio}
+    ${outLinks ? `<div class="series-links">${outLinks}</div>` : ""}
+    ${academy.length ? `<h2>In F1 ACADEMY</h2><p class="small muted">The all-women series on F1 weekends. These drivers race in ${esc(name)}'s colours.</p>
+      <div class="card standings">${academy.map(d => `<div class="srow"><span class="pos">${esc(d.number ? `#${d.number}` : "")}</span>
+        <span class="who"><a class="who-link" href="#/driver/${encodeURIComponent(d.name)}"><b>${esc(d.name)}</b></a><span class="muted">${esc(d.team)}</span></span></div>`).join("")}</div>` : ""}
     ${seasonCards(p?.cards)}
     ${where ? `<h2>Where they race</h2><div class="card">${where}</div>` : `<p class="small muted">Not on any current grid or published entry list. If you follow them, every series is still watched.</p>`}
     ${upcoming.length ? `<h2>Coming up</h2><div class="card">${upcoming.map(x => sessionRow({ ...x }, new Set())).join("")}</div>` : ""}
     ${last ? `<h2>Last race</h2><div class="card">${last}</div>` : ""}
     ${careerBlock(prof?.f1)}
+    ${a?.articles?.length ? `<h2>From F1 ACADEMY</h2><div class="card">${a.articles.map(n => `<a class="item news-item" href="${esc(n.url)}" target="_blank" rel="noopener">
+      <div><b>${esc(n.title)}</b><div class="muted small">${esc(n.time ? ago(n.time) : "")}</div></div></a>`).join("")}</div>` : ""}
     <h2>News and race events</h2>
     ${items.length ? `<div class="card">${items.map(wireItem).join("")}</div>` : `<div class="empty">Nothing in the last 30 days.</div>`}
-    ${w ? `<p class="credit small muted">${w.credit ? `Photo: <a href="${esc(w.credit.url)}" target="_blank" rel="noopener">${esc(w.credit.author || "Wikimedia Commons")}</a>${w.credit.license ? `, ${esc(w.credit.license)}` : ""} · ` : ""}About: <a href="${esc(w.url)}" target="_blank" rel="noopener">Wikipedia</a>${prof.f1 ? " · F1 stats: Jolpica" : ""}</p>` : ""}`;
+    ${a ? `<p class="credit small muted">Photo and bio: <a href="${esc(a.url)}" target="_blank" rel="noopener">F1 ACADEMY</a>${w ? ` · More: <a href="${esc(w.url)}" target="_blank" rel="noopener">Wikipedia</a>` : ""}</p>`
+      : w ? `<p class="credit small muted">${w.credit ? `Photo: <a href="${esc(w.credit.url)}" target="_blank" rel="noopener">${esc(w.credit.author || "Wikimedia Commons")}</a>${w.credit.license ? `, ${esc(w.credit.license)}` : ""} · ` : ""}About: <a href="${esc(w.url)}" target="_blank" rel="noopener">Wikipedia</a>${prof.f1 ? " · F1 stats: Jolpica" : ""}</p>` : ""}`;
   if (prof?.pending) waitForProfile(profilePath(p));
   view.querySelector("#follow").addEventListener("click", () => {
     const l = follows();
@@ -1421,6 +1463,9 @@ async function personView(type, name) {
     loadFollowStatus().then(() => personView(type, name));
   });
 }
+
+const ageOn = born => { const b = new Date(`${born}T12:00:00`), n = new Date();
+  return n.getFullYear() - b.getFullYear() - (n < new Date(n.getFullYear(), b.getMonth(), b.getDate()) ? 1 : 0); };
 
 // The profile is built in the background the first time anyone opens the page: ask again, redrawing as parts land.
 function waitForProfile(path, tries = 0) {

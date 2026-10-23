@@ -18,8 +18,66 @@ def _next_data(page: str) -> dict:
 
 
 def parse_drivers(page: str) -> list[Entry]:
-    return [Entry(d["FullName"], team["TeamFullName"], str(d.get("CarNumber") or ""))
+    return [Entry(_clean(d["FullName"]), team["TeamFullName"], str(d.get("CarNumber") or ""))
             for team in _next_data(page).get("Teams") or [] for d in team.get("Drivers") or []]
+
+
+def parse_roster(page: str) -> list[dict]:
+    """Who's racing this season, with what the drivers page knows: backer, nationality, wild card, photo."""
+    out = []
+    for team in _next_data(page).get("Teams") or []:
+        for d in team.get("Drivers") or []:
+            out.append({"id": d["DriverId"], "name": _clean(d["FullName"]), "wildcard": is_wildcard(d["FullName"]),
+                        "code": d.get("TLA", ""), "number": str(d.get("CarNumber") or ""), "team": team["TeamFullName"],
+                        "backer": " ".join((d.get("support") or "").split()), "country": d.get("CountryName", ""),
+                        "cc": d.get("CountryCode", "")})
+    return out
+
+
+async def roster() -> list[dict]:
+    return parse_roster(await get_text(DRIVERS_URL))
+
+
+# The bio ends with link lists ("### CATCH UP WITH NINA:", "### FIND OUT MORE ABOUT NINA:"): those go.
+_LINKS = re.compile(r"^#+\s", re.M)
+
+
+def _paragraphs(md: str) -> tuple[list[str], str]:
+    """The synopsis (light Markdown) as plain paragraphs, plus its pull quote ('> ...') if it has one."""
+    body = _LINKS.split(md or "", 1)[0]
+    paras, quote = [], ""
+    for block in re.split(r"\n\s*\n", body):
+        text = " ".join(re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", block).replace("__", "").replace("**", "").split())
+        if text.startswith(">"):
+            quote = quote or text.lstrip("> ").strip()
+        elif text:
+            paras.append(text)
+    return paras, quote
+
+
+def parse_profile(page: str) -> dict:
+    d = _next_data(page)
+    c = d.get("Content") or {}
+    paras, quote = _paragraphs(c.get("driverSynopsis") or "")
+    st = d.get("LatestStandings") or {}
+    team = d.get("CurrentDriverTeam") or {}
+    return {
+        "id": d["DriverId"], "name": _clean(d.get("FullName") or ""), "url": f"{SITE}/Drivers/{d['DriverId']}",
+        "bio": paras, "quote": quote, "born": c.get("dateOfBirth") or "", "nationality": d.get("Nationality") or "",
+        "country": d.get("CountryName") or "", "backer": " ".join((c.get("support") or "").split()),
+        "team": team.get("TeamName") or "", "number": str(team.get("CarNumber") or ""),
+        "wildcard": is_wildcard(d.get("FullName") or "") or team.get("Driver_Type") not in (None, "Driver"),
+        "pos": st.get("Position"), "points": st.get("TotalPoints"), "season": st.get("SeasonName") or "",
+        "teammates": [_clean(m["FullName"]) for m in d.get("TeamMates") or []],
+        "photo": ((c.get("driverImage") or {}).get("url") or ""),
+        "links": {k: c[f"driver{k.capitalize()}"] for k in ("instagram", "youtube") if c.get(f"driver{k.capitalize()}")},
+        "articles": [{"title": " ".join(a["title"].split()), "url": f"https://www.f1academy.com/Latest/{a['id']}/{a['slug']}",
+                      "time": a.get("updatedAt") or a.get("realUpdatedAt") or ""} for a in d.get("Articles") or []],
+    }
+
+
+async def profile(driver_id: int) -> dict:
+    return parse_profile(await get_text(f"{SITE}/Drivers/{int(driver_id)}/driver"))
 
 
 def parse_calendar(page: str) -> list[Event]:
@@ -57,8 +115,17 @@ async def fetch(series_id: str, seasons: list[int]) -> AdapterResult:
     return AdapterResult(events, sorted({e.season for e in events}), entries)
 
 
+WILDCARD = re.compile(r"\s*\(WCD\)", re.I)
+
+
+def is_wildcard(name: str) -> bool:
+    return bool(WILDCARD.search(name or ""))
+
+
 def _clean(name: str) -> str:
-    return " ".join(name.split())  # the feed pads some names with double spaces
+    """The feed pads some names with double spaces and marks wild cards 'Alexia Danielsson (WCD)': that's a fact
+    about the entry, not the name (follows, tags and profiles match on the name)."""
+    return " ".join(WILDCARD.sub("", name).split())
 
 
 async def standings(series_id: str) -> Standings | None:
