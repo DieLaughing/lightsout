@@ -7,7 +7,7 @@ writes a small odds.json and copies it to the server with rsync over SSH. The ap
 
 Each run is a handful of requests (the motorsport menu + one per league), about what one person browsing makes.
 Every run appends one line to runs.jsonl (requests, status, timings, bytes, CPU, memory, upload) so it can be watched;
-`--report [days]` summarises it. After FAIL_ALERT failed runs in a row it sends one ntfy message (optional).
+`--report [days]` summarises it (`--notify` also sends the summary to ntfy). After FAIL_ALERT failed runs in a row it sends one ntfy message (optional).
 
 Needs: python3 + curl_cffi (pip install curl_cffi). Settings (env or an env file passed with --env):
   ODDS_DIR      where odds.json and runs.jsonl live (default ~/odds)
@@ -109,11 +109,11 @@ def upload(path: Path, log: dict) -> None:
                                **({"error": r.stderr.strip()[-200:]} if r.returncode else {})})
 
 
-def notify(text: str) -> None:
+def notify(text: str, tags: str = "warning") -> None:
     url, token = os.environ.get("NTFY_URL"), os.environ.get("NTFY_TOKEN")
     if not url:
         return
-    req = urllib.request.Request(url, data=text.encode(), headers={"Title": "Lights Out odds", "Tags": "warning",
+    req = urllib.request.Request(url, data=text.encode(), headers={"Title": "Lights Out odds", "Tags": tags,
                                                                    **({"Authorization": f"Bearer {token}"} if token else {})})
     try:
         urllib.request.urlopen(req, timeout=15)
@@ -155,13 +155,12 @@ def run(base: Path) -> int:
     return 0 if log["ok"] else 1
 
 
-def report(base: Path, days: float) -> None:
+def report(base: Path, days: float) -> str:
     since = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
     runs = [json.loads(x) for x in (base / "runs.jsonl").read_text().splitlines() if x.strip()]
     runs = [r for r in runs if r["time"] >= since]
     if not runs:
-        print("no runs")
-        return
+        return f"no runs in the last {days:g} days"
     ok = [r for r in runs if r.get("ok")]
     reqs = [q for r in runs for q in r["requests"]]
     codes: dict[str, int] = {}
@@ -169,17 +168,17 @@ def report(base: Path, days: float) -> None:
         k = str(q.get("status") or q.get("error", "error").split(":")[0])
         codes[k] = codes.get(k, 0) + 1
     ms = sorted(q["ms"] for q in reqs)
-    print(f"runs: {len(runs)} since {since} ({len(ok)} ok, {len(runs) - len(ok)} failed)")
-    print(f"requests: {len(reqs)}  by status: {codes}  median {ms[len(ms) // 2]} ms, max {ms[-1]} ms")
-    print(f"downloaded: {sum(q.get('bytes', 0) for q in reqs) / 1e6:.1f} MB  odds file: {ok[-1].get('file_bytes', 0) / 1e3:.0f} KB" if ok else "")
-    print(f"per run: wall {max(r['wall_s'] for r in runs)} s max, cpu {max(r['cpu_s'] for r in runs)} s max, "
-          f"memory {max(r['max_rss_mb'] for r in runs)} MB max")
     ups = [u for r in runs for u in r["uploads"]]
-    print(f"uploads: {sum(u['ok'] for u in ups)}/{len(ups)} ok")
-    for r in [r for r in runs if not r.get("ok")][-5:]:
-        print(f"  failed {r['time']}: {r.get('error')}")
+    lines = [f"runs: {len(runs)} in {days:g} days ({len(ok)} ok, {len(runs) - len(ok)} failed)",
+             f"requests: {len(reqs)}, by status {codes}, median {ms[len(ms) // 2] if ms else 0} ms, max {ms[-1] if ms else 0} ms",
+             f"downloaded: {sum(q.get('bytes', 0) for q in reqs) / 1e6:.1f} MB",
+             f"per run: wall {max(r['wall_s'] for r in runs)} s, cpu {max(r['cpu_s'] for r in runs)} s, "
+             f"memory {max(r['max_rss_mb'] for r in runs)} MB (max)",
+             f"uploads: {sum(u['ok'] for u in ups)}/{len(ups)} ok"]
+    lines += [f"failed {r['time']}: {r.get('error')}" for r in [r for r in runs if not r.get("ok")][-5:]]
     if ok:
-        print(f"last good run {ok[-1]['time']}: {ok[-1].get('events')} events, {ok[-1].get('selections')} odds")
+        lines.append(f"last good run {ok[-1]['time']}: {ok[-1].get('events')} races, {ok[-1].get('selections')} odds")
+    return "\n".join(lines)
 
 
 if __name__ == "__main__":
@@ -190,6 +189,9 @@ if __name__ == "__main__":
     base.mkdir(parents=True, exist_ok=True)
     if "--report" in args:
         i = args.index("--report")
-        report(base, float(args[i + 1]) if len(args) > i + 1 and args[i + 1][0].isdigit() else 7)
+        text = report(base, float(args[i + 1]) if len(args) > i + 1 and args[i + 1][0].isdigit() else 7)
+        print(text)
+        if "--notify" in args:
+            notify(f"Weekly check\n{text}", tags="bar_chart")
     else:
         sys.exit(run(base))

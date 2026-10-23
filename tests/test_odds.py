@@ -47,3 +47,10 @@ def test_event_and_driver_odds(tmp_path):
 def test_stale_odds_are_hidden(tmp_path):
     _write(tmp_path, (datetime.now(timezone.utc) - timedelta(hours=7)).strftime("%Y-%m-%dT%H:%M:%SZ"))
     assert odds.for_event("f1", "2026-10-23", "2026-10-25") is None
+
+
+def test_middle_names_and_initials():
+    rows = [{"name": "Austin Hill"}, {"name": "John Hunter Nemechek"}, {"name": "Kyle Busch"}]
+    assert odds.find(rows, "Austin J Hill")["name"] == "Austin Hill"
+    assert odds.find(rows, "John H. Nemechek")["name"] == "John Hunter Nemechek"
+    assert odds.find(rows, "Kurt Busch") is None

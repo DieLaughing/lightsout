@@ -103,6 +103,13 @@ Operating rules shared with the sibling app (standards, speed budget, shared par
   F1A event pages get watch_list (top 3, home drivers by country, wild cards). Profiles of roster drivers add `f1a`
   (/Racing-Series/Drivers/<id>/x: bio, quote, born, socials, articles; Cloudinary face crop 240 px) shown before
   Wikipedia. The Wire also reads f1academy.com/Latest (Next.js data, no RSS) via news.parse_f1a.
+- Betting odds (lightsout/odds.py): DraftKings' sportsbook JSON (sportsbook-nash.draftkings.com/api/sportscontent/
+  dkusnj/v1/leagues/<id>; motorsport menu = .../navigation/dkusnj/v2/nav/sports/14). Akamai refuses data-centre IPs, so
+  tools/odds_fetch.py runs on a home connection (timer), writes odds.json (race winner / podium / top 3 / top 10 per
+  event, American odds + implied % incl. margin) and rsyncs it to the server; the app reads LIGHTSOUT_ODDS_FILE
+  (default <data>/odds.json), hides it after 6 h (STALE). Matched to events by series + date (±1 day), to drivers
+  by odds.find (tolerates middle names/initials). Event pages (upcoming), /api/person odds, Pick'em duel drivers.
+  settings.odds = false hides them. The fetcher logs each run to runs.jsonl; --report [days] [--notify].
 - Tickets: lightsout/data/tickets.yaml (series -> official tickets page). F1 race-specific pages (lightsout/tickets.py):
   f1_races in tickets.yaml (slug -> tickets.formula1.com/en/f1-<id>-<slug>), refreshed from the store twice a day when
   it isn't behind its Queue-Fair waiting room (never try to bypass it). Matched on race name, then venue (never

@@ -75,9 +75,18 @@ def for_event(series: str, start_day: str | None, end_day: str | None) -> dict |
     return None
 
 
+def _ends(name: str) -> tuple[str, str]:
+    w = normalise(name).split()
+    return (w[0], w[-1]) if w else ("", "")
+
+
 def find(rows: list[dict], name: str) -> dict | None:
+    """Exact, then one name inside the other, then first + last name alike: grids and bookmakers disagree on middle
+    names ("Austin J Hill" / "Austin Hill", "John H. Nemechek" / "John Hunter Nemechek")."""
     key = normalise(name)
-    return next((r for r in rows if normalise(r["name"]) == key), None) or next((r for r in rows if matches(name, r["name"])), None)
+    return (next((r for r in rows if normalise(r["name"]) == key), None)
+            or next((r for r in rows if matches(name, r["name"]) or matches(r["name"], name)), None)
+            or next((r for r in rows if _ends(r["name"]) == _ends(name) and " " in key), None))
 
 
 def for_driver(ev: dict | None, name: str) -> list[dict]:
