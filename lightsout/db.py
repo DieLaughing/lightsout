@@ -94,6 +94,11 @@ class Store:
         self.conn = sqlite3.connect(path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.lock = threading.Lock()  # request handlers run in threads; serialise the access writes
+        # Whole-table reads that every follow lookup and driver page needs (grids, entry lists, upcoming sessions) are
+        # kept in memory until save() changes the schedule: turning thousands of rows into dicts was most of a driver
+        # page's time. Callers must not modify what these return (it's shared).
+        self.version = 0
+        self._memo: dict[str, tuple[object, object]] = {}
         self.conn.execute("PRAGMA journal_mode=WAL")
         # WAL + NORMAL: a save doesn't wait for the disk to confirm it (on a USB drive that's up to ~400 ms, and saves
         # run on the worker that answers requests). A power cut can lose the last moment of saves; nothing corrupts.
@@ -166,7 +171,27 @@ class Store:
                 self.conn.executemany("INSERT OR REPLACE INTO entry VALUES (?,?,?,?,?)",
                                       [(series, e.name, e.team, e.number, seen.get(e.name, "" if baseline else now))
                                        for e in result.entries])
+        self.version += 1
         return len(result.events), n_sessions
+
+    def _memoised(self, key: str, tag, build):
+        hit = self._memo.get(key)
+        if hit and hit[0] == (self.version, tag):
+            return hit[1]
+        value = build()
+        self._memo[key] = ((self.version, tag), value)
+        return value
+
+    def sessions_ahead(self) -> list[dict]:
+        """Sessions from yesterday to 400 days out (shared, read-only); callers filter by the exact time."""
+        today = datetime.now(timezone.utc).date()
+        return self._memoised("ahead", today, lambda: self.sessions(f"{today - timedelta(days=1)}T00:00:00Z",
+                                                                   f"{today + timedelta(days=400)}T00:00:00Z"))
+
+    def next_event(self, series: str, today: str) -> dict | None:
+        row = self.conn.execute("SELECT key, name, start_day, end_day FROM event WHERE series=? AND COALESCE(end_day, start_day) >= ? "
+                                "ORDER BY start_day LIMIT 1", (series, today)).fetchone()
+        return dict(row) if row else None
 
     def record_run(self, series: str, ok: bool, error: str | None = None, counts: tuple[int, int] = (0, 0)):
         now = _iso(datetime.now(timezone.utc))
@@ -202,9 +227,10 @@ class Store:
         return rows
 
     def entries(self, series: str | None = None) -> list[dict]:
+        """One series' grid (a fresh list), or every grid (shared, read-only; see _memo)."""
         if series:
             return [dict(r) for r in self.conn.execute("SELECT * FROM entry WHERE series=? ORDER BY name", (series,))]
-        return [dict(r) for r in self.conn.execute("SELECT * FROM entry ORDER BY series, name")]
+        return self._memoised("entries", None, lambda: [dict(r) for r in self.conn.execute("SELECT * FROM entry ORDER BY series, name")])
 
     def save_standings(self, series: str, st: Standings) -> None:
         with self.conn:
@@ -242,10 +268,10 @@ class Store:
                               (key, json.dumps(data), _iso(datetime.now(timezone.utc))))
 
     def entry_lists_with_events(self) -> list[dict]:
-        """Every published entry-list name with its event, for the follow search."""
-        return [dict(r) for r in self.conn.execute(
+        """Every published entry-list name with its event, for the follow search (shared, read-only)."""
+        return self._memoised("lists", None, lambda: [dict(r) for r in self.conn.execute(
             "SELECT x.series, x.event_key, x.name, x.first_seen, e.name AS event_name, e.start_day, e.end_day "
-            "FROM event_entry x JOIN event e ON e.series=x.series AND e.key=x.event_key")]
+            "FROM event_entry x JOIN event e ON e.series=x.series AND e.key=x.event_key")])
 
     # ---- people (access is approved per email; Cloudflare only proves who someone is) ----
     def user(self, email: str) -> dict | None:
