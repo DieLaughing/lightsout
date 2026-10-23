@@ -93,7 +93,7 @@ def status(store: Store, names: list[str]) -> list[dict]:
     now = datetime.now(timezone.utc)
     today = now.date().isoformat()
     fresh = _iso(now - NEW_FOR)
-    upcoming = [s for s in store.sessions(_iso(now), _iso(now + timedelta(days=400)))
+    upcoming = [s for s in store.sessions_ahead()
                 if (s["start_utc"] and s["start_utc"] > _iso(now)) or (not s["start_utc"] and (s["end_day"] or s["day"]) >= today)]
     grids = defaultdict(list)
     for g in store.entries():

@@ -540,11 +540,13 @@ def person(name: str):
     # plus every session of an event whose entry list has them.
     grid = {f["series"] for f in st["found"] if f["kind"] == "grid" and f["series"] not in follow.PICK_EVENTS}
     entered = {(f["series"], f["event_key"]) for f in st["found"] if f["kind"] == "entry"}
-    upcoming = [r for r in store.sessions(_iso(now), _iso(now + timedelta(days=120)))
+    horizon = _iso(now + timedelta(days=120))
+    # The sessions that decide things (qualifying, sprints, races, rally days), not every practice. Copies: the shared
+    # list from sessions_ahead() must not get watch/weather written into it.
+    upcoming = [dict(r) for r in store.sessions_ahead()
                 if (r["series"] in grid or (r["series"], r["event_key"]) in entered)
-                and (r["start_utc"] or r["day"] + "T23:59:59Z") >= _iso(now)]
-    # The sessions that decide things (qualifying, sprints, races, rally days), not every practice.
-    upcoming = [r for r in upcoming if r["kind"] in ("qualifying", "sprint", "race", "rally_day", "event")]
+                and _iso(now) <= (r["start_utc"] or r["day"] + "T23:59:59Z") and r["sort_utc"] < horizon
+                and r["kind"] in ("qualifying", "sprint", "race", "rally_day", "event")][:8]
     weather.attach(_with_watch(upcoming))
     results = []
     tables = {sid: store.standings(sid) or {} for sid in st["series"]}
@@ -557,7 +559,7 @@ def person(name: str):
     today = _iso(now)[:10]
     lines = []
     for sid in dict.fromkeys(r["series"] for r in rides):
-        ev = next((e for e in store.events(sid) if (e.get("end_day") or e.get("start_day") or "") >= today), None)
+        ev = store.next_event(sid, today)
         mine = odds.for_driver(odds.for_event(sid, ev.get("start_day"), ev.get("end_day")), name) if ev else []
         if mine:
             lines.append({"series": sid, "event": ev["name"], "event_key": ev["key"], "lines": mine})
@@ -565,7 +567,7 @@ def person(name: str):
     academy = [{"name": d["name"], "team": d["team"], "number": d["number"]} for d in f1a.roster(store)
                if (team := f1a.f1_team(d["backer"])) and follow.normalise(team) == follow.normalise(name)]
     return {"name": name, "series": st["series"], "found": st["found"], "rides": rides, "next": st["next"], "academy": academy, "odds": lines,
-            "new": st["new"], "upcoming": upcoming[:8], "results": results,
+            "new": st["new"], "upcoming": upcoming, "results": results,
             "cards": [c for c in (_card(name, sid, t) for sid, t in tables.items()) if c]}
 
 
