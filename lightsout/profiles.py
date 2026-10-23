@@ -81,9 +81,11 @@ async def _build(store: Store, name: str, key: str) -> None:
     old = (store.cached(key) or ({},))[0]
     try:
         f1a = await _f1a(store, name, old.get("f1a"))
+        if f1a:  # the series' own photo and bio show while Wikipedia is searched
+            store.save_cached(key, {"wiki": old.get("wiki"), "f1a": f1a, "f1": None, "partial": True})
         f1_failed = None
-        try:
-            f1_id = await _f1_id(store, name)
+        try:  # F1 ACADEMY drivers have no F1 career: skip Jolpica's (throttled) driver lists for them
+            f1_id = None if f1a else await _f1_id(store, name)
         except Exception as exc:  # Jolpica busy: the photo and bio don't wait for it
             f1_id, f1_failed = None, exc
         wiki = await _wiki(store, name, await _f1_title(store, f1_id) if f1_id else None)
@@ -291,8 +293,11 @@ async def loop(store: Store) -> None:
     """Followed drivers' pages are ready before anyone opens them."""
     while True:
         try:
-            await f1a_roster.refresh(store)  # backers and wild cards on timing, standings and event pages
+            # The roster puts backers and wild cards on timing, standings and event pages; its drivers' pages are built
+            # ahead too (18 of them): nobody follows F1 ACADEMY drivers yet, which is the point of the pages.
+            academy = [d["name"] for d in await f1a_roster.refresh(store)]
             names = {f["name"] for s in store.approved_settings().values() for f in s.get("follows") or [] if f.get("name")}
+            names |= set(academy)
             await warm(store, sorted(names))
         except Exception:
             log.exception("profile warm-up error")
