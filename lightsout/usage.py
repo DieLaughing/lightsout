@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS page_view (
 KEEP_DAYS = 180
 ROUTES = frozenset({"home", "wire", "new", "app", "series", "settings", "standings", "picks", "report", "series/:id",
                     "live/:series", "driver/:name", "team/:name", "story/:id", "event/:id", "track/:id",
-                    "standings/:series", "picks/:sub"})   # what countView() in web/app.js sends
+                    "standings/:series", "picks/:sub", "search"})   # what countView() in web/app.js sends
 MAX_ROUTES = 30      # per batch
 MAX_VIEWS = 200      # per route per batch
 PER_DAY = 3000       # per person per day, held in memory only: one phone (or a stuck loop) can't flood the counts
