@@ -554,3 +554,14 @@ def test_formula_drift_schedule_from_page_strings():
     s = formulad.parse_schedule(words, ZoneInfo("America/Los_Angeles"))
     assert [(x.name, x.kind) for x in s] == [("Practice", "practice"), ("Qualifying", "qualifying"), ("Top 32", "race"), ("Top 16", "race")]
     assert s[1].start.hour == 18 and s[1].start.utcoffset() == timedelta(hours=-7)
+
+
+def test_whole_table_reads_are_kept_until_a_save(tmp_path):
+    store = Store(tmp_path / "t.db")
+    ev = Event("2027-wrc-rallye-monte-carlo", 2027, "Rallye Monte-Carlo",
+               sessions=[Session("day1", "Day 1 (Thu)", "rally_day", day=date(2027, 1, 21))], entrants=["Elfyn Evans"])
+    store.save("wrc", AdapterResult([ev], [2027], [Entry("Elfyn Evans", "Toyota")]))
+    first = store.entries()
+    assert store.entries() is first and [r["name"] for r in store.entry_lists_with_events()] == ["Elfyn Evans"]
+    store.save("wrc", AdapterResult([ev], [2027], [Entry("Elfyn Evans", "Toyota"), Entry("Kalle Rovanpera", "Toyota")]))
+    assert [r["name"] for r in store.entries()] == ["Elfyn Evans", "Kalle Rovanpera"]
