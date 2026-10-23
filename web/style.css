@@ -572,3 +572,8 @@ details.more-odds > summary { padding: 8px 12px; border-top: 1px solid var(--bor
 .search-box { width: 100%; font-size: 16px; padding: 11px 13px; border-radius: 10px; border: 1px solid var(--border);
   background: var(--surface); color: var(--text); margin: 6px 0 4px; }
 .top .brand + .top-link { margin-left: auto; }   /* Search sits next to Settings, not mid-bar */
+
+/* ---- shared-element page changes (web/app.js navigate): what you tapped grows into the next page's title ---- */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 200ms; }
+::view-transition-group(hero) { animation-duration: 340ms; animation-timing-function: cubic-bezier(.2, .9, .3, 1); }
+::view-transition-old(hero), ::view-transition-new(hero) { animation-duration: 340ms; height: 100%; object-fit: contain; }

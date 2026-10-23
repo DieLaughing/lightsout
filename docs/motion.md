@@ -23,7 +23,7 @@ How the two apps move. This file is identical in both repos: change it in both i
 | Labels and icons being picked | Colour cross-fade | 160 ms |
 | Toast | Springs out from the middle, shrinks away | 450 ms `cubic-bezier(.3, 1.35, .5, 1)` in, 200 ms out |
 | Loading | "Loading…" only after 350 ms. An in-page switch keeps the dimmed old content instead | |
-| Opening something from its card (Shots on Goal: a game card opens the game page) | The card grows into the page's header and shrinks back on the way back (View Transitions); the rest cross-fades, no Rise | 340 ms `cubic-bezier(.2, .9, .3, 1)`, page cross-fade 200 ms |
+| Opening something from what you tapped (Shots on Goal: a game card opens the game page; Lights Out: a race, driver, team or series opens its page) | What you tapped grows into the page's header or title and shrinks back on the way back (View Transitions); the rest cross-fades, no Rise | 340 ms `cubic-bezier(.2, .9, .3, 1)`, page cross-fade 200 ms |
 
 ## Rules for new UI
 
