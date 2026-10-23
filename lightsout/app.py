@@ -18,7 +18,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Red
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from . import access, bugs, adapters, alerts, changes, colors, f1a, follow, ics, news, picks, places, profiles, refresh, slow, tickets, usage, watch, weather
+from . import access, bugs, adapters, alerts, changes, colors, f1a, follow, ics, news, odds, picks, places, profiles, refresh, slow, tickets, usage, watch, weather
 from .db import Store
 from .live.hub import LiveHub
 from .push import Pusher
@@ -51,6 +51,7 @@ slow.init(sqlite3.connect(store.path, check_same_thread=False, timeout=10))
 CAL_TOKEN = _cal_token()
 live = LiveHub(store)
 profiles.setup(DATA_DIR)
+odds.setup(DATA_DIR)
 pusher = Pusher(DATA_DIR, access.ADMIN)
 alerter = alerts.Alerts(store, pusher, access.BASE_URL)
 live.alerts = alerter
@@ -504,6 +505,8 @@ async def save_settings(request: Request):
         clean["dismissed"] = [str(x)[:200] for x in (body["dismissed"] or [])][-500:]
     if "notify" in body:
         clean["notify"] = {k: bool((body["notify"] or {}).get(k, True)) for k in alerts.KINDS}
+    if "odds" in body:
+        clean["odds"] = body["odds"] is not False  # betting odds on event, driver and Pick'em pages (Settings > Display)
     if "animations" in body:
         clean["animations"] = body["animations"] is not False  # page transitions (Settings > Display)
     if "show" in body:  # per-series "Show on Upcoming": absent = everything
@@ -550,10 +553,18 @@ def person(name: str):
         if last:
             results.append({"series": sid, "event": table.get("last_event"), "session": table.get("last_session"),
                             "pos": last["pos"], "time": last.get("time"), "points": last.get("points")})
+    # Their line in the bookmaker's odds for each series' next race weekend.
+    today = _iso(now)[:10]
+    lines = []
+    for sid in dict.fromkeys(r["series"] for r in rides):
+        ev = next((e for e in store.events(sid) if (e.get("end_day") or e.get("start_day") or "") >= today), None)
+        mine = odds.for_driver(odds.for_event(sid, ev.get("start_day"), ev.get("end_day")), name) if ev else []
+        if mine:
+            lines.append({"series": sid, "event": ev["name"], "event_key": ev["key"], "lines": mine})
     # An F1 team's page lists the F1 ACADEMY drivers racing in its colours.
     academy = [{"name": d["name"], "team": d["team"], "number": d["number"]} for d in f1a.roster(store)
                if (team := f1a.f1_team(d["backer"])) and follow.normalise(team) == follow.normalise(name)]
-    return {"name": name, "series": st["series"], "found": st["found"], "rides": rides, "next": st["next"], "academy": academy,
+    return {"name": name, "series": st["series"], "found": st["found"], "rides": rides, "next": st["next"], "academy": academy, "odds": lines,
             "new": st["new"], "upcoming": upcoming[:8], "results": results,
             "cards": [c for c in (_card(name, sid, t) for sid, t in tables.items()) if c]}
 
@@ -701,6 +712,7 @@ def event_page(series_id: str, event_key: str):
         f1a.tag(store, ev["drivers"])
         if (ev.get("end_day") or ev.get("start_day") or "") >= _iso(datetime.now(timezone.utc))[:10]:
             ev["watch_list"] = f1a.watch(store, ev, weather.place_for(ev.get("venue"), ev.get("name")))
+    ev["odds"] = odds.for_event(series_id, ev.get("start_day"), ev.get("end_day"))
 
     st = store.standings(series_id) or {}
     same = st.get("last_event") and weather.norm(st["last_event"]) in (weather.norm(ev["name"]), weather.norm(ev.get("venue") or ""))
@@ -822,6 +834,14 @@ def pickem(request: Request, series: str = "f1", event: str | None = None):
                    "opens": picks._iso(picks._parse(race["start"]) - timedelta(days=picks.OPEN_DAYS))}
     sl = picks.slate(store, series, race)
     out["slate"] = picks.view(store, me, sl, names) if sl else None
+    ev = next((e for e in store.events(series) if e["key"] == race["event_key"]), None)
+    book = odds.for_event(series, ev.get("start_day"), ev.get("end_day")) if ev and out["slate"] else None
+    if book:  # the bookmaker's line that best tells each duel's drivers apart (odds.duel)
+        for x in out["slate"]["duels"]:
+            pair = odds.duel(book, x["drivers"][0]["name"], x["drivers"][1]["name"])
+            for d, line in zip(x["drivers"], pair or (None, None)):
+                d["odds"] = line
+        out["odds_source"] = book["source"]
     out["board"] = picks.board(store, series, race["season"], names, me)
     return out
 
