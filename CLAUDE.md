@@ -96,6 +96,13 @@ Operating rules shared with the sibling app (standards, speed budget, shared par
   /img/d/<file> (immutable) with author + licence shown. F1 career from Jolpica for drivers of the last F1_SEASONS
   seasons: results + sprints + per-season standings (past seasons saved forever; requests 2/s, 429s happen when
   hammered). Rebuilt after a day; followed names are warmed every 6 h (profiles.loop). Teams get no profile.
+- F1 ACADEMY (lightsout/f1a.py): roster from /Racing-Series/Drivers (backer = `support`, wild cards = "(WCD)" in the
+  name, stripped everywhere) saved as profile key f1a:roster (12 h; refreshed by profiles.loop, pages only read it).
+  f1a.tag adds backer / f1_team (exact teams.yaml f1 name or alias) / f1_color / wildcard to F1A standings, results,
+  entry lists and live rows; following an F1 team highlights its F1A driver and /api/person lists them (academy).
+  F1A event pages get watch_list (top 3, home drivers by country, wild cards). Profiles of roster drivers add `f1a`
+  (/Racing-Series/Drivers/<id>/x: bio, quote, born, socials, articles; Cloudinary face crop 240 px) shown before
+  Wikipedia. The Wire also reads f1academy.com/Latest (Next.js data, no RSS) via news.parse_f1a.
 - Tickets: lightsout/data/tickets.yaml (series -> official tickets page). F1 race-specific pages (lightsout/tickets.py):
   f1_races in tickets.yaml (slug -> tickets.formula1.com/en/f1-<id>-<slug>), refreshed from the store twice a day when
   it isn't behind its Queue-Fair waiting room (never try to bypass it). Matched on race name, then venue (never
@@ -200,7 +207,7 @@ Operating rules shared with the sibling app (standards, speed budget, shared par
 - The web app polls /api/live/<series> every 2 s (simpler than SSE through the Cloudflare tunnel).
 
 ## Sources
-- Driver profiles: Wikipedia (photo, two lines, credited) + Jolpica (F1 careers).
+- Driver profiles: Wikipedia (photo, two lines, credited) + Jolpica (F1 careers) + f1academy.com (F1A drivers).
 - Scraped: F1 (Jolpica), F2/F3 (round pages), F1 Academy (Next.js data), Formula E (calendar JSON-LD; session times TBA),
   IndyCar (public JSON feeds), WEC (round JSON-LD), WRC (calendar page), ARA (<year>-ara-schedule page),
   Euro RX (fia-rallycross.com/calendar).
