@@ -1235,25 +1235,40 @@ async function renderFollowing(box, entries) {
 const TYRES = { S: "#e10600", M: "#f5c400", H: "#e8e8e8", I: "#2fb34a", W: "#2a7de1" };
 const TRACK_CLASS = { "Green": "ok", "Yellow": "warn", "Safety car": "warn", "Virtual safety car": "warn",
   "VSC ending": "warn", "Red flag": "bad" };
-let liveTimer = null;
+let liveTimer = null, liveListeners = null;
+let morph = null;   // idiomorph, fetched by the first live page while it draws; until then redraws replace the page
 
 async function liveView(id) {
   setNav("series");
   const s = BY_ID[id];
+  if (!morph) import("./idiomorph.js?v=1").then(m => { morph = m.Idiomorph.morph; }).catch(() => {});
+  // The first draw replaces the page; each 2 s refresh after it changes only what moved, so a scroll, a selection or a
+  // tap in progress survives the update.
+  let drawn = false;
+  const draw = html => {
+    if (drawn && morph) morph(view, html, { morphStyle: "innerHTML" });
+    else view.innerHTML = html;
+    drawn = true;
+  };
+  // Listeners sit on #view once per visit (not on the redrawn controls, which a morph keeps, so they'd pile up).
+  liveListeners?.abort();
+  const listeners = liveListeners = new AbortController();
   const render = async () => {
-    if (!location.hash.startsWith(`#/live/${id}`)) { clearInterval(liveTimer); liveTimer = null; return; }
+    if (!location.hash.startsWith(`#/live/${id}`)) {
+      clearInterval(liveTimer); liveTimer = null; listeners.abort(); return;
+    }
     const d = await api(`/api/live/${id}`).catch(() => ({}));
     if (!d.rows) {
-      view.innerHTML = `${backLink(`#/series/${id}`)}<h1>${chip(id)} ${esc(s?.name || id)}</h1><div class="empty">No live session right now. Timing connects 15 minutes before each session.</div>`;
+      draw(`${backLink(`#/series/${id}`)}<h1>${chip(id)} ${esc(s?.name || id)}</h1><div class="empty">No live session right now. Timing connects 15 minutes before each session.</div>`);
       return;
     }
     const mine = new Set(follows().map(f => normalise(f.name)));
     const isMine = r => [r.name, r.team, r.f1_team].some(n => n && mine.has(normalise(n)));
-    if (d.kind === "rally") { view.innerHTML = rallyLive(id, d, mine); bindRally(id); return; }
+    if (d.kind === "rally") { draw(rallyLive(id, d, mine)); return; }
     const race = d.kind === "race";
     const blank = v => (v === "." || v === "-" ? "" : v);
     d.rows.forEach(r => ["gap", "interval", "last", "best"].forEach(k => { r[k] = blank(r[k]); }));
-    view.innerHTML = `${backLink(`#/series/${id}`)}<h1>${chip(id)} ${esc(d.event)}</h1>
+    draw(`${backLink(`#/series/${id}`)}<h1>${chip(id)} ${esc(d.event)}</h1>
       <div class="live-bar">
         <span class="pill">${esc(d.session)}</span>
         ${d.lap ? `<span class="pill">Lap ${d.lap}${d.total_laps ? ` / ${d.total_laps}` : ""}</span>` : ""}
@@ -1278,9 +1293,18 @@ async function liveView(id) {
         </div>`;
         }).join("")}
       </div>
-      ${eventsPanel(id)}`;
-    bindEventsPanel(id);
+      ${eventsPanel(id)}`);
   };
+  const on = { signal: listeners.signal };
+  view.addEventListener("change", e => {
+    if (e.target.id !== "keyonly") return;
+    try { localStorage.setItem("liveKeyOnly", JSON.stringify(e.target.checked)); } catch { /* fine */ }
+    render();
+  }, on);
+  view.addEventListener("click", e => {
+    const b = e.target.closest("[data-rclass]");
+    if (b) { rallyFilter[id] = b.dataset.rclass; render(); }
+  }, on);
   clearInterval(liveTimer);
   await render();
   liveTimer = setInterval(() => { if (document.visibilityState === "visible") render(); }, 2000);
@@ -1302,12 +1326,6 @@ function eventsPanel(id) {
       <span class="slap">${e.lap ? `L${esc(e.lap)}` : esc(new Date(e.time).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }))}</span>
       <span class="pill ${EVENT_CLASS[e.kind] || ""}">${esc(EVENT_LABEL[e.kind] || e.kind)}</span>
       <span class="stext">${esc(e.text)}</span></div>`).join("") || `<div class="empty">No key moments yet.</div>`}</div>`;
-}
-function bindEventsPanel(id) {
-  view.querySelector("#keyonly")?.addEventListener("change", e => {
-    try { localStorage.setItem("liveKeyOnly", JSON.stringify(e.target.checked)); } catch { /* fine */ }
-    liveView(id);
-  });
 }
 
 // A rally is ~20 timed stages over several days: show where we are, the latest stage, and the overall order.
@@ -1338,12 +1356,6 @@ function rallyLive(id, d, mine) {
     <div class="card standings timing">${stageRows.length ? stageRows.map(r => row(r, r.time, r.gap)).join("") : `<div class="empty">No stage times yet.</div>`}</div>
     <h2>Overall</h2>
     <div class="card standings timing">${d.rows.filter(keep).map(r => row(r, r.pos === 1 ? r.total : r.gap, r.penalty ? `pen ${r.penalty}` : r.interval)).join("")}</div>`;
-}
-
-function bindRally(id) {
-  view.querySelectorAll("[data-rclass]").forEach(b => b.addEventListener("click", () => {
-    rallyFilter[id] = b.dataset.rclass; liveView(id);
-  }));
 }
 
 // ---- the Wire: news + race events ------------------------------------------------------
