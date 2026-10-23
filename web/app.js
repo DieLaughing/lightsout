@@ -2187,7 +2187,7 @@ async function route(quiet = false) {
   const navigated = !quiet && location.hash !== lastHash;   // a navigation, not a redraw of the same page
   if (!quiet) {
     const changed = lastHash !== null && location.hash !== lastHash;
-    pendingShot = changed && !SWAP && motionOn() && ME?.status === "approved" ? shotFrom(lastPage, page, lastHash || "", location.hash) : 0;
+    pendingShot = changed && !SWAP && !morphing && motionOn() && ME?.status === "approved" ? shotFrom(lastPage, page, lastHash || "", location.hash) : 0;
     lastHash = location.hash; lastPage = page;
     if (!SWAP) { setCompact(false); view.style.minHeight = ""; }   // an in-page switch leaves the bars and height as they are
     viewOff.abort();
@@ -2253,7 +2253,38 @@ async function route(quiet = false) {
   }
 }
 
-window.addEventListener("hashchange", () => { CAME_FROM_APP = true; if (!SWAP) window.scrollTo(0, 0); route(); });
+// ---- shared-element page changes (View Transitions; docs/motion.md) ------------------------------------------
+// What you tapped (a race name, the countdown card, a driver, a series) grows into the title of the page it opens,
+// and the title shrinks back into it on the way back. Progressive enhancement: without document.startViewTransition,
+// with motion off or with nothing on screen to morph, pages change as before. The browser shows the old page until
+// the new one is drawn (as the app already does while a page loads); one slower than MORPH_WAIT lands without it.
+const MORPH_WAIT = 800;
+const MORPH_PAGES = /^#\/(event|driver|team|series)\/[^/]+(\/[^/]+)?$/;   // pages whose h1 a link can grow into
+let morphing = false, lastTap = null;
+document.addEventListener("click", e => { lastTap = e.target.closest("a[href]"); }, true);
+const onScreen = el => { const r = el?.getBoundingClientRect(); return !!r && r.bottom > 0 && r.top < innerHeight && r.height > 0; };
+// The link on this page that opens `hash`: the one just tapped if it does, else the first one on screen.
+const linkFor = hash => [lastTap, ...view.querySelectorAll("a[href]")]
+  .find(a => a?.isConnected && a.getAttribute("href") === hash && view.contains(a) && onScreen(a));
+
+function navigate() {
+  CAME_FROM_APP = true;
+  const from = lastHash || "", to = location.hash;
+  const go = () => { if (!SWAP) window.scrollTo(0, 0); return route(); };
+  const toTitle = MORPH_PAGES.test(to), fromTitle = MORPH_PAGES.test(from) && !toTitle;
+  const old = SWAP || pageOf(from) === pageOf(to) ? null : toTitle ? linkFor(to) : fromTitle ? view.querySelector("h1") : null;
+  if (!old || !onScreen(old) || !document.startViewTransition || !motionOn() || ME?.status !== "approved") return go();
+  old.style.viewTransitionName = "hero";
+  const named = [old];
+  const vt = document.startViewTransition(async () => {
+    morphing = true;
+    try { await Promise.race([go(), new Promise(r => setTimeout(r, MORPH_WAIT))]); } finally { morphing = false; }
+    const next = toTitle ? view.querySelector("h1") : linkFor(from);
+    if (next && onScreen(next)) { next.style.viewTransitionName = "hero"; named.push(next); }
+  });
+  vt.finished.finally(() => named.forEach(el => { el.style.viewTransitionName = ""; }));
+}
+window.addEventListener("hashchange", navigate);
 route();
 setInterval(sendViews, 60000);
 // Coming back after a while counts as opening the app again; leaving sends what's been counted.
