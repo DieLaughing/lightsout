@@ -1,4 +1,5 @@
-"""Driver pages' extras: a photo and two lines from Wikipedia (any series), and an F1 career from Jolpica.
+"""Driver pages' extras: a photo and two lines from Wikipedia (any series), an F1 career from Jolpica, and for
+F1 ACADEMY drivers the series' own profile (bio, photo, backer, age), since few of them have a Wikipedia page.
 
 Nothing is kept per driver until someone opens their page (or follows them): there are thousands of drivers across
 the series, so profiles are built on demand, saved in the profile table and rebuilt after a day. A page never waits
@@ -17,6 +18,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import quote
 
+from . import f1a as f1a_roster
+from .adapters import f1academy
 from .adapters.base import _client, get_json
 from .db import Store
 from .follow import matches, normalise
@@ -77,6 +80,7 @@ def start(store: Store, name: str) -> None:
 async def _build(store: Store, name: str, key: str) -> None:
     old = (store.cached(key) or ({},))[0]
     try:
+        f1a = await _f1a(store, name, old.get("f1a"))
         f1_failed = None
         try:
             f1_id = await _f1_id(store, name)
@@ -84,10 +88,10 @@ async def _build(store: Store, name: str, key: str) -> None:
             f1_id, f1_failed = None, exc
         wiki = await _wiki(store, name, await _f1_title(store, f1_id) if f1_id else None)
         if f1_id or f1_failed:  # shown while the career (up to ~25 Jolpica requests the first time) comes in
-            store.save_cached(key, {"wiki": wiki, "f1": old.get("f1"), "partial": True})
+            store.save_cached(key, {"wiki": wiki, "f1a": f1a, "f1": old.get("f1"), "partial": True})
         if f1_failed:
             raise f1_failed
-        store.save_cached(key, {"wiki": wiki, "f1": await _f1_career(store, f1_id) if f1_id else None})
+        store.save_cached(key, {"wiki": wiki, "f1a": f1a, "f1": await _f1_career(store, f1_id) if f1_id else None})
     except Exception as exc:  # a source being down: keep what's saved, try again later
         log.warning("profile %s failed: %r", name, exc)
         _failed[key] = time.time()
@@ -171,6 +175,27 @@ async def _photo(url: str) -> str | None:
         tmp.write_bytes(r.content)
         tmp.replace(path)
     return f"/img/d/{file}"
+
+
+# ---- F1 ACADEMY (f1academy.com) --------------------------------------------------------------------
+def _sized(url: str) -> str:
+    """Cloudinary resizes on the way out: a 240 px face crop instead of the ~200 KB original."""
+    return url.replace("/image/upload/", "/image/upload/c_fill,g_face,w_240,h_240/", 1)
+
+
+async def _f1a(store: Store, name: str, old: dict | None) -> dict | None:
+    """The series' own profile when `name` is on this season's F1 ACADEMY roster; what was saved if the site fails."""
+    d = f1a_roster.find(await f1a_roster.refresh(store), name)
+    if not d:
+        return None
+    try:
+        p = await f1academy.profile(d["id"])
+        p["photo"] = await _photo(_sized(p["photo"])) if p["photo"] else None
+    except Exception as exc:
+        log.warning("F1 Academy profile %s failed: %r", name, exc)
+        return old
+    p["f1_team"] = f1a_roster.f1_team(p["backer"])
+    return p
 
 
 # ---- F1 (Jolpica) ----------------------------------------------------------------------------------
@@ -266,6 +291,7 @@ async def loop(store: Store) -> None:
     """Followed drivers' pages are ready before anyone opens them."""
     while True:
         try:
+            await f1a_roster.refresh(store)  # backers and wild cards on timing, standings and event pages
             names = {f["name"] for s in store.approved_settings().values() for f in s.get("follows") or [] if f.get("name")}
             await warm(store, sorted(names))
         except Exception:

@@ -14,6 +14,7 @@ import urllib.request
 
 import websockets
 
+from ..adapters.f1academy import WILDCARD
 from .events import EventLog, car_numbers, classify, short_hash, tidy
 from .f1 import merge
 
@@ -26,6 +27,11 @@ SOURCES = {
 }
 FEEDS = ["data", "statsfeed", "weatherfeed", "sessionfeed", "trackfeed", "commentaryfeed", "timefeed", "racedetailsfeed"]
 TRACK = {"1": "Green", "2": "Yellow", "4": "Safety car", "5": "Red flag", "6": "Virtual safety car", "7": "VSC ending"}
+
+
+def _name(d: dict) -> str:
+    """'ALEXIA DANIELSSON (WCD)' -> 'Alexia Danielsson': the wild-card mark is a flag on the row, not part of the name."""
+    return " ".join(WILDCARD.sub("", d.get("FullName") or "").split()).title()
 
 
 def _v(x) -> str:
@@ -52,7 +58,7 @@ class FiaState:
 
     def _driver(self, num: str) -> str:
         d = (self.lines.get(str(num)) or {}).get("driver") or {}
-        return (d.get("FullName") or "").title() or f"#{num}"
+        return _name(d) or f"#{num}"
 
     def _check_retirements(self) -> None:
         out = {n for n, l in self.lines.items() if (l.get("status") or {}).get("Retired") or (l.get("status") or {}).get("Stopped")}
@@ -118,6 +124,8 @@ class FiaState:
 
     def snapshot(self) -> dict:
         race = self.session == "Race"
+        # After the flag every car sits in the pits; "PIT" then says nothing and hid each car's gap.
+        over = self.status.lower().startswith(("final", "finish", "end", "complete"))
         rows = []
         for num, l in self.lines.items():
             d = l.get("driver") or {}
@@ -125,12 +133,13 @@ class FiaState:
             pos = _v(l.get("position"))
             rows.append({
                 "pos": int(pos) if str(pos).isdigit() else 99, "number": num,
-                "code": d.get("TLA") or num, "name": (d.get("FullName") or "").title(), "team": "", "colour": "",
+                "code": d.get("TLA") or num, "name": _name(d), "team": "", "colour": "",
+                "wildcard": bool(WILDCARD.search(d.get("FullName") or "")),
                 "gap": _v(l.get("gap")), "interval": _v(l.get("interval")),
                 "last": _v(l.get("last")), "best": _v(l.get("best")),
                 "laps": _v(l.get("laps")), "pits": int(_v(l.get("pits")) or 0) if str(_v(l.get("pits"))).isdigit() else 0,
                 "tyre": "",
-                "status": "OUT" if st.get("Retired") or st.get("Stopped") else "PIT" if st.get("InPit") else "",
+                "status": "OUT" if st.get("Retired") or st.get("Stopped") else "PIT" if st.get("InPit") and not over else "",
             })
         rows.sort(key=lambda r: r["pos"])
         laps = [int(r["laps"]) for r in rows if str(r["laps"]).isdigit()]

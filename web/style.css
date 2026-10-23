@@ -514,5 +514,17 @@ details.seasons table { width: 100%; border-collapse: collapse; font-size: 13.5p
 details.seasons th, details.seasons td { text-align: left; padding: 6px 12px; border-top: 1px solid var(--border); }
 details.seasons th { font-size: 12px; font-weight: 600; color: var(--muted); }
 details.seasons :is(th, td):nth-child(n+3) { text-align: right; }
+/* F1 ACADEMY: backer (an F1 team gets its colour as a dot), wild cards, pull quote, who to watch */
+.btag { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; font-style: normal; font-size: 11px;
+  font-weight: 600; color: var(--muted); vertical-align: 1px; }
+.btag.f1 { color: var(--text); }
+.btag.f1::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--bc, var(--muted)); }
+.btag.wild { padding: 0 5px; border-radius: 4px; background: var(--paid-bg); color: var(--paid-fg); }
+.backed { margin-top: 3px; }
+.backed .btag { margin-left: 2px; font-size: 12px; }
+.quote { margin: 8px 0; padding: 2px 0 2px 12px; border-left: 3px solid var(--border); font-style: italic; color: var(--muted); }
+details.more-bio summary { cursor: pointer; font-size: 13.5px; color: var(--muted); margin: 4px 0 8px; }
+.tstat { font-size: 10px; font-weight: 700; padding: 0 4px; border-radius: 3px; background: var(--paid-bg); color: var(--paid-fg); }
+.tstat.bad { background: #e10600; color: #fff; }
 .credit { margin-top: 18px; }
 .credit a { color: inherit; }
