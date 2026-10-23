@@ -5,6 +5,12 @@
 
 - date: 2026-10-23
   kind: improved
+  title: Smoother live timing
+  text: The live timing screen now changes only the times and positions that moved on each update, instead of redrawing the whole screen every two seconds. Scrolling, selecting text and tapping the filters no longer get interrupted mid-session.
+  link: "#/series/f1"
+
+- date: 2026-10-23
+  kind: improved
   title: Faster driver and event pages
   text: Driver, team and event pages now load several times faster behind the scenes. The app keeps the race grids and schedules ready in memory instead of looking them up again for every page.
   link: "#/"
