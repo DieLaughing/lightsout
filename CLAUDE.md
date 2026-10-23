@@ -55,7 +55,9 @@ Operating rules shared with the sibling app (standards, speed budget, shared par
 - In-page switches (data-swaps on the switch; standings series/tabs/classes, series tabs, Pick'em series and race
   arrows, Wire kinds/series): a capture-phase click on #view sets SWAP and lights the option at once; the hash change
   then skips scroll-to-top, the page animation and the bar reset, showLoading() stays away, and paint() morphs
-  (idiomorph) so heading and pickers stay put; .swap regions dim while data loads and fade up in place (settle()). A
+  (idiomorph) so heading and pickers stay put; .swap regions dim while data loads and cross-fade back (settle(), no
+  movement: a 6 px rise read as a bounce). #view keeps its height (min-height) until the next real page, so a shorter
+  table can't pull the scroll up; scrollRowTo() scrolls the series row sideways only (scrollIntoView moved the page). A
   tap that never redraws un-dims after 4 s. Those pages bind listeners per draw with listen() (a morph keeps
   elements, so per-draw listeners would pile up).
 - Search (#/search, web/app.js searchView): series, drivers, teams (/api/names) and tracks (/api/tracks, with the next

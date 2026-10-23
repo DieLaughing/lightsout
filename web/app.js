@@ -299,9 +299,16 @@ function paint(html) {
   if (SWAP) settle();
 }
 
+// Brings a switch's option into view sideways only (scrollIntoView would move the whole page up or down too).
+function scrollRowTo(opt) {
+  const row = opt?.parentElement;
+  if (!row || (opt.offsetLeft >= row.scrollLeft && opt.offsetLeft + opt.offsetWidth <= row.scrollLeft + row.clientWidth)) return;
+  row.scrollLeft = opt.offsetLeft - (row.clientWidth - opt.offsetWidth) / 2;
+}
+
 // In-page switches (another series, tab, class or filter on the same page; marked data-swaps): the page stays put —
 // no slide, no jump to the top. The tapped option lights up (and its pill slides) straight away, the part that
-// changes (.swap) dims while its data loads, then idiomorph swaps in only what changed and it fades up in place.
+// changes (.swap) dims while its data loads, then idiomorph swaps in only what changed and it fades back in place.
 let SWAP = false, swapTimer = null;
 const SWAP_PAGES = new Set(["standings", "picks", "wire"]);
 const pageOf = hash => {
@@ -314,6 +321,7 @@ view.addEventListener("click", e => {
   if (!opt || opt.classList.contains("active") || (href?.startsWith("#") && pageOf(href) !== pageOf(location.hash))) return;
   SWAP = true;
   loadMorph();
+  view.style.minHeight = `${view.offsetHeight}px`;   // a shorter table mustn't pull the page up; cleared on the next page
   if (opt.parentElement.matches(`${SWITCHES}, .chips`)) {
     opt.parentElement.querySelectorAll(":scope > .active").forEach(x => x.classList.remove("active"));
     opt.classList.add("active");
@@ -327,8 +335,7 @@ function settle() {
   SWAP = false;
   for (const el of view.querySelectorAll(".swap")) {
     el.classList.remove("swapping");
-    if (motionOn()) el.animate([{ opacity: .45, transform: "translate3d(0, 6px, 0)" }, { opacity: 1, transform: "none" }],
-      { duration: 240, easing: "cubic-bezier(.2, .9, .3, 1)" });
+    if (motionOn()) el.animate([{ opacity: .45 }, { opacity: 1 }], { duration: 200, easing: "ease-out" });   // no movement: it read as a bounce
   }
 }
 // Pages that paint() put their listeners on #view, not on controls (a morph keeps controls, so theirs would pile up):
@@ -1102,7 +1109,7 @@ async function standingsView(id, tab) {
     <div class="tabs" role="tablist" data-swaps>${tabs.map(([t, label]) =>
       `<a role="tab" href="#/standings/${id}/${t}" class="${t === tab ? "active" : ""}" aria-selected="${t === tab}">${label}</a>`).join("")}</div>
     <div class="swap">${standingsBody(id, tab, st)}</div>`);
-  view.querySelector(".series-pick a.active")?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  scrollRowTo(view.querySelector(".series-pick a.active"));
   wireClassPicker(() => standingsView(id, tab));
 }
 const seriesClass = {};  // picked support championship per series (e.g. WRC2), for this page visit
@@ -2182,7 +2189,7 @@ async function route(quiet = false) {
     const changed = lastHash !== null && location.hash !== lastHash;
     pendingShot = changed && !SWAP && motionOn() && ME?.status === "approved" ? shotFrom(lastPage, page, lastHash || "", location.hash) : 0;
     lastHash = location.hash; lastPage = page;
-    if (!SWAP) setCompact(false);   // an in-page switch leaves the bars as they are
+    if (!SWAP) { setCompact(false); view.style.minHeight = ""; }   // an in-page switch leaves the bars and height as they are
     viewOff.abort();
   }
   try {
