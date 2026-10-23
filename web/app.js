@@ -283,6 +283,24 @@ function showLoading(text) {
   setTimeout(() => { if (view.firstElementChild === before) view.innerHTML = `<div class="empty">${text}</div>`; }, 350);
 }
 
+// idiomorph (web/idiomorph.js) lets a redraw change only what moved. Fetched after startup or by the live page; until it
+// lands, redraws replace the page as before.
+let morph = null;
+const loadMorph = () => morph || import("./idiomorph.js?v=1").then(m => { morph = m.Idiomorph.morph; }).catch(() => {});
+// An opened or closed <details> stays the way the person left it.
+const MORPH = { morphStyle: "innerHTML",
+  callbacks: { beforeAttributeUpdated: (name, el) => !(name === "open" && el.tagName === "DETAILS") } };
+// Quiet redraws (route(true): fresher data, a profile part landing, Home's minute tick) change only what moved, so an
+// open section, a scroll or a tap in progress survives; navigations replace the page.
+function paint(html) {
+  if (QUIET_ROUTE && morph) morph(view, html, MORPH);
+  else view.innerHTML = html;
+}
+// Pages that paint() put their listeners on #view, not on controls (a morph keeps controls, so theirs would pile up):
+// each draw takes a fresh set, and every navigation drops the last page's.
+let viewOff = new AbortController();
+function listen() { viewOff.abort(); viewOff = new AbortController(); return { signal: viewOff.signal }; }
+
 function setNav(name) {
   document.querySelectorAll("[data-nav]").forEach(a => a.classList.toggle("active", a.dataset.nav === name));
   movePill();
@@ -403,13 +421,6 @@ function countdown(upcoming, followed) {
 
 let BANNER = "";   // the home banner's last text, so a redraw doesn't make the page jump while it's re-checked
 const bannerHtml = b => b ? `<div class="getapp"><div>${b}</div><a class="btn primary" href="#/app">Show me how</a><button class="link x" id="hidebanner" aria-label="Hide">✕</button></div>` : "";
-function bindBanner(root) {
-  root.querySelector("#hidebanner")?.addEventListener("click", () => {
-    try { localStorage.setItem("getappHidden", "true"); } catch { /* fine */ }
-    BANNER = "";
-    view.querySelector(".getapp")?.remove();
-  });
-}
 
 async function homeView() {
   setNav("home");
@@ -452,24 +463,27 @@ async function homeView() {
   html += `<div id="upcoming">${upcomingList(upcoming, followed, today)}</div>`;
   // The get-the-app / alerts banner never holds the page up (checking alerts can wait up to 2 s for the service
   // worker): the slot shows the last answer at once and updates when the check is done.
-  view.innerHTML = `<div id="getapp-slot">${bannerHtml(BANNER)}</div>` + newBanner() + html;
+  paint(`<div id="getapp-slot">${bannerHtml(BANNER)}</div>` + newBanner() + html);
   getAppBanner().catch(() => "").then(b => {
     if (local("getappHidden", false)) b = "";   // dismissed while the check was waiting on the service worker
     const slot = view.querySelector("#getapp-slot");
     if (b === BANNER && slot?.childElementCount === (b ? 1 : 0)) return;
     BANNER = b;
-    if (slot) { slot.innerHTML = bannerHtml(b); bindBanner(slot); }
+    if (slot) slot.innerHTML = bannerHtml(b);
   });
-  bindBanner(view);
-  view.querySelector("#newbar-x")?.addEventListener("click", e => { e.target.closest(".newbar")?.remove(); markChangesSeen(); });
-  view.querySelectorAll("[data-dismiss]").forEach(b => b.addEventListener("click", e => {
-    e.stopPropagation(); store.set("dismissed", [...dismissed(), b.dataset.dismiss]); homeView();
-  }));
-  // The whole card opens the driver page; its buttons (dismiss) and links keep their own job.
-  view.querySelectorAll(".hero[data-href]").forEach(c => c.addEventListener("click", e => {
-    if (!e.target.closest("a, button")) location.hash = c.dataset.href;
-  }));
-  wireFilters(upcoming, followed, today);
+  const on = listen();
+  view.addEventListener("click", e => {
+    const t = e.target, dismiss = t.closest("[data-dismiss]"), card = t.closest(".hero[data-href]");
+    if (t.closest("#hidebanner")) {
+      try { localStorage.setItem("getappHidden", "true"); } catch { /* fine */ }
+      BANNER = "";
+      view.querySelector(".getapp")?.remove();
+    } else if (t.closest("#newbar-x")) { t.closest(".newbar")?.remove(); markChangesSeen(); }
+    else if (dismiss) { store.set("dismissed", [...dismissed(), dismiss.dataset.dismiss]); homeView(); }
+    // The whole card opens the driver page; its buttons (dismiss) and links keep their own job.
+    else if (card && !t.closest("a, button")) location.hash = card.dataset.href;
+  }, on);
+  wireFilters(upcoming, followed, today, on);
 }
 
 // ---- Upcoming filters (remembered per device) ------------------------------------
@@ -563,7 +577,7 @@ function upcomingList(upcoming, followed, today) {
     if (!groups.has(d)) groups.set(d, []);
     groups.get(d).push(s);
   }
-  let html = f.near && home() ? `<div id="near-tracks"></div>` : "";
+  let html = f.near && home() ? `<div id="near-tracks">${NEAR_BOX}</div>` : "";
   html += filtersOn(f) ? `<p class="muted small filter-count">Showing ${shown.length} of ${upcoming.length} sessions ·
     <button class="link" id="f-clear">Clear filters</button></p>` : "";
   if (!upcoming.length) html += `<div class="empty">Nothing scheduled in the next 60 days for your series.</div>`;
@@ -574,7 +588,7 @@ function upcomingList(upcoming, followed, today) {
   return html;
 }
 
-function wireFilters(upcoming, followed, today) {
+function wireFilters(upcoming, followed, today, on) {
   const bar = view.querySelector("#filters"), list = view.querySelector("#upcoming");
   const redraw = () => {
     const f = upFilters();
@@ -590,9 +604,10 @@ function wireFilters(upcoming, followed, today) {
     act.hidden = open || !n;
     list.innerHTML = upcomingList(upcoming, followed, today);
     nearTracks(list);
-    list.querySelector("#f-clear")?.addEventListener("click", () => { saveUpFilters({ ...NO_FILTERS }); redraw(); });
   };
-  bar?.addEventListener("click", e => {
+  view.addEventListener("click", e => {
+    if (e.target.closest("#f-clear")) { saveUpFilters({ ...NO_FILTERS }); redraw(); return; }
+    if (!bar?.contains(e.target)) return;
     if (e.target.closest("#f-toggle")) {
       const open = !filtersOpen();
       try { localStorage.setItem("filtersOpen", JSON.stringify(open)); } catch { /* fine */ }
@@ -609,13 +624,13 @@ function wireFilters(upcoming, followed, today) {
     else f[g] = f[g].includes(v) ? f[g].filter(x => x !== v) : [...f[g], v];
     saveUpFilters(f);
     redraw();
-  });
-  list.querySelector("#f-clear")?.addEventListener("click", () => { saveUpFilters({ ...NO_FILTERS }); redraw(); });
+  }, on);
   nearTracks(list);
 }
 
 // With Near me on: every track in range with its next race, from ANY series (not just the ones switched on),
 // because "what can I drive to?" shouldn't depend on what you follow.
+let NEAR_BOX = "";   // the last answer, drawn at once so a redraw doesn't blank the box
 async function nearTracks(list) {
   const box = list.querySelector("#near-tracks");
   if (!box) return;
@@ -627,6 +642,7 @@ async function nearTracks(list) {
       <div class="small" style="text-align:right">${chip(t.next.series)}<div class="muted">${esc(shortDate(t.next.start_day))}</div></div></a>`).join("")}</div>`
     : `<div class="card"><div class="empty">No races at tracks within ${distLabel(nearMiles())} for the rest of the season. <a href="#/settings/near">Change the distance</a>.</div></div>`}
     <h2 class="muted-h">Your series near you</h2>`;
+  NEAR_BOX = box.innerHTML;
 }
 
 async function seriesListView() {
@@ -1235,27 +1251,23 @@ async function renderFollowing(box, entries) {
 const TYRES = { S: "#e10600", M: "#f5c400", H: "#e8e8e8", I: "#2fb34a", W: "#2a7de1" };
 const TRACK_CLASS = { "Green": "ok", "Yellow": "warn", "Safety car": "warn", "Virtual safety car": "warn",
   "VSC ending": "warn", "Red flag": "bad" };
-let liveTimer = null, liveListeners = null;
-let morph = null;   // idiomorph, fetched by the first live page while it draws; until then redraws replace the page
+let liveTimer = null;
 
 async function liveView(id) {
   setNav("series");
   const s = BY_ID[id];
-  if (!morph) import("./idiomorph.js?v=1").then(m => { morph = m.Idiomorph.morph; }).catch(() => {});
+  loadMorph();
   // The first draw replaces the page; each 2 s refresh after it changes only what moved, so a scroll, a selection or a
   // tap in progress survives the update.
   let drawn = false;
   const draw = html => {
-    if (drawn && morph) morph(view, html, { morphStyle: "innerHTML" });
+    if (drawn && morph) morph(view, html, MORPH);
     else view.innerHTML = html;
     drawn = true;
   };
-  // Listeners sit on #view once per visit (not on the redrawn controls, which a morph keeps, so they'd pile up).
-  liveListeners?.abort();
-  const listeners = liveListeners = new AbortController();
   const render = async () => {
     if (!location.hash.startsWith(`#/live/${id}`)) {
-      clearInterval(liveTimer); liveTimer = null; listeners.abort(); return;
+      clearInterval(liveTimer); liveTimer = null; return;
     }
     const d = await api(`/api/live/${id}`).catch(() => ({}));
     if (!d.rows) {
@@ -1295,7 +1307,7 @@ async function liveView(id) {
       </div>
       ${eventsPanel(id)}`);
   };
-  const on = { signal: listeners.signal };
+  const on = listen();   // once per visit: the 2 s redraws keep these
   view.addEventListener("change", e => {
     if (e.target.id !== "keyonly") return;
     try { localStorage.setItem("liveKeyOnly", JSON.stringify(e.target.checked)); } catch { /* fine */ }
@@ -1433,7 +1445,7 @@ async function wireView() {
 // ---- driver and team pages ------------------------------------------------------------------
 async function personView(type, name) {
   setNav("wire");
-  showLoading(`Loading ${esc(name)}…`);
+  if (!QUIET_ROUTE) showLoading(`Loading ${esc(name)}…`);
   // Wire items are tagged with the grid's spelling; a follow may be typed differently or be a team.
   const personPath = `/api/person/${encodeURIComponent(name)}`;
   const tagFor = p => {
@@ -1477,7 +1489,7 @@ async function personView(type, name) {
   const outLinks = a ? [["F1 ACADEMY profile", a.url], ["Instagram", a.links?.instagram], ["YouTube", a.links?.youtube]].filter(([, u]) => u)
     .map(([k, u]) => `<a class="btn" href="${esc(u)}" target="_blank" rel="noopener">${k} ↗</a>`).join("") : "";
   const academy = p?.academy || [];
-  view.innerHTML = `${backLink("#/")}<div class="dhead">${photo ? `<img class="dphoto" src="${esc(photo)}" alt="" width="88" height="88">` : ""}
+  paint(`${backLink("#/")}<div class="dhead">${photo ? `<img class="dphoto" src="${esc(photo)}" alt="" width="88" height="88">` : ""}
       <div><h1>${esc(name)}</h1>${about ? `<div class="muted small">${esc(about)}</div>` : ""}
       ${a?.backer ? `<div class="small backed">Races in ${a.f1_team ? "the colours of " : ""}${backerTag({ ...a, wildcard: false })}${a.f1_team ? "" : " colours"}</div>` : ""}</div></div>
     <div class="person-head">${seriesIds.map(chip).join(" ")} <span class="muted small">${tagged === "team" ? "Team" : "Driver"}</span>
@@ -1500,13 +1512,14 @@ async function personView(type, name) {
     <h2>News and race events</h2>
     ${items.length ? `<div class="card">${items.map(wireItem).join("")}</div>` : `<div class="empty">Nothing in the last 30 days.</div>`}
     ${a ? `<p class="credit small muted">Photo and bio: <a href="${esc(a.url)}" target="_blank" rel="noopener">F1 ACADEMY</a>${w ? ` · More: <a href="${esc(w.url)}" target="_blank" rel="noopener">Wikipedia</a>` : ""}</p>`
-      : w ? `<p class="credit small muted">${w.credit ? `Photo: <a href="${esc(w.credit.url)}" target="_blank" rel="noopener">${esc(w.credit.author || "Wikimedia Commons")}</a>${w.credit.license ? `, ${esc(w.credit.license)}` : ""} · ` : ""}About: <a href="${esc(w.url)}" target="_blank" rel="noopener">Wikipedia</a>${prof.f1 ? " · F1 stats: Jolpica" : ""}</p>` : ""}`;
+      : w ? `<p class="credit small muted">${w.credit ? `Photo: <a href="${esc(w.credit.url)}" target="_blank" rel="noopener">${esc(w.credit.author || "Wikimedia Commons")}</a>${w.credit.license ? `, ${esc(w.credit.license)}` : ""} · ` : ""}About: <a href="${esc(w.url)}" target="_blank" rel="noopener">Wikipedia</a>${prof.f1 ? " · F1 stats: Jolpica" : ""}</p>` : ""}`);
   if (prof?.pending) waitForProfile(profilePath(p));
-  view.querySelector("#follow").addEventListener("click", () => {
+  view.addEventListener("click", e => {
+    if (!e.target.closest("#follow")) return;
     const l = follows();
     store.set("follows", followed ? l.filter(f => normalise(f.name) !== normalise(name)) : [...l, { name }]);
     loadFollowStatus().then(() => personView(type, name));
-  });
+  }, listen());
 }
 
 const ageOn = born => { const b = new Date(`${born}T12:00:00`), n = new Date();
@@ -1997,6 +2010,7 @@ async function route(quiet = false) {
     pendingShot = changed && motionOn() && ME?.status === "approved" ? shotFrom(lastPage, page, lastHash || "", location.hash) : 0;
     lastHash = location.hash; lastPage = page;
     setCompact(false);
+    viewOff.abort();
   }
   try {
     let early = null;   // first load: ask for the series, config and What's new alongside /api/me, not after it
@@ -2020,7 +2034,7 @@ async function route(quiet = false) {
         BY_ID = Object.fromEntries(SERIES.map(s => [s.id, s]));
         switchOnNewSeries();
         FOLLOW_FIRST = loadFollowStatus();   // home waits for it alongside its own data; other pages wait below
-        setTimeout(prefetch, 2500);
+        setTimeout(() => { prefetch(); loadMorph(); }, 2500);
       }
     }
     updateNewDot();

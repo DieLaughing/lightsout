@@ -5,8 +5,8 @@
 
 - date: 2026-10-23
   kind: improved
-  title: Smoother live timing
-  text: The live timing screen now changes only the times and positions that moved on each update, instead of redrawing the whole screen every two seconds. Scrolling, selecting text and tapping the filters no longer get interrupted mid-session.
+  title: Smoother live timing, Upcoming and driver pages
+  text: The live timing screen now changes only the times and positions that moved on each update, instead of redrawing the whole screen every two seconds. Scrolling, selecting text and tapping the filters no longer get interrupted mid-session. Upcoming's once-a-minute refresh works the same way, and on driver pages the photo and career now slot in as they arrive without closing anything you've opened.
   link: "#/series/f1"
 
 - date: 2026-10-23
