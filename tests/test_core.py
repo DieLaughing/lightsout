@@ -103,6 +103,19 @@ def test_erx_calendar_cards():
     assert ev.sessions[-1].name == "Semi-finals and final"
 
 
+def test_indycar_schedule_lone_and_placeholder_broadcasts():
+    from lightsout.adapters import indycar
+    race = {"eventid": "5559", "name": "Streets of St. Petersburg", "green_flag": "2027-03-07 05:00:00",
+            "green_flag_tbd_time": "1", "broadcasts": {"broadcast": {
+                "name": "NTT INDYCAR SERIES - Race", "start": "2027-03-07 05:00:00", "end": "2027-03-07 05:00:00"}}}
+    timed = {"eventid": "5560", "name": "Phoenix", "green_flag": "2027-03-13 19:00:00", "broadcasts": {"broadcast": {
+        "name": "NTT INDYCAR SERIES - Race", "start": "2027-03-13 19:00:00", "end": "2027-03-13 22:00:00"}}}
+    tba, real = indycar.parse_schedule({"schedule": {"race": [race, timed]}})
+    (s,) = tba.sessions
+    assert tba.key == "2027-5559" and s.name == "Race" and s.start is None and s.day == date(2027, 3, 7)
+    assert real.sessions[0].start.hour == 19 and real.sessions[0].end.hour == 22
+
+
 def test_standings_tables():
     from lightsout.adapters import formulae, indycar
     fe = ('<table><tr><th>POS</th><th>DRIVER</th><th>TEAM</th><th>PTS</th></tr>'
