@@ -22,9 +22,15 @@ def parse_schedule(data: dict) -> list[Event]:
     events = []
     for race in data["schedule"]["race"]:
         sessions = []
-        for b in (race.get("broadcasts") or {}).get("broadcast") or []:
+        tba = race.get("green_flag_tbd_time") == "1"
+        broadcasts = (race.get("broadcasts") or {}).get("broadcast") or []
+        if isinstance(broadcasts, dict):
+            broadcasts = [broadcasts]  # the feed comes from XML: a lone broadcast isn't wrapped in a list
+        for b in broadcasts:
             if not b["name"].startswith(PREFIX):
                 continue  # Indy NXT and support series share the feed
+            if tba and b["start"] == b.get("end"):
+                continue  # placeholder at midnight Eastern until the time is announced: green_flag below says TBA
             name = b["name"][len(PREFIX):]
             if name.lower().startswith("race"):
                 name = "Race"
@@ -32,7 +38,6 @@ def parse_schedule(data: dict) -> list[Event]:
                                     start=_utc(b["start"]), end=_utc(b["end"]) if b.get("end") else None))
         if not any(s.kind == RACE for s in sessions) and race.get("green_flag"):
             gf = _utc(race["green_flag"])
-            tba = race.get("green_flag_tbd_time") == "1"
             sessions.append(Session("race", "Race", RACE, start=None if tba else gf, day=gf.date() if tba else None))
         first = min((s.start or datetime.combine(s.day, datetime.min.time(), timezone.utc)) for s in sessions)
         events.append(Event(

@@ -3,6 +3,12 @@
 # After editing: `.venv/bin/python tools/changelog.py` rewrites CHANGELOG.md (a test checks they match),
 # and `.venv/bin/python tools/release.py` publishes the day's GitHub Release.
 
+- date: 2026-10-24
+  kind: fixed
+  title: IndyCar is back, with the 2027 calendar
+  text: IndyCar stopped updating on October 22, when IndyCar posted its 2027 schedule in a new shape. It's fixed, and all 17 races of 2027 are in, starting with St. Petersburg on March 7. Race times show as TBA until IndyCar announces them.
+  link: "#/series/indycar"
+
 - date: 2026-10-23
   kind: fixed
   title: The top and bottom bars sit right on iPhone
