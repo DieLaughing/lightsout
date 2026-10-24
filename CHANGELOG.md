@@ -3,6 +3,10 @@
 Every update to [Lights Out](https://github.com/DieLaughing/lightsout), newest first. The same list is on the app's What's new page.
 This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit that file, not this one.
 
+## October 24, 2026
+
+- **Fixed: IndyCar is back, with the 2027 calendar.** IndyCar stopped updating on October 22, when IndyCar posted its 2027 schedule in a new shape. It's fixed, and all 17 races of 2027 are in, starting with St. Petersburg on March 7. Race times show as TBA until IndyCar announces them.
+
 ## October 23, 2026
 
 - **Fixed: The top and bottom bars sit right on iPhone.** In the app saved to an iPhone home screen, the top bar no longer fades out under the Dynamic Island, and the clock now sits on a solid strip that matches the app. On short pages, the bottom bar sits flush with the bottom of the screen again. If you saved the app before today, delete its icon and add it to your home screen again to get the new top.
