@@ -3,6 +3,7 @@ uvicorn[standard]==0.54.0
 PyYAML==6.0.3
 curl_cffi==0.16.3
 websockets==17.2
+python-socks[asyncio]==2.8.2
 tzdata==2026.5
 PyJWT[crypto]==2.15.1
 pywebpush==2.5.0

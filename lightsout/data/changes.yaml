@@ -3,6 +3,12 @@
 # After editing: `.venv/bin/python tools/changelog.py` rewrites CHANGELOG.md (a test checks they match),
 # and `.venv/bin/python tools/release.py` publishes the day's GitHub Release.
 
+- date: 2026-10-25
+  kind: fixed
+  title: F1 live timing works again
+  text: F1's timing server started refusing to talk to the Lights Out server, so live timing stayed blank all through the US Grand Prix weekend. Lights Out now reaches it a different way, so live timing is back in time for Mexico. The "Official timing" button on F1 races is gone, because F1's own timing page now needs an F1 TV subscription.
+  link: "#/series/f1"
+
 - date: 2026-10-24
   kind: fixed
   title: IndyCar is back, with the 2027 calendar
