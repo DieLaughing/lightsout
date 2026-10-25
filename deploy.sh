@@ -27,7 +27,7 @@ ENV_ARGS=""
 for f in $ENV_FILES; do ENV_ARGS="$ENV_ARGS --env-file $f"; done
 
 rsync -a --delete --exclude .venv --exclude .git --exclude /data --exclude __pycache__ --exclude .pytest_cache \
-  --exclude .env --exclude 'deploy*.env' --exclude .cloudflare ./ "$HOST:$REMOTE_DIR/"
+  --exclude .env --exclude 'deploy*.env' --exclude .cloudflare --exclude '*.local.md' ./ "$HOST:$REMOTE_DIR/"
 
 ssh "$HOST" bash -s <<REMOTE
 set -euo pipefail

@@ -20,6 +20,8 @@ for people who use it", not perfection.
 
 ## Good things to know
 
+- **Read `docs/how-it-works.md` first.** It explains how every part works, where data comes from and the quirks of
+  each source.
 - **Using AI is fine.** Please run the app and the tests yourself before
   opening a pull request, and say in the PR what you checked.
 - **Be polite to data sources.** Keep refresh rates low, cache what you fetch, and never try to get around a site's

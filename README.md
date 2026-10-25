@@ -209,6 +209,7 @@ app is plain HTML/CSS/JS in `web/`.
 | `lightsout/data/*.yaml` | Hand-kept data: broadcasts, tickets, team aliases, manual schedules, What's new |
 | `lightsout/refresh.py` | Refreshes each series daily, hourly in race weeks |
 | `web/` | The installable web app |
+| `docs/how-it-works.md` | How every part works, where data comes from and each source's quirks |
 
 ## Contributing
 
