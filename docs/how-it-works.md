@@ -226,7 +226,9 @@ How the app moves (what animates, what must hold still, timings, rules for new U
 
 ## Live timing
 - lightsout/live/: hub connects 15 min before a session, drops 45 min after. F1 = SignalR Core at livetiming.formula1.com
-  (no login). Test with an archived session: LIGHTSOUT_REPLAY_F1=<dir of .jsonStream files> LIGHTSOUT_REPLAY_SPEED=30
+  (no login). Its CDN returns 403 to datacenter IPs, so a server sets LIGHTSOUT_F1_PROXY (socks5h://host:port, via
+  python-socks) to send just this feed out through a home connection, e.g. an `ssh -R <port>` reverse SOCKS tunnel
+  from a home machine. F1's own timing page needs F1 TV, so F1 has no "Official timing" link. Test with an archived session: LIGHTSOUT_REPLAY_F1=<dir of .jsonStream files> LIGHTSOUT_REPLAY_SPEED=30
   LIGHTSOUT_REPLAY_SKIP=<seconds>; archives at livetiming.formula1.com/static/<Path from Index.json>.
 - F2, F3, F1 Academy: ASP.NET SignalR hub "Streaming" (GetData2/JoinFeeds with series "F2"/"F3"/"F1 Academy");
   F2+F3 at ltss.fiaformula2.com/streaming, F1A at f2f3-prod-livetiming.azurewebsites.net/streaming. No tyres/teams.

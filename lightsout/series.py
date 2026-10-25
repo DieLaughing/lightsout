@@ -17,7 +17,7 @@ class Series:
 
 
 SERIES = [
-    Series("f1", "Formula 1", "F1", "laps", "#e10600", "f1", category="single", site="https://www.formula1.com", timing="https://www.formula1.com/en/timing/f1-live"),
+    Series("f1", "Formula 1", "F1", "laps", "#e10600", "f1", category="single", site="https://www.formula1.com"),
     Series("f2", "FIA Formula 2", "F2", "laps", "#0090d0", "fia_feeder", category="single", site="https://www.fiaformula2.com", timing="https://www.fiaformula2.com/livetiming/index.html"),
     Series("f3", "FIA Formula 3", "F3", "laps", "#e4007c", "fia_feeder", category="single", site="https://www.fiaformula3.com", timing="https://www.fiaformula3.com/livetiming/index.html"),
     Series("f1a", "F1 Academy", "F1A", "laps", "#7b3fe4", "f1academy", category="single", site="https://www.f1academy.com", timing="https://www.f1academy.com/livetiming/index.html"),

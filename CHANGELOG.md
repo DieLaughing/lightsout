@@ -3,6 +3,10 @@
 Every update to [Lights Out](https://github.com/DieLaughing/lightsout), newest first. The same list is on the app's What's new page.
 This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit that file, not this one.
 
+## October 25, 2026
+
+- **Fixed: F1 live timing works again.** F1's timing server started refusing to talk to the Lights Out server, so live timing stayed blank all through the US Grand Prix weekend. Lights Out now reaches it a different way, so live timing is back in time for Mexico. The "Official timing" button on F1 races is gone, because F1's own timing page now needs an F1 TV subscription.
+
 ## October 24, 2026
 
 - **Fixed: IndyCar is back, with the 2027 calendar.** IndyCar stopped updating on October 22, when IndyCar posted its 2027 schedule in a new shape. It's fixed, and all 17 races of 2027 are in, starting with St. Petersburg on March 7. Race times show as TBA until IndyCar announces them.

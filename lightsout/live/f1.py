@@ -1,24 +1,29 @@
 """F1 live timing from F1's own SignalR Core feed (livetiming.formula1.com), no login needed
 for the core timing topics. The same topics are archived after each session as
 `<topic>.jsonStream` files, which `replay()` plays back for testing.
+
+F1's CDN refuses datacenter IPs, so on a server set LIGHTSOUT_F1_PROXY (e.g. socks5h://host:1080) to reach
+the feed through a home connection. Only this feed uses it.
 """
 from __future__ import annotations
 
 import asyncio
 import json
 import logging
+import os
 import time
 import urllib.parse
-import urllib.request
 from pathlib import Path
 
 import websockets
+from curl_cffi import requests as http
 
 from .events import EventLog, car_numbers, classify, short_hash, tidy
 
 log = logging.getLogger("lightsout.live.f1")
 
 BASE = "https://livetiming.formula1.com"
+PROXY = os.environ.get("LIGHTSOUT_F1_PROXY") or None
 RS = "\x1e"  # SignalR record separator
 TOPICS = ["Heartbeat", "SessionInfo", "SessionStatus", "DriverList", "TimingData", "TimingAppData",
           "TrackStatus", "LapCount", "RaceControlMessages", "ExtrapolatedClock"]
@@ -192,11 +197,9 @@ class F1State:
 
 
 def _negotiate() -> tuple[str, list[str]]:
-    req = urllib.request.Request(f"{BASE}/signalrcore/negotiate?negotiateVersion=1", method="POST", data=b"")
-    with urllib.request.urlopen(req, timeout=15) as r:
-        token = json.load(r)["connectionToken"]
-        cookies = [c.split(";")[0] for c in r.headers.get_all("Set-Cookie") or []]
-    return token, cookies
+    r = http.post(f"{BASE}/signalrcore/negotiate?negotiateVersion=1", data=b"", proxy=PROXY, timeout=15)
+    r.raise_for_status()
+    return r.json()["connectionToken"], [f"{k}={v}" for k, v in r.cookies.items()]
 
 
 async def run(state: F1State, stop: asyncio.Event) -> None:
@@ -207,11 +210,12 @@ async def run(state: F1State, stop: asyncio.Event) -> None:
             token, cookies = await asyncio.to_thread(_negotiate)
             url = f"wss://livetiming.formula1.com/signalrcore?id={urllib.parse.quote(token)}"
             headers = {"Cookie": "; ".join(cookies)} if cookies else None
-            async with websockets.connect(url, additional_headers=headers, max_size=None, open_timeout=20) as ws:
+            async with websockets.connect(url, additional_headers=headers, max_size=None, open_timeout=20,
+                                          proxy=PROXY) as ws:
                 await ws.send(json.dumps({"protocol": "json", "version": 1}) + RS)
                 await ws.send(json.dumps({"type": 1, "invocationId": "1", "target": "Subscribe",
                                           "arguments": [TOPICS]}) + RS)
-                log.info("connected to F1 live timing")
+                log.info("connected to F1 live timing%s", " via proxy" if PROXY else "")
                 delay = 2
                 while not stop.is_set():
                     try:
