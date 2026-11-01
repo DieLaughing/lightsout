@@ -23,6 +23,10 @@ How the two apps move. This file is identical in both repos: change it in both i
 | Labels and icons being picked | Colour cross-fade | 160 ms |
 | Toast | Springs out from the middle, shrinks away | 450 ms `cubic-bezier(.3, 1.35, .5, 1)` in, 200 ms out |
 | Loading | "Loading…" only after 350 ms. An in-page switch keeps the dimmed old content instead | |
+| A goal arrives while you're watching (Shots on Goal) | The number rolls up 26 px and a red beacon sweeps what it's on: the jumbotron, the score strip once that's scrolled away, or the game's card. Never when a score goes down, or on a page that just opened | Roll 340 ms, lamp 1.6 s (the one thing allowed past 600 ms: it's a celebration, and nothing waits for it) |
+| Replay (Shots on Goal) | Shots fill in on the rink under the puck you're dragging, or over about 20 s when you press play, with a 600 ms beat and the lamp on each goal. You started it, so the time limit doesn't apply; the page holds still and a touch stops it | |
+| What if? (Shots on Goal) | Table rows glide to their new places, whole pixels, even between tables | 340 ms `cubic-bezier(.3, 1.2, .5, 1)` |
+| Flick your picks (Shots on Goal) | The puck follows the finger, then flies to the picked logo; too small a flick springs back; the next game fades in | Fly 260 ms, spring back 260 ms `cubic-bezier(.3, 1.4, .5, 1)`, fade 200 ms |
 | Opening something from what you tapped (Shots on Goal: a game card opens the game page; Lights Out: a race, driver, team or series opens its page) | What you tapped grows into the page's header or title and shrinks back on the way back (View Transitions); the rest cross-fades, no Rise | 340 ms `cubic-bezier(.2, .9, .3, 1)`, page cross-fade 200 ms |
 
 ## Rules for new UI
@@ -64,6 +68,7 @@ and Firefox 144 (Zen and other Firefox builds follow Firefox). Rules:
 - in-page switches, tapped while scrolled down, move nothing by more than 1 px (scroll position, heading, the switch);
 - every visible switch's pill ends up under its picked option;
 - tapping a card plays its morph (where the browser has View Transitions), lands on the page and leaves no
-  transition name behind.
+  transition name behind;
+- (Shots on Goal) Replay, What if? and Flick your picks work when driven by hand and leave the page as they found it.
 
 Anything new that moves is also tried by eye on staging, in Chromium and in a Firefox-based browser.
