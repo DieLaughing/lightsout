@@ -25,6 +25,8 @@ How the two apps move. This file is identical in both repos: change it in both i
 | Loading | "Loading…" only after 350 ms. An in-page switch keeps the dimmed old content instead | |
 | A goal arrives while you're watching (Shots on Goal) | The number rolls up 26 px and a red beacon sweeps what it's on: the jumbotron, the score strip once that's scrolled away, or the game's card. Never when a score goes down, or on a page that just opened | Roll 340 ms, lamp 1.6 s (the one thing allowed past 600 ms: it's a celebration, and nothing waits for it) |
 | Replay (Shots on Goal) | Shots fill in on the rink under the puck you're dragging, or over about 20 s when you press play, with a 600 ms beat and the lamp on each goal. You started it, so the time limit doesn't apply; the page holds still and a touch stops it | |
+| Game story (Shots on Goal) | Swiping moves the moments; the jumbotron holds still, its number rolls and the lamp sweeps on each goal you reach going forward, never going back. You started it, so the time limit doesn't apply | Roll and lamp as for a goal |
+| Live dock (Shots on Goal) | It appears and leaves with no slide. It fades aside while the game's own card is on screen. The lamp sweeps it on a goal | 160 ms, opacity and 8 px |
 | What if? (Shots on Goal) | Table rows glide to their new places, whole pixels, even between tables | 340 ms `cubic-bezier(.3, 1.2, .5, 1)` |
 | Flick your picks (Shots on Goal) | The puck follows the finger, then flies to the picked logo; too small a flick springs back; the next game fades in | Fly 260 ms, spring back 260 ms `cubic-bezier(.3, 1.4, .5, 1)`, fade 200 ms |
 | Opening something from what you tapped (Shots on Goal: a game card opens the game page; Lights Out: a race, driver, team or series opens its page) | What you tapped grows into the page's header or title and shrinks back on the way back (View Transitions); the rest cross-fades, no Rise | 340 ms `cubic-bezier(.2, .9, .3, 1)`, page cross-fade 200 ms |
@@ -69,6 +71,6 @@ and Firefox 144 (Zen and other Firefox builds follow Firefox). Rules:
 - every visible switch's pill ends up under its picked option;
 - tapping a card plays its morph (where the browser has View Transitions), lands on the page and leaves no
   transition name behind;
-- (Shots on Goal) Replay, What if? and Flick your picks work when driven by hand and leave the page as they found it.
+- (Shots on Goal) Replay, What if?, Flick your picks, Game story, the season ribbon, Compare and the live dock work when driven by hand and leave the page as they found it.
 
 Anything new that moves is also tried by eye on staging, in Chromium and in a Firefox-based browser.
