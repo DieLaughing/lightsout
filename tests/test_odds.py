@@ -1,8 +1,12 @@
 import importlib.util
 import json
 import os
+import sys
+import types
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+import pytest
 
 from lightsout import odds
 
@@ -23,6 +27,37 @@ def test_fetcher_parses_a_league():
                                        {"name": "Joey Logano", "american": "+1100", "pct": 8.3}]
     assert fetcher.series_for("NASCAR Cup Series") == "cup" and fetcher.series_for("NASCAR Cup Series Championship") is None
     assert fetcher.series_for("NHRA Drag Racing") is None
+
+
+class _Reply:
+    def __init__(self, status, body):
+        self.status_code, self.text, self.content = status, body, body.encode()
+
+    def json(self):
+        return json.loads(self.text)
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise RuntimeError(f"HTTP {self.status_code}")
+
+
+def _draftkings_says(monkeypatch, status, body):
+    fake = types.SimpleNamespace(requests=types.SimpleNamespace(get=lambda *a, **k: _Reply(status, body)))
+    monkeypatch.setitem(sys.modules, "curl_cffi", fake)
+
+
+def test_no_motorsport_markets_listed_is_an_empty_result(monkeypatch):
+    _draftkings_says(monkeypatch, 404, json.dumps({"errorStatus": {
+        "code": "SHERPA-404-002", "developerMessage": "There are no leagues for this siteName: dkusnj and this sport: 14"}}))
+    log = {"requests": [], "uploads": []}
+    assert fetcher.fetch(log) == []
+    assert log["requests"][0]["status"] == 404
+
+
+def test_any_other_404_is_still_a_failure(monkeypatch):
+    _draftkings_says(monkeypatch, 404, '{"errorStatus":{"code":"SOMETHING-ELSE"}}')
+    with pytest.raises(RuntimeError):
+        fetcher.fetch({"requests": [], "uploads": []})
 
 
 def _write(tmp_path, fetched):

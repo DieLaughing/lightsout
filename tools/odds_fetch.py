@@ -30,6 +30,7 @@ from pathlib import Path
 
 NAV = "https://sportsbook-nash.draftkings.com/api/sportscontent/navigation/dkusnj/v2/nav/sports/14?format=json"
 LEAGUE = "https://sportsbook-nash.draftkings.com/api/sportscontent/dkusnj/v1/leagues/{}"
+NO_LEAGUES = "SHERPA-404-002"  # the menu's 404 when no motorsport markets are listed (between races): nothing to show, not a fault
 # DraftKings league name -> Lights Out series (race leagues only; the "... Championship" futures are skipped).
 SERIES = [(re.compile(r"^Formula 1$"), "f1"), (re.compile(r"^NASCAR Cup Series$"), "cup"),
           (re.compile(r"^NASCAR O'Reilly"), "noaps"), (re.compile(r"^NASCAR Truck"), "truck"),
@@ -87,6 +88,8 @@ def fetch(log: dict) -> list[dict]:
             raise
         log["requests"].append({"url": url.rsplit("/", 1)[-1][:40], "status": r.status_code, "bytes": len(r.content),
                                 "ms": round((time.monotonic() - t) * 1000)})
+        if r.status_code == 404 and NO_LEAGUES in r.text:
+            return {}
         r.raise_for_status()
         return r.json()
 
