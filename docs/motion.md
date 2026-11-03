@@ -19,13 +19,18 @@ How the two apps move. This file is identical in both repos: change it in both i
 | Opening a different page (a tab, a game, a driver, a team) | Rise (default) or Slapshot, per device in Settings > Display | Rise: the page's blocks fade up 14 px, 340 ms each, 35 ms apart (first 8 stagger), the heading un-blurs. Slapshot: 280 ms slide with a small overshoot |
 | Switching within a page (series, tab, filter, class, Standings / Leaders) | **The page holds perfectly still**: scroll position, heading and switches don't move. Only the changing part cross-fades | Dims to 45% while its data loads, fades back in 200 ms. No transform |
 | Live and quiet refreshes | None: idiomorph changes only what moved | |
-| The highlight (tab bar and every switch) | Liquid pill: the leading edge reaches the new option first, the trailing edge follows, small overshoot | 380 ms. `cubic-bezier(.45, 0, .55, 1)`, then `cubic-bezier(.3, 1.3, .5, 1)` |
+| The highlight (every switch, the league switch in the menu too) | Liquid pill: the leading edge reaches the new option first, the trailing edge follows, small overshoot | 380 ms. `cubic-bezier(.45, 0, .55, 1)`, then `cubic-bezier(.3, 1.3, .5, 1)` |
 | Labels and icons being picked | Colour cross-fade | 160 ms |
 | Toast | Springs out from the middle, shrinks away | 450 ms `cubic-bezier(.3, 1.35, .5, 1)` in, 200 ms out |
 | Loading | "Loading…" only after 350 ms. An in-page switch keeps the dimmed old content instead | |
 | A goal arrives while you're watching (Shots on Goal) | The number rolls up 26 px and a red beacon sweeps what it's on: the jumbotron, the score strip once that's scrolled away, or the game's card. Never when a score goes down, or on a page that just opened | Roll 340 ms, lamp 1.6 s (the one thing allowed past 600 ms: it's a celebration, and nothing waits for it) |
 | Replay (Shots on Goal) | Shots fill in on the rink under the puck you're dragging, or over about 20 s when you press play, with a 600 ms beat and the lamp on each goal. You started it, so the time limit doesn't apply; the page holds still and a touch stops it | |
 | Game story (Shots on Goal) | Swiping moves the moments; the jumbotron holds still, its number rolls and the lamp sweeps on each goal you reach going forward, never going back. You started it, so the time limit doesn't apply | Roll and lamp as for a goal |
+| Menu (Shots on Goal) | Opening: the menu fades in and its pages rise 14 px into place, 30 ms apart; the button's two lines turn into a cross. Closing: fades out. The page under it holds still and can't scroll | Fade in 200 ms, rise 300 ms `cubic-bezier(.2, .9, .3, 1)`, fade out 160 ms, lines 200 ms |
+| Menu bar (Shots on Goal) | Scrolling down slides it off its edge (up, or down when it's at the bottom); any scroll up brings it back | 200 ms |
+| House lights (Shots on Goal) | The page changes colour at once; only the puck on the ruler cross-fades | 160 ms |
+| Dim at puck drop (Shots on Goal) | When your team's game starts (or ends) the whole screen cross-fades down to Lights out (or back up), like the arena; a toast says why. Turning it on with no game on plays it once as a preview | 1400 ms ease-in-out (view transition); none without one or with motion off |
+| Game cards / list (Shots on Goal) | Settings > Display swaps Tonight between team-colour cards and the compact list at once, no motion | none |
 | Live dock (Shots on Goal) | It appears and leaves with no slide. It fades aside while the game's own card is on screen. The lamp sweeps it on a goal | 160 ms, opacity and 8 px |
 | What if? (Shots on Goal) | Table rows glide to their new places, whole pixels, even between tables | 340 ms `cubic-bezier(.3, 1.2, .5, 1)` |
 | Flick your picks (Shots on Goal) | The puck follows the finger, then flies to the picked logo; too small a flick springs back; the next game fades in | Fly 260 ms, spring back 260 ms `cubic-bezier(.3, 1.4, .5, 1)`, fade 200 ms |
