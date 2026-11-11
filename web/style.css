@@ -648,7 +648,8 @@ a.item { text-decoration: none; color: inherit; }
   .wk-line li { grid-template-columns: 38px 74px 1fr; }
   .wk-watch { grid-column: 3; justify-self: start; margin: 2px 0 0; flex-wrap: wrap; white-space: normal; }
 }
-.wk-timing { margin-top: 10px; }
+.wk-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+.wk-react { margin-left: auto; font-size: 12.5px; color: var(--muted); }
 
 /* Driver pages: photo + Wikipedia lines, this season's cards, F1 career */
 .dhead { display: flex; align-items: center; gap: 14px; margin: 6px 0 10px; }
@@ -780,3 +781,29 @@ details.more-odds > summary { padding: 8px 12px; border-top: 1px solid var(--bor
 .dk-who small { font-size: 10px; font-weight: 800; color: var(--muted); }
 .dk-who i { font-style: normal; font-size: 11px; font-weight: 800; } .dk-who i.up { color: var(--free-fg); } .dk-who i.down { color: var(--lost-fg); }
 @media (prefers-reduced-motion: reduce) { .dock { transition: none; } .live-dot { animation: none; } }
+
+/* ---- Lights out: the start gantry (web/start.js) ----
+   Five pods of two lamps on black, as on the gantry; each comes on red with a glow, and they all go out together. */
+html.gantry-open, html.gantry-open body { overflow: hidden; }
+.gantry { position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+  padding: calc(24px + env(safe-area-inset-top)) calc(20px + var(--sr)) calc(24px + env(safe-area-inset-bottom)) calc(20px + var(--sl));
+  background: #07080a; color: #f3f4f6; outline: 0; touch-action: manipulation; user-select: none; -webkit-user-select: none; cursor: pointer;
+  animation: gt-in 220ms ease-out; }
+.gantry.closing { opacity: 0; transition: opacity 200ms ease-in; }
+@keyframes gt-in { from { opacity: 0; } }
+.gt-x { position: absolute; top: calc(14px + env(safe-area-inset-top)); right: calc(14px + var(--sr)); width: 40px; height: 40px; border-radius: 20px;
+  border: 0; background: rgba(255, 255, 255, .1); color: #fff; font-size: 16px; cursor: pointer; }
+.gt-label { font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #8b919c; text-align: center; }
+.gt-lights { display: flex; gap: clamp(8px, 2.5vw, 18px); padding: 14px clamp(10px, 3vw, 22px); border-radius: 14px; background: #16181c;
+  box-shadow: inset 0 0 0 1px #24272d; }
+.gt-lights span { display: flex; flex-direction: column; gap: clamp(6px, 1.8vw, 12px); padding: 8px; border-radius: 10px; background: #0d0e10; }
+.gt-lights i { width: clamp(30px, 11vw, 64px); aspect-ratio: 1; border-radius: 50%; background: #2a1517; box-shadow: inset 0 3px 8px rgba(0, 0, 0, .6); }
+.gt-lights span.on i { background: radial-gradient(circle at 40% 35%, #ff6a5c, #e10600 55%, #9e0400);
+  box-shadow: 0 0 22px 4px rgba(225, 6, 0, .55), inset 0 -3px 6px rgba(0, 0, 0, .25); }
+.gt-say { min-height: 64px; font-size: 15px; color: #b6bbc4; text-align: center; }
+.gt-say b { display: block; font-size: clamp(40px, 12vw, 76px); font-weight: 900; font-style: italic; letter-spacing: -.01em; text-transform: uppercase; color: #fff; line-height: 1; }
+.gt-say small { font-size: 18px; color: #8b919c; margin-left: 4px; }
+.gantry .gt-say:has(small) b { display: inline; font-style: normal; font-weight: 300; font-variant-numeric: tabular-nums; text-transform: none; }
+.gt-sub { min-height: 20px; font-size: 14px; color: #8b919c; text-align: center; }
+.gantry.jump .gt-say b { color: #ffcf33; }
+@media (prefers-reduced-motion: reduce) { .gantry { animation: none; } .gantry.closing { transition: none; } }

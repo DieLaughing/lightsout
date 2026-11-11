@@ -638,16 +638,19 @@ function weekendHero(sessions, followed, cards, feeds, today) {
   }).join("");
   const head = live
     ? `<div class="wk-now"><span class="live">LIVE</span> <b>${esc(s.name)}</b> is on now</div>`
-    : `<div class="wk-label">${esc(s.name)} starts in</div><div class="wk-count" data-until="${esc(s.start_utc)}">${untilParts(s.start_utc)}</div>`;
+    : `<div class="wk-label">${esc(s.name)} starts in</div><div class="wk-count" data-until="${esc(s.start_utc)}"${RACE_KINDS.has(s.kind) && followed.has(s.series)
+      ? ` data-start="${esc(`${s.series}|${s.event_key}|${s.key || s.name}`)}" data-start-label="${esc(`${BY_ID[s.series]?.short || ""} · ${s.event_name}`)}"` : ""}>${untilParts(s.start_utc)}</div>`;
   const mine = card ? `<div class="wk-mine"><b>${esc(card.name)}</b> · P${esc(card.pos)}${card.kind === "class" ? " in class" : ""} · ${pts(card.points)} pts${card.behind != null ? ` · −${pts(card.behind)} to the leader` : card.pos === 1 ? " · leading" : ""}</div>` : "";
   return `<section class="wk" style="--tc:${esc(colour)}">
     <div class="wk-top">${chip(s.series)}<span>${esc(s.place?.label || s.venue || "")}</span></div>
     <a class="ev-link wk-name" href="#/event/${esc(s.series)}/${encodeURIComponent(s.event_key)}">${esc(s.event_name)} ›</a>
     ${head}${mine}
     <ol class="wk-line">${line}</ol>
-    ${feed ? `<a class="btn wk-timing" href="#/live/${esc(s.series)}">Live timing →</a>` : ""}
+    <div class="wk-foot">${feed ? `<a class="btn wk-timing" href="#/live/${esc(s.series)}">Live timing →</a>` : ""}<button class="link wk-react" type="button" data-react>Test your start ›</button></div>
   </section>`;
 }
+// The start gantry (web/start.js): a race you follow starting now, or the reaction test from the weekend card.
+const lightsOut = opts => import("./start.js?v=1").then(m => m.play(opts)).catch(() => {});
 // One ticker for the countdown(s) on screen: every second, and it stops itself once they're gone.
 let tickTimer = 0;
 function startTicker() {
@@ -657,7 +660,15 @@ function startTicker() {
     if (!els.length) { clearInterval(tickTimer); tickTimer = 0; return; }
     if (document.hidden) return;
     for (const el of els) {
-      if (Date.parse(el.dataset.until) <= Date.now()) { clearInterval(tickTimer); tickTimer = 0; route(true); return; }   // it's started: redraw as live
+      if (Date.parse(el.dataset.until) <= Date.now()) {   // it's started: the lights go out (a race you follow, once), then Home redraws as live
+        clearInterval(tickTimer); tickTimer = 0;
+        if (el.dataset.start && local("started", "") !== el.dataset.start) {
+          try { localStorage.setItem("started", JSON.stringify(el.dataset.start)); } catch { /* fine */ }
+          lightsOut({ label: el.dataset.startLabel });
+        }
+        route(true);
+        return;
+      }
       el.innerHTML = untilParts(el.dataset.until);
     }
   }, 1000);
@@ -726,6 +737,7 @@ async function homeView() {
       BANNER = "";
       view.querySelector(".getapp")?.remove();
     } else if (t.closest("#newbar-x")) { t.closest(".newbar")?.remove(); markChangesSeen(); }
+    else if (t.closest("[data-react]")) lightsOut({ label: "Reaction test", react: true });
     else if (dismiss) { store.set("dismissed", [...dismissed(), dismiss.dataset.dismiss]); homeView(); }
     // The whole card opens the driver page; its buttons (dismiss) and links keep their own job.
     else if (card && !t.closest("a, button")) location.hash = card.dataset.href;

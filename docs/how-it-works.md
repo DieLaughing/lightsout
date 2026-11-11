@@ -154,6 +154,12 @@ How the app moves (what animates, what must hold still, timings, rules for new U
   session in the next 7 days, refreshed every 6 h (1 h when a session is < 36 h away), cached in /data/weather.json.
   Sessions get {c, rain, code} at the start hour or {hi, lo, rain, code} for untimed days; °C stored, user setting
   `units` (f/c). Unmatched venues are logged ("no weather place for ..."): add them to venues.yaml. W2RC skipped.
+- Lights out (web/start.js, loaded on demand by lightsOut()): the start gantry, full screen (five pods, a light a
+  second, a random 0.2-3 s hold, all out). When Home's countdown reaches a race / sprint / rally day in a followed
+  series ([data-start] on .wk-count), startTicker plays it once per session per device (localStorage `started`) then
+  redraws Home as live. "Test your start" on the weekend card opens it as the reaction test: tap when they go out,
+  time in seconds, best kept in localStorage `reactionBest`; a tap before they go out is a jump start. Esc / ✕ /
+  tap close. No dimming: Lights Out has no theme switch of its own yet (SOG's Dim at puck drop needs House lights).
 - Live dock (web/dock.js, from Shots on Goal; loaded by startDock 1.5 s after the first page): polls /api/live every
   10 s while something is live (30 s otherwise, never while the tab is hidden) and /api/live/<series> for each
   connected feed in a switched-on series. One .dock-item per session (two swipe sideways): chip, session, lap or
