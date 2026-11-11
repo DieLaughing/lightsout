@@ -4,6 +4,7 @@ import asyncio
 import copy
 import importlib
 import json
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -164,7 +165,8 @@ def test_settings_keep_only_what_was_sent(app_client):
 
 def test_wire_filters(app_client):
     c, mod = app_client
-    mod.store.add_news([{"id": "n1", "time": "2026-10-11T10:00:00Z", "title": "Norris news", "url": "https://x/1",
+    mod.store.add_news([{"id": "n1", "time": (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                         "title": "Norris news", "url": "https://x/1",
                          "source": "S", "series": ["f1"], "drivers": ["Lando Norris"], "teams": ["McLaren"]}])
     mod.store.add_events([{"id": "e1", "series": "cup", "time": "2099-10-11T10:00:00Z", "kind": "caution", "important": True,
                            "text": "Caution, lap 5", "drivers": [], "teams": []},

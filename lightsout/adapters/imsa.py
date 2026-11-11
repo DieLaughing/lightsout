@@ -1,14 +1,16 @@
-"""IMSA WeatherTech SportsCar Championship from imsa.com (WordPress).
+"""IMSA WeatherTech SportsCar Championship from imsa.com (Astro site since Nov 2026; class names are hashed, so
+read the structure and the aria/data attributes, not the classes).
 
-  /weathertech/schedule/        any season's page has the season picker (select.ddl-season-selector): year -> page.
-                                The URLs aren't regular (weathertech-2026-schedule, 2027-schedule), so read them there.
-  <season page>                 one card per event: .schedule-title, .schedule-date ("Jan 22 - Jan 24"),
-                                .schedule-location, "Event Details" -> /events/<year>-<slug>/
-  /events/<year>-<slug>/        the weekend schedule: .day-event-header ("Thursday, October 1, 2026") then
-                                .event-time ("10:40 AM to 12:10 PM ET") + .event-name ("Practice 1 - WeatherTech
-                                Championship"); support series share the list. Posted a few weeks before each event.
+  /<year>/schedule              every series' calendar for that season; a 404 = not published yet (the 2026 page is
+                                gone since the rebuild, so a finished season just stays as stored). The series radios
+                                (value="weathertech" data-series-index="N") pick the <ul data-series-index="N">; one
+                                <article> per event: <h3> name, first <p> venue, <p aria-label="January 22, 2027
+                                through January 24, 2027">, a "Schedule" link /events/<year>-<slug>?tab=schedule&series=weathertech
+  /events/<year>-<slug>         the weekend schedule (tab=schedule) is posted a few weeks before each event; until
+                                parse_weekend() finds sessions there the event shows as one race weekend.
   /wp-admin/admin-ajax.php      POST action=getImsaStandings (standings=driver|team, seriesId=1, currentYear, classId):
                                 the standings tables; class ids from the site's own galaxy API (/classes?series_id=1).
+                                From the old WordPress site; check it again when the 2027 season starts.
 """
 from __future__ import annotations
 
@@ -17,6 +19,8 @@ import re
 import time
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
+
+from curl_cffi.requests.exceptions import HTTPError
 
 from ..models import PRACTICE, RACE, AdapterResult, Entry, Event, Session, StandingRow, Standings, kind_from_name
 from .base import _client, get_json, get_text, html_tables, slugify
@@ -33,22 +37,35 @@ def _text(fragment: str) -> str:
     return " ".join(html.unescape(re.sub(r"<[^>]+>", " ", fragment or "")).split())
 
 
-def season_pages(page: str) -> dict[int, str]:
-    return {int(y): u for u, y in re.findall(r"<option value='([^']+)'>(\d{4})</option>", page)}
+def season_url(year: int) -> str:
+    return f"{SITE}/{year}/schedule"
+
+
+def _date(label: str) -> date:
+    return datetime.strptime(label.strip(), "%B %d, %Y").date()
 
 
 def parse_season(page: str, year: int) -> list[dict]:
+    radio = re.search(r'<input\b[^>]*value="weathertech"[^>]*data-series-index="(\d+)"', page)
+    if not radio:
+        return []
+    start = re.search(rf'<ul\b[^>]*data-series-index="{radio.group(1)}"[^>]*>', page)
+    if not start:
+        return []
+    rest = page[start.end():]
+    stop = re.search(r'<ul\b[^>]*data-series-index="\d+"|</section>', rest)
     out = []
-    for details, ctas in re.findall(r'<div class="schedule-details">(.*?)<div class="schedule-ctas">(.*?)</div>', page, re.S):
-        f = {k: _text(v) for k, v in re.findall(r'class="schedule-(title|date|location|duration)"[^>]*>(.*?)</(?:h2|div)>', details, re.S)}
-        link = re.search(r"href='([^']+)'>Event Details", ctas)
-        m = re.match(r"([A-Za-z]{3}) (\d{1,2}) - ([A-Za-z]{3}) (\d{1,2})", f.get("date", ""))
-        if not (f.get("title") and m):
+    for card in re.findall(r"<article\b.*?</article>", rest[:stop.start()] if stop else rest, re.S):
+        name = re.search(r"<h3\b[^>]*>(.*?)</h3>", card, re.S)
+        venue = re.search(r"<hgroup>.*?<p\b[^>]*>(.*?)</p>", card, re.S)
+        days = re.search(r'aria-label="([A-Z][a-z]+ \d{1,2}, \d{4})(?: through ([A-Z][a-z]+ \d{1,2}, \d{4}))?"', card)
+        if not (name and days):
             continue
-        start = datetime.strptime(f"{m.group(1)} {m.group(2)} {year}", "%b %d %Y").date()
-        end = datetime.strptime(f"{m.group(3)} {m.group(4)} {year}", "%b %d %Y").date()
-        out.append({"name": f["title"], "venue": f.get("location", ""), "start": start, "end": end,
-                    "duration": f.get("duration", "").replace("DURATION:", "").strip(), "url": link.group(1) if link else ""})
+        link = re.search(r'href="([^"]*\?tab=schedule[^"]*)"', card)
+        first = _date(days.group(1))
+        out.append({"name": _text(name.group(1)), "venue": _text(venue.group(1)) if venue else "", "start": first,
+                    "end": _date(days.group(2)) if days.group(2) else first,
+                    "url": SITE + html.unescape(link.group(1)) if link else ""})
     return out
 
 
@@ -103,19 +120,25 @@ def race_length(duration: str) -> timedelta | None:
 
 
 async def fetch(series_id: str, seasons: list[int]) -> AdapterResult:
-    pages = season_pages(await get_text(f"{SITE}/weathertech/schedule/"))
     events, covered = [], []
     for year in seasons:
-        if year not in pages:
-            continue  # next season's calendar isn't out yet
-        for ev in parse_season(await get_text(pages[year]), year):
+        try:
+            page = await get_text(season_url(year))
+        except HTTPError as exc:
+            if exc.response is not None and exc.response.status_code == 404:
+                continue  # that season's calendar isn't out (or, since the rebuild, no longer online)
+            raise
+        found = parse_season(page, year)
+        if not found:
+            raise RuntimeError(f"no WeatherTech events on {season_url(year)}: has the page changed?")
+        for ev in found:
             sessions = []
             if ev["url"]:
                 try:
                     sessions = parse_weekend(await get_text(ev["url"]), ev["name"])
                 except Exception:
                     pass  # the weekend schedule isn't posted yet
-            length = race_length(ev["duration"])
+            length = race_length(ev["name"])  # "12 Hours of Sebring"; the new site has no duration field
             for s in sessions:
                 if s.kind == RACE and s.end is None and length:
                     s.end = s.start + length
@@ -123,8 +146,9 @@ async def fetch(series_id: str, seasons: list[int]) -> AdapterResult:
                 test = "Roar" in ev["name"]
                 sessions = [Session(key="weekend", name="Test weekend" if test else "Race weekend",
                                     kind=PRACTICE if test else RACE, day=ev["start"], end_day=ev["end"])]
+            event_url = ev["url"].split("?")[0]
             events.append(Event(key=f"{year}-{slugify(ev['name'])}", season=year, name=ev["name"], venue=ev["venue"],
-                                country="USA", start_day=ev["start"], end_day=ev["end"], url=ev["url"], sessions=sessions))
+                                country="USA", start_day=ev["start"], end_day=ev["end"], url=event_url, sessions=sessions))
         covered.append(year)
     entries = []
     try:

@@ -3,6 +3,10 @@
 Every update to [Lights Out](https://github.com/DieLaughing/lightsout), newest first. The same list is on the app's What's new page.
 This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit that file, not this one.
 
+## November 10, 2026
+
+- **Fixed: IMSA is back, with the 2027 calendar.** IMSA stopped updating on November 4, when imsa.com was rebuilt with new pages. It's fixed, and all 12 WeatherTech rounds of 2027 are in, from the Roar on January 22 to Petit Le Mans on October 9. Session times show up as IMSA posts each weekend's schedule, a few weeks before the event. The 2026 season stays as it was.
+
 ## October 25, 2026
 
 - **Fixed: F1 live timing works again.** F1's timing server started refusing to talk to the Lights Out server, so live timing stayed blank all through the US Grand Prix weekend. Lights Out now reaches it a different way, so live timing is back in time for Mexico. The "Official timing" button on F1 races is gone, because F1's own timing page now needs an F1 TV subscription.

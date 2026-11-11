@@ -205,12 +205,18 @@ How the app moves (what animates, what must hold still, timings, rules for new U
   with end = start, so LENGTH sets 25/45 min), /riders (current_career_step), /results/* for standings + last race
   (no team table in the API). Next season's GPs show as "Race weekend" until timetables are out. Live timing is the
   paid TimingPass, so no timing link. Category `bikes`; only MotoGP on by default.
-- IMSA (`imsa`, lightsout/adapters/imsa.py): imsa.com. Season pages from the season picker on /weathertech/schedule/
-  (URLs irregular); event pages list the weekend in ET (.day-event-header + .event-time/.event-name, support series
-  mixed in): WeatherTech sessions say "WeatherTech Championship", the race is listed under the event's own name and the
-  24 is split at midnight (joined). Standings: POST /wp-admin/admin-ajax.php action=getImsaStandings per class (class
-  ids from dvw6yynr86g3k.cloudfront.net/galaxy/api/classes?series_id=1&season_id=); first class (GTP) = Drivers/Teams,
-  the rest = class picker; crews merged with gtwce.crews. Grid for follows = everyone in the standings. No Last race yet.
+- IMSA (`imsa`, lightsout/adapters/imsa.py): imsa.com, rebuilt in Nov 2026 (Astro; class names are hashed, so the
+  adapter reads tags and aria/data attributes). Season = /<year>/schedule (404 = not out, or a past season taken
+  down: that season stays as stored); every series is on it, WeatherTech = the <ul data-series-index> matching the
+  value="weathertech" radio; each <article> = h3 name, venue, aria-label "January 22, 2027 through January 24, 2027",
+  Schedule link /events/<year>-<slug>?tab=schedule&series=weathertech. A page with no WeatherTech cards is an error.
+  No race duration field any more (race_length reads "12 Hours of ..." from the name). The weekend tab sits behind a
+  Cloudflare challenge for plain clients; parse_weekend() still expects the old WordPress markup (.day-event-header +
+  .event-time/.event-name, ET, 24 split at midnight), so until it's checked against a posted 2027 weekend events show
+  as one race weekend. Standings: POST /wp-admin/admin-ajax.php action=getImsaStandings per class (class ids from
+  dvw6yynr86g3k.cloudfront.net/galaxy/api/classes?series_id=1&season_id=), from the old site: recheck in January.
+  First class (GTP) = Drivers/Teams, the rest = class picker; crews merged with gtwce.crews. Grid for follows =
+  everyone in the standings. No Last race yet.
 - WorldSBK (`wsbk`, lightsout/adapters/wsbk.py): api.wsbk.pulselive.com (JSON:API; headers x-client FE + Referer).
   Sessions per round (category SBK), end times empty (LENGTH), "Superpole Race" = sprint. Standings + last race;
   results payloads lack rider names, so names come from the standings. Support classes not added. Off by default.

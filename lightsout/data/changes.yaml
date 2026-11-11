@@ -3,6 +3,12 @@
 # After editing: `.venv/bin/python tools/changelog.py` rewrites CHANGELOG.md (a test checks they match),
 # and `.venv/bin/python tools/release.py` publishes the day's GitHub Release.
 
+- date: 2026-11-10
+  kind: fixed
+  title: IMSA is back, with the 2027 calendar
+  text: IMSA stopped updating on November 4, when imsa.com was rebuilt with new pages. It's fixed, and all 12 WeatherTech rounds of 2027 are in, from the Roar on January 22 to Petit Le Mans on October 9. Session times show up as IMSA posts each weekend's schedule, a few weeks before the event. The 2026 season stays as it was.
+  link: "#/series/imsa"
+
 - date: 2026-10-25
   kind: fixed
   title: F1 live timing works again

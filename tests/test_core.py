@@ -542,6 +542,35 @@ def test_imsa_weekend_keeps_weathertech_and_joins_the_24():
     assert imsa.race_length("12 Hours") == timedelta(hours=12) and imsa.race_length("N/A") is None
 
 
+def test_imsa_season_reads_weathertech_cards_only():
+    from lightsout.adapters import imsa
+
+    def card(name, venue, label, series):
+        return (f'<li><article class="_x1"><header><hgroup><h3 class="_x2">{name}</h3><p class="_x3"><svg></svg> {venue} </p>'
+                f'</hgroup></header><div><p class="_x4" aria-label="{label}"><span>Jan</span></p></div><ul class="_x5">'
+                f'<li><a href="https://tickets.example/" rel="external">Tickets</a></li>'
+                f'<li><a class="_x6" href="/events/2027-{name.lower().replace(" ", "-")}?tab=schedule&amp;series={series}">Schedule</a></li>'
+                f'</ul></article></li>')
+    page = ('<section><fieldset><input type="radio" value="imsa-michelin-pilot-challenge" data-series-index="0">'
+            '<input type="radio" value="weathertech" checked data-series-index="1"></fieldset>'
+            '<ul id="c-0" data-series-index="0" class="_a">'
+            + card("BMW M Endurance Challenge", "Daytona", "January 22, 2027 through January 23, 2027", "imsa-michelin-pilot-challenge")
+            + '</ul><ul id="c-1" data-series-index="1" class="_a">'
+            + card("Roar Before The Rolex 24", "Daytona International Speedway, Daytona Beach, FL",
+                   "January 22, 2027 through January 24, 2027", "weathertech")
+            + card("12 Hours of Sebring", "Sebring", "March 20, 2027", "weathertech")
+            + "</ul></section>")
+    evs = imsa.parse_season(page, 2027)
+    assert [e["name"] for e in evs] == ["Roar Before The Rolex 24", "12 Hours of Sebring"]  # Pilot Challenge left out
+    roar, sebring = evs
+    assert roar["venue"] == "Daytona International Speedway, Daytona Beach, FL"
+    assert (roar["start"], roar["end"]) == (date(2027, 1, 22), date(2027, 1, 24))
+    assert roar["url"] == "https://www.imsa.com/events/2027-roar-before-the-rolex-24?tab=schedule&series=weathertech"
+    assert sebring["start"] == sebring["end"] == date(2027, 3, 20)  # one-day label
+    assert imsa.race_length(sebring["name"]) == timedelta(hours=12)
+    assert imsa.parse_season("<html>no radios</html>", 2027) == []
+
+
 def test_wsbk_session_kinds_and_results():
     from lightsout.adapters import wsbk
     assert [wsbk.kind(n) for n in ("Superpole", "Superpole Race", "Race 2", "Warm Up")] == ["qualifying", "sprint", "race", "practice"]
