@@ -422,7 +422,8 @@ function menuLines() {
   const unseen = unseenChanges().length;
   set("settings", unseen ? `${unseen} new in What's new` : "");
   const best = Number(local("reactionBest", 0));
-  set("react", best ? `Mini game · your best ${(best / 1000).toFixed(3)} s` : "");
+  const rank = local("reactionRank", "");
+  set("react", best ? `Mini game · your best ${(best / 1000).toFixed(3)} s${rank ? ` · ${rank}` : ""}` : "");
 }
 function openMenu(byKey) {
   if (menuOpen) return;
@@ -664,7 +665,7 @@ function weekendHero(sessions, followed, cards, feeds, today) {
   </section>`;
 }
 // The start gantry (web/start.js): a race you follow starting now, or the reaction test from the weekend card.
-const lightsOut = opts => import("./start.js?v=1").then(m => m.play(opts)).catch(() => {});
+const lightsOut = opts => import("./start.js?v=2").then(m => m.play(opts)).catch(() => {});
 // One ticker for the countdown(s) on screen: every second, and it stops itself once they're gone.
 let tickTimer = 0;
 function startTicker() {

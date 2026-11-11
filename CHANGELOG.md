@@ -5,6 +5,7 @@ This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit th
 
 ## November 10, 2026
 
+- **New: A leaderboard for the reaction test.** Every finished start now counts toward a leaderboard of everyone's best time, shown right under your result, with your place in the menu too. Names are the ones you use in Pick'em. Hit Again to have another go.
 - **Improved: Easier first time in.** Someone new to Lights Out now gets two quick steps before Home: pick the series you watch (the usual ones are already on), then the drivers you follow, with each series' current top three ready to tap or a search for anyone. Skip it and you get the usual series.
 - **New: Compare any two drivers.** Put two drivers side by side: who finished ahead more often when both made it to the flag, and their wins, podiums, top 10s, average finish and retirements this season, with every round's result next to each other. Tap ⇄ Compare on a driver's page (teammates are one tap away), or type two names with "vs" in Search.
 - **New: Lights out.** When a race in a series you follow starts while Home is open, the five red lights come on one by one, hold, and go out. And any time, Reaction test in the menu is a mini game with the real start sequence. Tap the moment the lights go out to get your time; jump the start and it'll tell you. Your best is kept on this device.

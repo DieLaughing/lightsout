@@ -469,6 +469,36 @@ def admin_usage(since: str | None = None):
 
 
 # ---- page views (anonymous counts per page and day; see usage.py) ------------------------------
+REACTION_MIN_MS, REACTION_MAX_MS = 100, 2000   # quicker than 0.1 s isn't a person reacting; slower isn't a start
+
+
+def _reaction_board(email: str) -> dict:
+    """The Reaction test leaderboard: everyone's best, by the name friends see on Pick'em (never the email)."""
+    names = friend_names()
+    rows = [r for r in store.reactions() if r["email"] in names]   # only people still approved
+    board = [{"rank": i + 1, "name": names[r["email"]], "ms": r["best_ms"], "me": r["email"] == email} for i, r in enumerate(rows)]
+    mine = next((b for b in board if b["me"]), None)
+    return {"top": board[:10], "me": mine, "players": len(board)}
+
+
+@app.get("/api/reaction")
+def reaction_board(request: Request):
+    return _reaction_board(request.state.email)
+
+
+@app.post("/api/reaction")
+async def reaction_try(request: Request):
+    """A finished start ({ms}). Only the best counts; impossible times are refused."""
+    try:
+        ms = int((await request.json()).get("ms"))
+    except (ValueError, TypeError, AttributeError):
+        raise HTTPException(400, "bad time")
+    if not REACTION_MIN_MS <= ms <= REACTION_MAX_MS:
+        raise HTTPException(422, "not a real start")
+    await asyncio.to_thread(store.save_reaction, request.state.email, ms, _iso(datetime.now(timezone.utc)))
+    return _reaction_board(request.state.email)
+
+
 @app.post("/api/views")
 async def page_views(request: Request):
     """A phone's batch of page views ({views: {route: count}}). The owner's own views aren't counted."""

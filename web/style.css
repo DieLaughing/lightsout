@@ -790,7 +790,7 @@ details.more-odds > summary { padding: 8px 12px; border-top: 1px solid var(--bor
 /* ---- Lights out: the start gantry (web/start.js) ----
    Five pods of two lamps on black, as on the gantry; each comes on red with a glow, and they all go out together. */
 html.gantry-open, html.gantry-open body { overflow: hidden; }
-.gantry { position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+.gantry { position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; overflow-y: auto;
   padding: calc(24px + env(safe-area-inset-top)) calc(20px + var(--sr)) calc(24px + env(safe-area-inset-bottom)) calc(20px + var(--sl));
   background: #07080a; color: #f3f4f6; outline: 0; touch-action: manipulation; user-select: none; -webkit-user-select: none; cursor: pointer;
   animation: gt-in 220ms ease-out; }
@@ -811,6 +811,19 @@ html.gantry-open, html.gantry-open body { overflow: hidden; }
 .gantry .gt-say:has(small) b { display: inline; font-style: normal; font-weight: 300; font-variant-numeric: tabular-nums; text-transform: none; }
 .gt-sub { min-height: 20px; font-size: 14px; color: #8b919c; text-align: center; }
 .gantry.jump .gt-say b { color: #ffcf33; }
+.gt-acts { display: flex; gap: 10px; } .gt-acts[hidden] { display: none; }
+.gt-acts button { min-width: 110px; min-height: 44px; border-radius: 12px; border: 1px solid #2c3036; background: #16181c; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.gt-acts .gt-again { background: #e10600; border-color: #e10600; }
+.gt-board { width: min(100%, 340px); }
+.gt-board:empty { display: none; }
+.gt-bh { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #8b919c; margin-bottom: 6px; }
+.gt-bh small { font-weight: 500; letter-spacing: 0; text-transform: none; margin-left: 4px; }
+.gt-board ol { list-style: none; margin: 0; padding: 0; border-radius: 12px; background: #111316; box-shadow: inset 0 0 0 1px #24272d; overflow: hidden; }
+.gt-board li { display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; padding: 7px 12px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.gt-board li + li { border-top: 1px solid #1d2025; }
+.gt-board li span { color: #8b919c; } .gt-board li b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .gt-board li em { font-style: normal; color: #c9cdd4; }
+.gt-board li.me { background: rgba(225, 6, 0, .16); } .gt-board li.me b, .gt-board li.me em { color: #fff; font-weight: 800; }
+.gt-board li.gap { display: block; text-align: center; color: #5b6069; padding: 2px; }
 @media (prefers-reduced-motion: reduce) { .gantry { animation: none; } .gantry.closing { transition: none; } }
 
 /* ---- Compare (web/compare.js): two drivers, split in their team colours, the better number in bold ---- */

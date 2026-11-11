@@ -170,7 +170,11 @@ How the app moves (what animates, what must hold still, timings, rules for new U
   series ([data-start] on .wk-count), startTicker plays it once per session per device (localStorage `started`) then
   redraws Home as live. The menu's Reaction test (a button set apart under the pages; its line shows your best) and "Mini game: reaction
   test" on the weekend card open it as the reaction test: tap when they go out,
-  time in seconds, best kept in localStorage `reactionBest`; a tap before they go out is a jump start. Esc / ✕ /
+  time in seconds, best kept in localStorage `reactionBest`; a tap before they go out is a jump start. Each finished
+  start is POSTed to /api/reaction (table `reaction`: email, best_ms, tries, at; 100-2000 ms only, else 422) which keeps
+  the person's best and returns the leaderboard (top 10 + your row, names from friend_names() like Pick'em, approved
+  people only, never emails); the menu line adds "#5 of 6" from localStorage `reactionRank`. Again / Close after a
+  result (a stray tap doesn't close it). Esc / ✕ /
   tap close. No dimming: Lights Out has no theme switch of its own yet (SOG's Dim at puck drop needs House lights).
 - Live dock (web/dock.js, from Shots on Goal; loaded by startDock 1.5 s after the first page): polls /api/live every
   10 s while something is live (30 s otherwise, never while the tab is hidden) and /api/live/<series> for each

@@ -310,3 +310,16 @@ def test_calendar_feed_follows_each_series_level(app_client):
     count = lambda q="": c.get(url + q).text.count("BEGIN:VEVENT")
     assert count() == 3 and count("?show=f1:qualifying") == 2 and count("?show=f1:races") == 1
     assert count("?show=bogus") == 3
+
+
+def test_reaction_leaderboard_keeps_the_best_and_refuses_impossible_starts(app_client, monkeypatch):
+    c, mod = app_client
+    monkeypatch.setattr(mod, "friend_names", lambda: {"owner@example.com": "owner", "pal@example.com": "Pal"})
+    mod.store.save_reaction("pal@example.com", 190, "2026-11-10T20:00:00Z")
+    assert c.post("/api/reaction", json={"ms": 250}).json()["me"] == {"rank": 2, "name": "owner", "ms": 250, "me": True}
+    out = c.post("/api/reaction", json={"ms": 180}).json()      # a better one moves you up
+    assert [(r["name"], r["ms"]) for r in out["top"]] == [("owner", 180), ("Pal", 190)] and out["players"] == 2
+    assert c.post("/api/reaction", json={"ms": 300}).json()["me"]["ms"] == 180   # a slower one doesn't replace it
+    assert c.post("/api/reaction", json={"ms": 40}).status_code == 422          # nobody reacts in 0.04 s
+    assert c.post("/api/reaction", json={"ms": "x"}).status_code == 400
+    assert "@" not in str(c.get("/api/reaction").json())                       # emails never leave the server
