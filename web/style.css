@@ -37,7 +37,9 @@ body {
   background: var(--bg);
   color: var(--text);
   font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  padding-bottom: env(safe-area-inset-bottom);
+  /* Room for the menu bar: at the bottom on phones by default, on top when picked there (and on wide screens). */
+  padding-top: calc(var(--bar-top) + env(safe-area-inset-top));
+  padding-bottom: calc(var(--bar-bottom) + env(safe-area-inset-bottom));
   /* At least as tall as the screen: in an installed iPhone app a page shorter than the screen (Tonight with two games)
      got a shorter frame, and the tab bar pinned to its bottom sat above the bottom of the display. */
   min-height: 100vh;
@@ -45,21 +47,77 @@ body {
 }
 a { color: inherit; }
 
-.top {
-  position: sticky; top: 0; z-index: 5;
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: calc(10px + env(safe-area-inset-top)) calc(16px + var(--sr)) 10px calc(16px + var(--sl));
-  background: var(--surface); border-bottom: 1px solid var(--border);
-}
-.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; text-decoration: none; letter-spacing: .02em; }
+/* ---- the menu bar (web/app.js: openMenu, brandLine, applyNavAt), from Shots on Goal ----
+   One floating pill, centred: Search, the name with what's next (or on now), the menu. A wide screen also gets the
+   main pages either side of the name. Phones have it at the bottom, under the thumb, unless moved (Settings > Display). */
+:root { --bar-top: 78px; --bar-bottom: 24px; }
+:root[data-nav="bottom"] { --bar-top: 8px; --bar-bottom: 92px; }
+.top { position: fixed; top: 0; left: 0; right: 0; z-index: 8; display: flex; justify-content: center; pointer-events: none;
+  padding: calc(10px + env(safe-area-inset-top)) calc(10px + var(--sr)) 0 calc(10px + var(--sl)); }
+:root[data-nav="bottom"] .top { top: auto; bottom: 0; padding: 0 calc(10px + var(--sr)) calc(12px + env(safe-area-inset-bottom)) calc(10px + var(--sl)); }
+.navpill { pointer-events: auto; display: flex; align-items: center; gap: 2px; min-width: 0; height: 58px; padding: 0 6px; border-radius: 29px;
+  background: color-mix(in srgb, var(--surface) 86%, transparent); border: 1px solid var(--border);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); box-shadow: 0 6px 22px rgba(0, 0, 0, .08); }
+.pill-btn { flex: none; width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; position: relative;
+  border: 0; border-radius: 22px; background: transparent; color: var(--text); cursor: pointer; text-decoration: none; }
+.pill-btn .ico { width: 21px; height: 21px; display: block; color: currentColor; }
+.pill-btn:hover, .pill-btn.active { background: color-mix(in srgb, var(--text) 7%, transparent); }
+.brand { min-width: 160px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 0 10px; text-decoration: none; }
+.brand-name { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 16px; line-height: 1; letter-spacing: .02em; white-space: nowrap; }
 .lights { display: inline-flex; gap: 2px; }
 .lights i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: block; }
-.top nav { display: flex; gap: 4px; }
-.top nav a { text-decoration: none; padding: 6px 10px; border-radius: 8px; color: var(--muted); font-weight: 500; }
-.top nav a.active { color: var(--text); background: var(--bg); }
+.brand-line { display: flex; align-items: center; gap: 5px; font-size: 11px; line-height: 1.2; font-weight: 600; color: var(--muted);
+  white-space: nowrap; font-variant-numeric: tabular-nums; max-width: 210px; overflow: hidden; text-overflow: ellipsis; }
+.brand-line:empty { display: none; }
+.brand-line.live { color: var(--text); }
+.brand-line.live::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--live); animation: pulse 1.4s infinite; }
+.burger { position: relative; width: 18px; height: 12px; }
+.burger i { position: absolute; left: 0; width: 18px; height: 2px; border-radius: 1px; background: currentColor; }
+.burger i:first-child { top: 1px; } .burger i:last-child { top: 9px; }
+#menu-btn[aria-expanded="true"] { background: var(--text); color: var(--bg); }
+#menu-btn[aria-expanded="true"] .burger i:first-child { transform: translateY(4px) rotate(45deg); }
+#menu-btn[aria-expanded="true"] .burger i:last-child { transform: translateY(-4px) rotate(-45deg); }
+@media (prefers-reduced-motion: no-preference) { .burger i { transition: transform 200ms ease; } #menu-btn { transition: background 160ms ease, color 160ms ease; } }
+#menu-btn.has-new::after { content: ""; position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 0 2px var(--surface); }
+/* Wide screens: the main pages sit in the pill, the active one underlined, and the bar is always on top. */
+.pill-link { display: none; }
+@media (min-width: 900px) {
+  :root[data-nav] { --bar-top: 86px; --bar-bottom: 24px; }
+  :root[data-nav] .top { top: 0; bottom: auto; padding: calc(12px + env(safe-area-inset-top)) calc(10px + var(--sr)) 0 calc(10px + var(--sl)); }
+  .navpill { height: 62px; padding: 0 8px; border-radius: 31px; }
+  .pill-link { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 11px 4px; font-size: 14.5px; font-weight: 600;
+    color: var(--muted); text-decoration: none; border-radius: 10px; }
+  .pill-link::after { content: ""; width: 20px; height: 3px; border-radius: 2px; background: transparent; }
+  .pill-link:hover, .pill-link.active { color: var(--text); }
+  .pill-link.active::after { background: var(--accent); }
+  .brand-name { font-size: 17px; }
+}
+@media (prefers-reduced-motion: no-preference) { .pill-link, .pill-link::after { transition: color 160ms ease, background 160ms ease; } }
+/* Signed out or waiting to be let in: just the name. */
+body.gated :is(.pill-btn, .pill-link) { display: none; }
+/* The menu: the whole screen, big capitals, a line under each saying what's there. At the bottom it reads upward
+   from the bar, the main pages nearest the thumb. */
+.menu { position: fixed; inset: 0; z-index: 7; overflow-y: auto; overscroll-behavior: contain; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; gap: 30px;
+  padding: calc(92px + env(safe-area-inset-top)) calc(24px + var(--sr)) calc(28px + env(safe-area-inset-bottom)) calc(24px + var(--sl)); }
+.menu[hidden] { display: none; }
+:root[data-nav="bottom"] .menu { flex-direction: column-reverse; justify-content: flex-start;
+  padding: calc(28px + env(safe-area-inset-top)) calc(24px + var(--sr)) calc(96px + env(safe-area-inset-bottom)) calc(24px + var(--sl)); }
+.menu-links { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+:root[data-nav="bottom"] .menu-links { flex-direction: column-reverse; }
+.menu-links a { display: flex; flex-direction: column; align-items: inherit; gap: 2px; text-decoration: none; color: var(--text); padding: 2px 6px; border-radius: 10px; }
+.menu-links b { font-size: 38px; line-height: 1; font-weight: 900; text-transform: uppercase; letter-spacing: -.01em; font-style: italic; }
+.menu-links span { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--muted); }
+.menu-links a.active span::before { content: ""; width: 22px; height: 3px; border-radius: 2px; background: var(--accent); }
+.menu-links a:hover b { color: var(--accent); }
+.menu-links a.has-new b::after { content: ""; display: inline-block; vertical-align: super; margin-left: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+@media (min-width: 900px) { :root[data-nav] .menu { flex-direction: column; justify-content: flex-start;
+  padding-top: calc(110px + env(safe-area-inset-top)); padding-bottom: 32px; } :root[data-nav] .menu-links { flex-direction: column; } }
+html.menu-open, html.menu-open body { overflow: hidden; }
 
 main { max-width: calc(760px + var(--sl) + var(--sr)); margin: 0 auto;
-  padding: 8px calc(16px + var(--sr)) calc(88px + env(safe-area-inset-bottom)) calc(16px + var(--sl)); }
+  padding: 8px calc(16px + var(--sr)) 24px calc(16px + var(--sl)); }
 h1 { font-size: 20px; margin: 18px 0 8px; }
 h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 22px 0 8px; }
 .muted { color: var(--muted); }
@@ -129,7 +187,6 @@ code.url { display: block; word-break: break-all; font-size: 12px; padding: 8px;
 .past { opacity: .55; }
 
 @media (max-width: 420px) {
-  .top nav a { padding: 6px 7px; }
   .row { grid-template-columns: 66px 1fr auto; gap: 8px; }
   .row .time { font-size: 13px; }
   .brand { font-size: 15px; }
@@ -249,18 +306,11 @@ input:disabled { opacity: .6; }
 .ico { width: 18px; height: 18px; vertical-align: -4px; }
 
 /* five links don't fit beside the name on a phone: keep the lights, drop the word, let the links scroll */
-@media (max-width: 520px) {
-  /* (the name used to hide here to make room for the top menu; the menu now lives at the bottom) */
-  .top nav { overflow-x: auto; scrollbar-width: none; gap: 0; }
-  .top nav a { padding: 6px 8px; font-size: 14px; white-space: nowrap; }
-}
 .tag.tix { border-color: transparent; color: var(--tv-fg); font-weight: 650; }
 .who-link { text-decoration: none; }
 .who-link:hover b { text-decoration: underline; }
 
 /* What's new */
-.top nav a.has-new { position: relative; }
-.top nav a.has-new::after { content: ""; position: absolute; top: 3px; right: 1px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
 .newbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0; padding: 10px 12px; border-radius: 12px;
   background: var(--surface); border: 1px solid var(--border); font-size: 13.5px; }
 .newbar > span:nth-child(2) { flex: 1; min-width: 120px; }
@@ -287,11 +337,6 @@ input:disabled { opacity: .6; }
 .standings-title a { margin-left: auto; color: var(--muted); }
 .tabs { scrollbar-width: none; }
 .tabs::-webkit-scrollbar { display: none; }
-.nav-icon { display: none; vertical-align: middle; }
-@media (max-width: 520px) {
-  .top nav a .nav-text { display: none; }
-  .top nav a .nav-icon { display: inline-block; }
-}
 
 /* Wire filters (driver / team) */
 .filters { margin: 8px 0 4px; }
@@ -331,27 +376,13 @@ input:disabled { opacity: .6; }
 .report-head { display: flex; gap: 8px; align-items: baseline; }
 .report-reply { padding: 6px 10px; border-left: 3px solid var(--border); }
 
-/* ---- navigation: bottom tab bar with icons, Settings button on top (web/index.html, web/app.js) ---- */
-.top-link { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--text); background: var(--surface);
-  border: 1px solid var(--border); padding: 6px 11px; border-radius: 10px; font-weight: 600; font-size: 14px; position: relative; }
-.top-link .ico { width: 17px; height: 17px; display: block; }
-.top-link.active { background: var(--bg); border-color: var(--text); }
-.top-link.has-new::after { content: ""; position: absolute; top: -3px; right: -3px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
-@media (max-width: 380px) { .top-label { display: none; } .top-link { padding: 7px; } }
-.tabbar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 5; display: flex; justify-content: center; gap: 4px; isolation: isolate;
-  padding: 6px calc(8px + var(--sr)) calc(6px + env(safe-area-inset-bottom)) calc(8px + var(--sl)); background: var(--surface); border-top: 1px solid var(--border); }
-.tabbar a { flex: 1; max-width: 160px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 4px 5px;
-  text-decoration: none; color: var(--muted); font-weight: 600; font-size: 11.5px; border-radius: 10px; transition: gap 180ms ease, padding 180ms ease, color 160ms ease; }
-.tabbar a.active { color: var(--text); }
-.tab-ico { width: 20px; height: 20px; display: block; transition: height 180ms ease, opacity 140ms ease; }
-.tabbar a.active .tab-ico { color: var(--accent); }
-.tab-pill { position: absolute; left: 0; top: 6px; height: calc(100% - 12px - env(safe-area-inset-bottom)); border-radius: 10px; background: var(--bg);
-  z-index: -1; }   /* moved by web/app.js movePill (Web Animations) */
-/* Scrolling down folds the icons away and slides the top bar off; any scroll up brings them back. */
-.tabbar.compact a { gap: 0; padding: 5px 4px 4px; }
-.tabbar.compact .tab-ico { height: 0; opacity: 0; }
+/* Scrolling down slides the menu bar off its edge; any scroll up (or the top of the page, or a new page) brings it
+   back (web/app.js setCompact). */
 .top { transition: transform 200ms ease; will-change: transform; }
-.top.tucked { transform: translateY(-100%); }
+.top.tucked { transform: translateY(calc(-100% - 4px)); }
+:root[data-nav="bottom"] .top.tucked { transform: translateY(calc(100% + 4px)); }
+@media (min-width: 900px) { :root[data-nav] .top.tucked { transform: translateY(calc(-100% - 4px)); } }
+@media (prefers-reduced-motion: reduce) { .top { transition: none; } }
 /* The status bar area (notch, Dynamic Island) keeps a solid strip in the top bar's colour, and the top bar slides
    fully away underneath it. Leaving a slice of the bar showing instead put half its buttons under the island. */
 body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top, 0px); z-index: 6;
@@ -362,7 +393,6 @@ html, body { overflow-x: clip; }
   border: 1px solid var(--border); background: var(--surface); color: var(--text); text-decoration: none; font-weight: 600; font-size: 14px; }
 .back:hover { color: var(--text); border-color: var(--muted); }
 .back-ico { width: 17px; height: 17px; display: block; }
-@media (prefers-reduced-motion: reduce) { .tabbar a, .tab-ico, .top, .tab-pill { transition: none; } }
 
 /* Pick'em */
 .racebar { display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; gap: 8px; text-align: center; margin: 4px 0 8px; }
@@ -583,7 +613,6 @@ details.more-odds > summary { padding: 8px 12px; border-top: 1px solid var(--bor
 /* ---- search (web/app.js searchView) ---- */
 .search-box { width: 100%; font-size: 16px; padding: 11px 13px; border-radius: 10px; border: 1px solid var(--border);
   background: var(--surface); color: var(--text); margin: 6px 0 4px; }
-.top .brand + .top-link { margin-left: auto; }   /* Search sits next to Settings, not mid-bar */
 
 /* ---- shared-element page changes (web/app.js navigate): what you tapped grows into the next page's title ---- */
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 200ms; }

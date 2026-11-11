@@ -98,7 +98,11 @@ const api = path => fetch(path, { headers: { Accept: "application/json" } }).the
   if (PI_DOWN(r.status)) goOffline();
   if (!r.ok) throw new Error(`${path}: ${r.status}`);
   return r.json();
-}).then(data => { GET_CACHE.set(path, { at: Date.now(), data }); return data; });
+}).then(data => {
+  GET_CACHE.set(path, { at: Date.now(), data });
+  if (path.startsWith("/api/sessions")) queueMicrotask(brandLine);   // the menu bar's "next up" reads this copy
+  return data;
+});
 
 // A page's data, fast: fresh data if it lands within FRESH_WAIT (so the page draws once, current), otherwise the
 // phone's copy straight away and one quiet redraw (after any page animation) if the fresh data differs.
@@ -345,7 +349,97 @@ function listen() { viewOff.abort(); viewOff = new AbortController(); return { s
 
 function setNav(name) {
   document.querySelectorAll("[data-nav]").forEach(a => a.classList.toggle("active", a.dataset.nav === name));
-  movePill();
+}
+
+// ---- the menu bar (index.html): one pill with Search, the name and the menu, from Shots on Goal ----------------------
+// The name's second line says what's on: a live session (followed series first), else the next one that counts and
+// how long until it. The menu takes the whole screen: the pages in big capitals, each with a line saying what's
+// waiting there. Where the bar sits (bottom or top) is per device; wide screens always have it on top.
+const topBar = document.getElementById("top"), menu = document.getElementById("menu"), menuBtn = document.getElementById("menu-btn");
+let menuOpen = false;
+const navAt = () => { try { return localStorage.getItem("navAt") === "top" ? "top" : "bottom"; } catch { return "bottom"; } };
+function applyNavAt() { document.documentElement.dataset.nav = navAt(); }
+const sessionsCopy = () => SERIES.length ? GET_CACHE.get(`/api/sessions?series=${enabledSeries().join(",")}`)?.data || [] : [];
+function untilText(iso) {
+  const mins = Math.max(0, Math.round((Date.parse(iso) - Date.now()) / 60000));
+  if (mins < 60) return `in ${mins} min`;
+  if (mins < 24 * 60) return `in ${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, "0")}m`;
+  return new Date(iso).toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" });
+}
+// The session the bar talks about: a live one (followed series first), else the next timed one that counts.
+function headline() {
+  const list = sessionsCopy(), followed = followedSeries(), now = Date.now();
+  const live = list.filter(isLive), pick = xs => xs.find(x => followed.has(x.series)) || xs[0];
+  if (live.length) return { s: pick(live), live: true, more: live.length - 1 };
+  const timed = list.filter(x => x.start_utc && Date.parse(x.start_utc) > now);
+  const s = pick(timed.filter(x => x.kind !== "practice")) || timed[0];
+  return s ? { s, live: false } : null;
+}
+function brandLine() {
+  const el = document.getElementById("brand-line");
+  let text = "", live = false;
+  if (!document.body.classList.contains("gated")) {
+    const h = headline();
+    if (h?.live) { live = true; text = `${BY_ID[h.s.series]?.short || ""} ${h.s.name} · live${h.more ? ` · +${h.more}` : ""}`; }
+    else if (h) text = `${BY_ID[h.s.series]?.short || ""} ${h.s.name} · ${untilText(h.s.start_utc)}`;
+    else text = new Date().toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  }
+  if (el.textContent !== text) el.textContent = text;
+  el.classList.toggle("live", live);
+}
+// The menu's lines that say what's waiting, read from the phone's own copies (prefetch() keeps them under ~90 s old),
+// so opening the menu never makes a request. No copy yet: the plain description stays.
+const MENU_INFO = { home: "Every race weekend, in your time", wire: "News and what happened on track", standings: "Drivers, teams and the last race",
+  series: "Every championship, on or off", settings: "Drivers you follow, alerts, calendar" };
+function menuLines() {
+  const set = (id, text) => { const el = document.getElementById(`info-${id}`); if (el && el.textContent !== (text || MENU_INFO[id])) el.textContent = text || MENU_INFO[id]; };
+  const h = headline();
+  set("home", h ? `${h.live ? "On now" : "Next"}: ${BY_ID[h.s.series]?.short || ""} ${h.s.event_name} · ${h.live ? h.s.name : untilText(h.s.start_utc)}` : "");
+  const seen = local("wireSeen", ""), items = GET_CACHE.get(wirePath({ kind: "", series: "", driver: "", team: "", mine: false, ...local("wire", {}) }))?.data || [];
+  const fresh = seen ? items.filter(i => i.time > seen).length : 0;
+  set("wire", fresh ? `${fresh} new since ${new Date(seen).toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" })}` : "");
+  const c = (GET_CACHE.get("/api/cards")?.data || []).find(x => x.pos && x.kind !== "team");
+  set("standings", c ? `${c.name}: P${c.pos} in ${BY_ID[c.series]?.short || c.series}` : "");
+  set("series", SERIES.length ? `${enabledSeries().length} of ${SERIES.length} switched on` : "");
+  const unseen = unseenChanges().length;
+  set("settings", unseen ? `${unseen} new in What's new` : "");
+}
+function openMenu(byKey) {
+  if (menuOpen) return;
+  menuOpen = true;
+  setCompact(false);
+  menuLines();
+  menu.hidden = false;
+  menuBtn.setAttribute("aria-expanded", "true");
+  menuBtn.setAttribute("aria-label", "Close menu");
+  document.documentElement.classList.add("menu-open");
+  for (const el of [view, document.getElementById("foot")]) if (el) el.inert = true;
+  if (motionOn()) {
+    menu.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: "ease-out" });
+    [...menu.querySelectorAll(".menu-links a")].slice(0, 8).forEach((a, i) => a.animate(
+      [{ transform: "translateY(14px)", opacity: 0 }, { transform: "none", opacity: 1 }],
+      { duration: 300, delay: i * 30, easing: "cubic-bezier(.2, .9, .3, 1)", fill: "backwards" }));
+  }
+  if (byKey) (menu.querySelector(".menu-links a.active") || menu.querySelector(".menu-links a")).focus({ preventScroll: true });
+}
+function closeMenu() {
+  if (!menuOpen) return;
+  menuOpen = false;
+  menuBtn.setAttribute("aria-expanded", "false");
+  menuBtn.setAttribute("aria-label", "Menu");
+  document.documentElement.classList.remove("menu-open");
+  for (const el of [view, document.getElementById("foot")]) if (el) el.inert = false;
+  const done = () => { if (!menuOpen) menu.hidden = true; };   // opened again meanwhile: leave it
+  if (!motionOn()) return done();
+  menu.getAnimations().forEach(a => a.cancel());
+  menu.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: "ease-in" }).finished.then(done, done);
+}
+function startBar() {
+  applyNavAt();
+  menuBtn.addEventListener("click", e => menuOpen ? closeMenu() : openMenu(e.detail === 0));
+  menu.addEventListener("click", e => { if (e.target.closest("a")) closeMenu(); });   // the page change closes it too
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && menuOpen) { closeMenu(); menuBtn.focus(); } });
+  setInterval(() => { if (!document.hidden) brandLine(); }, 30000);   // "in 12 min" keeps counting
 }
 
 // Liquid highlight (from OpenUI's trip planner demo): the leading edge gets to the new spot first and the trailing
@@ -369,15 +463,6 @@ function placePill(pill, on, from) {
   Object.assign(pill.style, { width: `${to.w}px`, transform: `translateX(${to.x}px)`, opacity: "1" });
   Object.assign(pill.dataset, to);
   if (from) liquid(pill, from, to);
-}
-
-// The bottom bar's highlight is one pill that slides to the active tab.
-function movePill() {
-  const bar = document.getElementById("tabs"), on = bar?.querySelector("a.active");
-  if (!bar) return;
-  let pill = bar.querySelector(".tab-pill");
-  if (!pill) { pill = document.createElement("span"); pill.className = "tab-pill"; bar.prepend(pill); }
-  if (on) placePill(pill, on); else pill.style.opacity = "0";
 }
 
 // Every switch (.series-pick: F1 / F2 / ..., .tabs: Drivers / Teams / ..., .seg) gets the same pill. Pages that redraw
@@ -424,15 +509,14 @@ const switchWatch = new MutationObserver(records => {
   if (!switchFrame && records.some(touchesSwitch)) switchFrame = requestAnimationFrame(() => { switchFrame = 0; placeSwitches(); });
 });
 switchWatch.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
-window.addEventListener("resize", () => { movePill(); placeSwitches(); });
+window.addEventListener("resize", () => placeSwitches());
 
-// Scrolling down folds the bottom bar's icons away and slides the top bar off; any scroll up (or the top of the
-// page, or a new page) brings both back. One passive listener, read once per frame.
+// Scrolling down slides the menu bar off its edge; any scroll up (or the top of the page, or a new page) brings it
+// back. One passive listener, read once per frame.
 let lastScrollY = 0, scrollQueued = false;
 function setCompact(on) {
-  const bar = document.getElementById("tabs");
-  document.querySelector(".top")?.classList.toggle("tucked", on);
-  if (bar && bar.classList.contains("compact") !== on) { bar.classList.toggle("compact", on); requestAnimationFrame(movePill); }
+  if (on && menuOpen) return;
+  topBar.classList.toggle("tucked", on);
 }
 window.addEventListener("scroll", () => {
   if (scrollQueued) return;
@@ -1174,6 +1258,9 @@ async function settingsView() {
       <div class="item"><span>Page motion<span class="small muted" style="display:block">Rise: each page builds in from the top. Slapshot: it flies in from the side.</span></span>
       <div class="seg" role="group" aria-label="Page motion">${[["rise", "Rise"], ["slapshot", "Slapshot"]].map(([k, l]) =>
         `<button data-motion="${k}" class="${motionStyle() === k ? "active" : ""}">${l}</button>`).join("")}</div></div>
+      <div class="item"><span>Menu bar<span class="small muted" style="display:block">Where the menu bar sits on a phone, on this device. At the bottom it's under your thumb. Wide screens always have it on top.</span></span>
+      <div class="seg" role="group" aria-label="Menu bar">${[["bottom", "Bottom"], ["top", "Top"]].map(([k, l]) =>
+        `<button data-navat="${k}" class="${navAt() === k ? "active" : ""}">${l}</button>`).join("")}</div></div>
       <label class="item"><span>Betting odds<span class="small muted" style="display:block">DraftKings' race odds on event pages, driver pages and Pick'em duels. Off hides them everywhere.</span></span>
       <input type="checkbox" id="odds" ${oddsOn() ? "checked" : ""}></label></div>
 
@@ -1215,6 +1302,11 @@ async function settingsView() {
     if (motionOn()) b.dataset.motion === "rise" ? rise() : slapshot(1);   // a taste of it
   }));
   view.querySelector("#odds").addEventListener("change", e => store.set("odds", e.target.checked));
+  view.querySelectorAll("[data-navat]").forEach(b => b.addEventListener("click", () => {
+    try { localStorage.setItem("navAt", b.dataset.navat); } catch { /* this visit only */ }
+    view.querySelectorAll("[data-navat]").forEach(x => x.classList.toggle("active", x === b));
+    applyNavAt();
+  }));
   view.querySelector("#nickname").addEventListener("change", e => {
     store.set("nickname", e.target.value.trim().slice(0, 24));
     for (const k of GET_CACHE.keys()) if (k.startsWith("/api/pickem")) GET_CACHE.delete(k);
@@ -1588,6 +1680,8 @@ async function wireView() {
   const st = { kind: "", series: "", driver: "", team: "", mine: false, ...local("wire", {}) };
   const save = next => { try { localStorage.setItem("wire", JSON.stringify(next)); } catch { /* fine */ } wireView(); };
   const [items, dir] = await Promise.all([fast(wirePath(st)), loadNames()]);
+  const newest = items.reduce((m, i) => i.time > m ? i.time : m, "");
+  if (newest && newest > local("wireSeen", "")) { try { localStorage.setItem("wireSeen", JSON.stringify(newest)); } catch { /* fine */ } }
   const shown = st.series ? [st.series] : enabledSeries();
   const inScope = x => x.series.some(id => shown.includes(id));
   paint(`<h1>Wire</h1>
@@ -1877,7 +1971,9 @@ function markChangesSeen() {
   updateNewDot();
 }
 function updateNewDot() {
-  document.querySelector('[data-nav="settings"]')?.classList.toggle("has-new", unseenChanges().length > 0);
+  const on = unseenChanges().length > 0;
+  menuBtn.classList.toggle("has-new", on);
+  menu.querySelector('[data-nav="settings"]')?.classList.toggle("has-new", on);
 }
 function newBanner() {
   const fresh = unseenChanges();
@@ -1908,7 +2004,8 @@ function whatsNewView() {
 let ME = null;
 
 function gateView() {
-  document.getElementById("tabs").hidden = true;
+  document.body.classList.add("gated");
+  brandLine();
   const st = ME.status;
   let body;
   if (st === "signed-out") {
@@ -2224,7 +2321,7 @@ async function route(quiet = false) {
     }
     if (ME.status !== "approved") return gateView();
     if (navigated) countView(hash);
-    document.getElementById("tabs").hidden = false;
+    document.body.classList.remove("gated");
     if (!SETTINGS || !SERIES.length) {
       // First load: settings, What's new and the series list all at once.
       const [, changes, both] = await Promise.all([SETTINGS ? null : loadSettings(), early?.[0] || api("/api/changes").catch(() => []),
@@ -2239,6 +2336,7 @@ async function route(quiet = false) {
       }
     }
     updateNewDot();
+    brandLine();
     if (FOLLOW_FIRST && hash !== "/") { await FOLLOW_FIRST; FOLLOW_FIRST = null; }
     const m = hash.match(/^\/series\/([\w-]+)(?:\/(\w+))?$/);
     const lv = hash.match(/^\/live\/([\w-]+)$/);
@@ -2306,6 +2404,7 @@ function navigate() {
   vt.finished.finally(() => named.forEach(el => { el.style.viewTransitionName = ""; }));
 }
 window.addEventListener("hashchange", navigate);
+startBar();
 route();
 setInterval(sendViews, 60000);
 // Coming back after a while counts as opening the app again; leaving sends what's been counted.

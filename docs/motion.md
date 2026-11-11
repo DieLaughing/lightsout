@@ -27,7 +27,7 @@ How the two apps move. This file is identical in both repos: change it in both i
 | Replay (Shots on Goal) | Shots fill in on the rink under the puck you're dragging, or over about 20 s when you press play, with a 600 ms beat and the lamp on each goal. You started it, so the time limit doesn't apply; the page holds still and a touch stops it | |
 | Game story (Shots on Goal) | Swiping moves the moments; the jumbotron holds still, its number rolls and the lamp sweeps on each goal you reach going forward, never going back. You started it, so the time limit doesn't apply | Roll and lamp as for a goal |
 | Menu (Shots on Goal) | Opening: the menu fades in and its pages rise 14 px into place, 30 ms apart; the button's two lines turn into a cross. Closing: fades out. The page under it holds still and can't scroll | Fade in 200 ms, rise 300 ms `cubic-bezier(.2, .9, .3, 1)`, fade out 160 ms, lines 200 ms |
-| Menu bar (Shots on Goal) | Scrolling down slides it off its edge (up, or down when it's at the bottom); any scroll up brings it back | 200 ms |
+| Menu bar (both apps) | Scrolling down slides it off its edge (up, or down when it's at the bottom); any scroll up brings it back | 200 ms |
 | House lights (Shots on Goal) | The page changes colour at once; only the puck on the ruler cross-fades | 160 ms |
 | Dim at puck drop (Shots on Goal) | When your team's game starts (or ends) the whole screen cross-fades down to Lights out (or back up), like the arena; a toast says why. Turning it on with no game on plays it once as a preview | 1400 ms ease-in-out (view transition); none without one or with motion off |
 | Game cards / list (Shots on Goal) | Settings > Display swaps Tonight between team-colour cards and the compact list at once, no motion | none |

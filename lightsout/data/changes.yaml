@@ -4,6 +4,12 @@
 # and `.venv/bin/python tools/release.py` publishes the day's GitHub Release.
 
 - date: 2026-11-10
+  kind: new
+  title: A new menu bar
+  text: The tab bar is now one floating menu bar, like Shots on Goal's. It sits at the bottom under your thumb, with Search on one side and the menu on the other, and in the middle it tells you what's next ("F1 Qualifying · in 2h 05m") or what's on right now. The menu opens full screen with a line under each page saying what's waiting there. Prefer it on top? Settings > Display > Menu bar. On a computer it sits on top with every page in it.
+  link: "#/settings"
+
+- date: 2026-11-10
   kind: fixed
   title: Nothing hides under a side status bar
   text: On phones that put the time and battery down the side of the screen (like iPhone Duo folded, or any iPhone turned sideways), the top buttons, pages and tab bar now stay clear of it. Settings has a new "This screen" line that shows how much room your phone keeps clear on each side, in case something still looks cut off.

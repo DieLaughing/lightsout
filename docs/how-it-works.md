@@ -40,14 +40,21 @@ How the app moves (what animates, what must hold still, timings, rules for new U
   own data (other pages wait for it), later ones refresh behind the scenes. Home's get-the-app/alerts banner fills its
   slot after the page draws (BANNER keeps the last one). Pages fetch in parallel (series: standings + live + events;
   person: the Wire from the phone's copy of the person). showLoading() paints after 350 ms.
-- Navigation: bottom .tabbar (#tabs; icons + labels; one .tab-pill moved by movePill()), Search = magnifier .top-link,
-  Settings = gear .top-link, Admin is a link in Settings. Scrolling down folds the tab icons (.compact) and slides the
-  header off (.tucked); any scroll up restores both. Page animation when a navigation's content lands in #view
+- Navigation (menu bar, from Shots on Goal; index.html #top + #menu, web/app.js startBar/openMenu/brandLine/menuLines):
+  one floating .navpill, at the bottom on phones by default (localStorage `navAt` = top|bottom, Settings > Display; an
+  inline script in index.html sets html[data-nav] before the first paint), always on top at >= 900 px where the five
+  main pages sit in the pill (.pill-link, underlined when active). Phone pill = Search, the name with brandLine()
+  (a live session, followed series first, else the next timed session that counts and "in 2h 05m"; redrawn whenever
+  /api/sessions lands and every 30 s), and the menu button. The menu (#menu) is full screen: the pages in big capitals,
+  each with a line from the phone's own copies (menuLines: next session, Wire items since `wireSeen`, the first
+  follow's championship place, series switched on, unseen What's new); it reads upward from a bottom bar; Esc closes;
+  view and footer go inert while it's open. The What's new dot sits on the menu button and the menu's Settings line.
+  Gate pages add body.gated (just the name). Scrolling down slides the bar off its edge (.tucked), any scroll up
+  brings it back. Page animation when a navigation's content lands in #view
   (Web Animations API): Rise (default; #view's blocks fade up 14 px, 35 ms apart, first 8 staggered, h1 un-blurs) or
   Slapshot (whole-pixel slide), per device in localStorage `motion` (Settings > Display); off with settings.animations
   = false or prefers-reduced-motion. backLink() has a chevron. Both from / like OpenUI's trip planner demo, as in SOG.
-- Pills: liquid() stretches a highlight to the picked option (leading edge first, small overshoot, 380 ms): the tab
-  bar (movePill) and every switch (.series-pick, .tabs, .seg via placeSwitches). A MutationObserver that only reacts
+- Pills: liquid() stretches a highlight to the picked option (leading edge first, small overshoot, 380 ms): every switch (.series-pick, .tabs, .seg via placeSwitches). A MutationObserver that only reacts
   to changes touching a switch places pills once per frame (rAF), so a page built in steps is measured once (placing
   them synchronously cost ~45 ms on a first visit); placeSwitches drops its own mutation records and only writes when
   something changed (any class write wakes the observer: a switch with nothing picked froze SOG once). Redrawn
