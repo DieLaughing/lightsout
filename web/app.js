@@ -805,22 +805,122 @@ function filterBar(upcoming) {
   </div>`;
 }
 
+// ---- Upcoming, by race weekend ------------------------------------------------------------------------------
+// One card per race meeting, grouped by weekend: everything at the same track on overlapping days is one card (the main
+// series on top, support series under it), each day on one line with races in bold and practice quiet, a whole TBA
+// timetable as one line, and where to watch said once per event. Filters still pick the sessions first.
+const SHORT_SES = [[/^(?:free )?practice (\d)$/i, "P$1"], [/^free practice$/i, "Practice"], [/^qualifying$/i, "Quali"],
+  [/^sprint qualifying$/i, "Sprint quali"], [/^sprint shootout$/i, "Shootout"]];
+const shortSes = name => { for (const [re, to] of SHORT_SES) if (re.test(name)) return name.replace(re, to); return name; };
+const SERIES_RANK = id => { const i = SERIES.findIndex(x => x.id === id); return i < 0 ? 999 : i; };
+const weekdayOf = day => new Date(`${day}T12:00`).toLocaleDateString(undefined, { weekday: "short" });
+function spanLabel(a, b) {
+  if (a === b) return shortDate(a);
+  const [, ma] = a.split("-"), [, mb] = b.split("-");
+  return ma === mb ? `${shortDate(a)}–${Number(b.split("-")[2])}` : `${shortDate(a)} – ${shortDate(b)}`;
+}
+const sundayOf = day => addDays(day, (7 - new Date(`${day}T12:00`).getDay()) % 7);
+function untilShort(iso) {
+  const mins = Math.round((Date.parse(iso) - Date.now()) / 60000);
+  if (mins < 60) return `in ${Math.max(mins, 1)} min`;
+  if (mins < 24 * 60) return `in ${Math.round(mins / 60)}h`;
+  return `in ${Math.round(mins / 1440)}d`;
+}
+
+// Events (series + event) -> meetings (same place, overlapping days) -> weekends (by the Sunday ending that week).
+function meetingsOf(rows, followed) {
+  const events = new Map();
+  for (const x of rows) {
+    const k = `${x.series}|${x.event_key || x.event_name}`;
+    if (!events.has(k)) events.set(k, { series: x.series, sessions: [] });
+    events.get(k).sessions.push(x);
+  }
+  const list = [...events.values()].map(e => {
+    const days = e.sessions.flatMap(x => [localDay(x), x.end_day && x.end_day > localDay(x) ? x.end_day : localDay(x)]).sort();
+    return { ...e, first: days[0], last: days.at(-1), s0: e.sessions[0] };
+  });
+  const meetings = [];
+  for (const e of list.sort((a, b) => a.first.localeCompare(b.first))) {
+    const slug = e.s0.place?.slug;
+    const m = slug && meetings.find(m => m.slug === slug && e.first <= addDays(m.last, 1) && e.last >= addDays(m.first, -1));
+    if (m) { m.events.push(e); m.first = e.first < m.first ? e.first : m.first; m.last = e.last > m.last ? e.last : m.last; }
+    else meetings.push({ slug, first: e.first, last: e.last, events: [e] });
+  }
+  for (const m of meetings) {
+    m.events.sort((a, b) => (followed.has(b.series) - followed.has(a.series)) || SERIES_RANK(a.series) - SERIES_RANK(b.series));
+    m.followed = m.events.some(e => followed.has(e.series));
+    m.next = m.events.flatMap(e => e.sessions).filter(x => x.start_utc && Date.parse(x.start_utc) > Date.now()).sort((a, b) => a.start_utc.localeCompare(b.start_utc))[0];
+  }
+  return meetings;
+}
+
+// Each day of one event on a single line: "Thu  P1 7:30 PM · P2 11:00 PM". A timetable that's all TBA is one line.
+function dayLines(e) {
+  const xs = [...e.sessions].sort((a, b) => (a.sort_utc || a.start_utc || a.day || "").localeCompare(b.sort_utc || b.start_utc || b.day || ""));
+  if (xs.every(x => !x.start_utc)) {
+    const span = spanLabel(e.first, e.last);
+    const names = xs.filter(x => x.kind !== "event").map(x => shortSes(x.name));
+    return `<div class="mtg-day tba"><span class="mtg-dl">${esc(e.first === e.last ? weekdayOf(e.first) : span)}</span>
+      <span class="mtg-ses">${names.length ? `${names.map(n => `<span class="ses">${esc(n)}</span>`).join("")}<span class="tba-note">times TBA</span>` : `<span class="muted">Timetable TBA</span>`}</span></div>`;
+  }
+  const byDay = new Map();
+  for (const x of xs) { const d = localDay(x); if (!byDay.has(d)) byDay.set(d, []); byDay.get(d).push(x); }
+  return [...byDay].map(([d, ys]) => `<div class="mtg-day"><span class="mtg-dl">${esc(weekdayOf(d))}</span><span class="mtg-ses">${ys.map(x => {
+    const kind = RACE_KINDS.has(x.kind) ? "race" : x.kind === "practice" ? "prac" : "";
+    const t = x.start_utc ? new Date(x.start_utc).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : "TBA";
+    return `<span class="ses ${kind}" title="${esc(x.name)}"><b>${esc(shortSes(x.name))}</b> ${esc(t)}${kind === "race" ? weatherTag(x.weather) : ""}</span>`;
+  }).join("")}</span></div>`).join("");
+}
+
+// Where to watch, once per event: the badge when the whole weekend shares it, else which sessions are on which.
+function watchLine(e, same = null) {
+  const groups = new Map();
+  for (const x of e.sessions) { const k = JSON.stringify(x.watch || null); if (!groups.has(k)) groups.set(k, { w: x.watch, names: [] }); groups.get(k).names.push(shortSes(x.name)); }
+  const gs = [...groups.values()].filter(g => g.w);
+  if (!gs.length) return "";
+  if (gs.length === 1 && groups.size === 1) return same && JSON.stringify(gs[0].w) === same ? "" : `<div class="mtg-watch">${badge(gs[0].w)}</div>`;
+  return `<div class="mtg-watch split">${gs.map(g => `<span class="mtg-w">${badge(g.w)}<span class="mtg-wfor">${esc(g.names.join(", "))}</span></span>`).join("")}</div>`;
+}
+
+function meetingCard(m) {
+  const [main, ...rest] = m.events, s0 = main.s0;
+  const name = e => e.s0.event_key ? `<a class="ev-link" href="#/event/${e.series}/${encodeURIComponent(e.s0.event_key)}">${esc(e.s0.event_name)}</a>` : esc(e.s0.event_name);
+  const place = placeLine(s0.venue && !norm(s0.event_name).includes(norm(s0.venue)) ? s0.venue : "", s0.event_name, s0.place, s0.country);
+  const tix = main.sessions.find(x => x.tickets)?.tickets;
+  const mainWatch = (() => { const ws = new Set(main.sessions.map(x => JSON.stringify(x.watch || null))); return ws.size === 1 ? [...ws][0] : null; })();
+  const sub = e => `<div class="mtg-sub"><div class="mtg-subhead">${chip(e.series)}${norm(e.s0.event_name) === norm(s0.event_name) || norm(e.s0.event_name).includes(norm(s0.place?.label?.split(",")[0])) ? "" : ` ${name(e)}`}${watchLine(e, mainWatch)}</div>${dayLines(e)}</div>`;
+  // Support series with exactly the main event's lines and stream (Macau's World Cups, all TBA) are just named.
+  const twin = e => dayLines(e) === dayLines(main) && !watchLine(e, mainWatch);
+  const twins = rest.filter(twin), subs = rest.filter(e => !twin(e));
+  return `<div class="card mtg${m.followed ? " followed" : ""}">
+    <div class="mtg-head"><div class="mtg-title"><div class="ev">${chip(main.series)} ${name(main)}</div>
+      <div class="muted small">${place}${tix ? `${place ? " · " : ""}<a class="tag tix" href="${esc(tix.url)}" target="_blank" rel="noopener" title="${esc(tix.label)}">Tickets ↗</a>` : ""}</div></div>
+      ${m.next ? `<span class="mtg-in">${esc(untilShort(m.next.start_utc))}</span>` : ""}</div>
+    <div class="mtg-main">${dayLines(main)}${twins.length ? `<div class="mtg-also"><span class="muted">Also on track</span>${twins.map(e => chip(e.series)).join("")}</div>` : ""}${watchLine(main)}</div>
+    ${subs.map(sub).join("")}
+  </div>`;
+}
+
 function upcomingList(upcoming, followed, today) {
   const f = upFilters();
   const shown = upcoming.filter(s => passes(s, f, today));
-  const groups = new Map();
-  for (const s of shown) {
-    const d = localDay(s);
-    if (!groups.has(d)) groups.set(d, []);
-    groups.get(d).push(s);
-  }
   let html = f.near && home() ? `<div id="near-tracks">${NEAR_BOX}</div>` : "";
   html += filtersOn(f) ? `<p class="muted small filter-count">Showing ${shown.length} of ${upcoming.length} sessions ·
     <button class="link" id="f-clear">Clear filters</button></p>` : "";
-  if (!upcoming.length) html += `<div class="empty">Nothing scheduled in the next 60 days for your series.</div>`;
-  else if (!shown.length) html += `<div class="empty">Nothing matches these filters in the next 60 days.</div>`;
-  for (const [d, rows] of [...groups].sort((a, b) => a[0].localeCompare(b[0]))) {
-    html += `<h2>${esc(dayLabel(d))}</h2><div class="evcs">${eventCards(rows, followed)}</div>`;
+  if (!upcoming.length) return html + `<div class="empty">Nothing scheduled in the next 60 days for your series.</div>`;
+  if (!shown.length) return html + `<div class="empty">Nothing matches these filters in the next 60 days.</div>`;
+  const weeks = new Map(), thisSunday = sundayOf(today);
+  for (const m of meetingsOf(shown, followed)) {
+    const k = sundayOf(m.first < today ? today : m.first);
+    if (!weeks.has(k)) weeks.set(k, []);
+    weeks.get(k).push(m);
+  }
+  for (const [sun, ms] of [...weeks].sort((a, b) => a[0].localeCompare(b[0]))) {
+    const first = ms.map(m => m.first < today ? today : m.first).sort()[0], last = ms.map(m => m.last).sort().at(-1);
+    const label = sun === thisSunday ? "This weekend" : sun === addDays(thisSunday, 7) ? "Next weekend" : "";
+    ms.sort((a, b) => (b.followed - a.followed) || a.first.localeCompare(b.first) || SERIES_RANK(a.events[0].series) - SERIES_RANK(b.events[0].series));
+    html += `<h2>${label ? `${esc(label)} <span class="h2-span">· ${esc(spanLabel(first, last))}</span>` : esc(spanLabel(first, last))}</h2>
+      <div class="evcs">${ms.map(meetingCard).join("")}</div>`;
   }
   return html;
 }

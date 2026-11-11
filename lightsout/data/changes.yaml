@@ -4,6 +4,12 @@
 # and `.venv/bin/python tools/release.py` publishes the day's GitHub Release.
 
 - date: 2026-11-10
+  kind: improved
+  title: Upcoming, one card per race weekend
+  text: Upcoming is now grouped by weekend, with one card per race meeting instead of a card for every day. Each day of the weekend is one line (Thu P1 7:30 PM · P2 11:00 PM), races stand out, and where to watch is said once. Series racing at the same track the same weekend share a card, like F1 ACADEMY under the Las Vegas Grand Prix, or the three World Cups at Macau.
+  link: "#/"
+
+- date: 2026-11-10
   kind: new
   title: Race weekend on Home, and a livelier Standings
   text: Home now leads with the race weekend that matters to you, in your driver's team colour, with a live countdown, where your driver stands, and the whole weekend as a timeline that fills in as sessions finish. Standings opens with the title fight (who leads, by how much, races left), a strip of every race this season showing who won and where your driver finished, arrows for places gained or lost at the last race, and a bar on every row for points against the leader.

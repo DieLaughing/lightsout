@@ -170,8 +170,15 @@ How the app moves (what animates, what must hold still, timings, rules for new U
   points, so NASCAR's playoff table gets none). Drivers tab without a class picked: title-fight card (leader, gap to
   P2) + ribbon (ribbonsToEnd scrolls it sideways to the newest race); every row gets a gap bar (points / leader's).
   Round results come from refresh.py's save_round (F1 + NASCAR backfilled; other series fill forward from 2026-10).
-- Upcoming is grouped per day, then one card per race weekend (eventCards/eventCard: series chip, event, place, watch
-  badge once when every session shares it, else per line). Per-series "Show on Upcoming" = settings.show
+- Upcoming (web/app.js upcomingList/meetingsOf/meetingCard; the by-day version is git tag upcoming-by-day-2026-11-10):
+  the filtered sessions become events (series + event), events at the same place.slug on overlapping days (±1) become
+  one meeting (main = a followed series, else the earliest in SERIES; support series under it, or just named under
+  "Also on track" when their lines and stream match the main event's), and meetings group by weekend (the Sunday ending
+  their first day's week: "This weekend", "Next weekend", else the date span; followed meetings first). Each event shows
+  one line per day (shortSes: P1, Quali; races bold in the accent colour, practice muted; an all-TBA timetable is one
+  line) and where to watch once (watchLine: one badge, or "badge · P1, P2, P3" per service; a support series on the
+  main event's service doesn't repeat it). "in 9d" = the meeting's next timed session. eventCards/eventCard (one card per
+  event, a row per session) remain for Home's "Also on now" and track pages. Per-series "Show on Upcoming" = settings.show
   {series: qualifying|races} (absent = all), set on the series page (.show-bar) or the Series list select; applied by
   shows() in homeView. Series pages use the same compact lines (seriesRows).
 - Places (lightsout/places.py): venues.yaml also has town / region (US, Canada, Australia only) / cc, hand-checked;
