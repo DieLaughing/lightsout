@@ -177,7 +177,11 @@ How the app moves (what animates, what must hold still, timings, rules for new U
   their first day's week: "This weekend", "Next weekend", else the date span; followed meetings first). Each event shows
   one line per day (shortSes: P1, Quali; races bold in the accent colour, practice muted; an all-TBA timetable is one
   line) and where to watch once (watchLine: one badge, or "badge · P1, P2, P3" per service; a support series on the
-  main event's service doesn't repeat it). "in 9d" = the meeting's next timed session. eventCards/eventCard (one card per
+  main event's service doesn't repeat it). "in 9d" = the meeting's next timed session. Kept calm on purpose (2026-11-10, "busy" feedback): one
+  accent per card (the followed stripe; races stand out by weight, not colour), sessions spaced not dotted, plain-text
+  "in 9d" / Tickets / place, where-to-watch as coloured words without the filled box (still saying PAID ONLY / FREE / TV),
+  the race's service as the badge and other services as words ("P1–P3 free on Apple TV app"), support series on one
+  line, an all-TBA timetable as a sentence. eventCards/eventCard (one card per
   event, a row per session) remain for Home's "Also on now" and track pages. Per-series "Show on Upcoming" = settings.show
   {series: qualifying|races} (absent = all), set on the series page (.show-bar) or the Series list select; applied by
   shows() in homeView. Series pages use the same compact lines (seriesRows).

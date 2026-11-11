@@ -483,20 +483,18 @@ html, body { overflow-x: clip; }
 .mtg-title .ev { font-weight: 750; font-size: 16px; display: flex; align-items: center; gap: 7px; min-width: 0; }
 .mtg-title .ev .ev-link { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mtg-title .small { margin-top: 2px; }
-.mtg-in { flex: none; font-size: 12px; font-weight: 700; color: var(--muted); padding: 3px 8px; border-radius: 999px; background: var(--bg);
-  font-variant-numeric: tabular-nums; }
+.mtg-in { flex: none; font-size: 12.5px; font-weight: 500; color: var(--muted); padding-top: 3px; font-variant-numeric: tabular-nums; }
 .mtg-main { padding: 2px 14px 10px; }
 .mtg-day { display: grid; grid-template-columns: 44px 1fr; gap: 8px; align-items: baseline; padding: 4px 0; font-size: 14px; }
 .mtg-day.tba .mtg-dl { white-space: nowrap; }
 .mtg-day.tba { grid-template-columns: auto 1fr; }
-.mtg-dl { color: var(--muted); font-weight: 650; font-size: 13px; }
-.mtg-ses { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 0; min-width: 0; }
+.mtg-dl { color: var(--muted); font-weight: 500; font-size: 13px; }
+.mtg-ses { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 18px; min-width: 0; }
 .ses { white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--text); }
-/* the dot trails each item, so a wrapped line never starts with one */
-.ses:not(:last-of-type)::after { content: "·"; margin: 0 7px; color: var(--muted); font-weight: 400; }
+/* sessions are separated by space, not dots */
 .ses b { font-weight: 600; }
 .ses.prac { color: var(--muted); } .ses.prac b { font-weight: 500; }
-.ses.race b { font-weight: 800; color: var(--accent); }
+.ses.race b { font-weight: 750; }
 .ses.race { font-weight: 650; }
 .ses .wx { margin-left: 6px; }
 .mtg-watch { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 6px; }
@@ -504,12 +502,13 @@ html, body { overflow-x: clip; }
 .mtg-watch .badge span, .mtg-subhead .badge span { margin-top: 0; font-size: 12px; }
 .mtg-w { display: inline-flex; align-items: center; gap: 6px; }
 .mtg-wfor { font-size: 12px; color: var(--muted); }
-.mtg-wfor::before { content: "· "; }
+
 .mtg-sub { padding: 8px 14px 10px; border-top: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 45%, transparent); }
 .mtg-subhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13.5px; font-weight: 650; margin-bottom: 2px; }
 .mtg-subhead .mtg-watch { margin: 0 0 0 auto; }
 .mtg-sub .mtg-day { font-size: 13px; }
-.tba-note { margin-left: 8px; font-size: 12px; color: var(--muted); font-style: italic; white-space: nowrap; }
+.tba-list { display: block; }
+.tba-note { color: var(--muted); font-style: italic; }
 .mtg-also { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 6px; font-size: 13px; }
 .evc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 11px 12px 8px; }
 .evc-title { min-width: 0; }
@@ -735,3 +734,21 @@ details.more-odds > summary { padding: 8px 12px; border-top: 1px solid var(--bor
 /* Settings > This screen: reads the safe areas the device reports (web/app.js screenEdges). */
 .edge-probe { position: fixed; top: 0; left: 0; width: 0; height: 0; visibility: hidden; pointer-events: none;
   padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+
+/* Upcoming stays calm: quiet links, and where-to-watch words in their colour without the filled box (the word still
+   says PAID ONLY / FREE / TV, as the where-to-watch rule wants). */
+.mtg .place-link { text-decoration: none; }
+.mtg .place-link:hover { text-decoration: underline; }
+.mtg .tag.tix { padding: 0; background: none; border: 0; color: var(--muted); font-weight: 500; }
+.mtg .tag.tix:hover { color: var(--text); }
+.mtg .badge b { background: none !important; padding: 0; letter-spacing: .07em; }
+.mtg-watch { align-items: baseline; gap: 4px 12px; margin-top: 4px; }
+.mtg-subhead { font-weight: 600; }
+/* a support series is one line: chip, its days, then where to watch at the end */
+.mtg-sub { background: none; padding: 8px 14px 9px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.mtg-sub .mtg-subhead { display: contents; }
+.mtg-sub .mtg-subhead .chip { order: 0; align-self: flex-start; margin-top: 1px; }
+.mtg-sub .mtg-day { order: 1; flex: 1 1 220px; padding: 0; }
+.mtg-sub .mtg-subhead .mtg-watch { order: 2; margin: 0 0 0 auto; }
+.mtg-sub .mtg-day { color: var(--muted); }
+.mtg-sub .ses { color: var(--muted); }

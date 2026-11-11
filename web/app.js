@@ -861,7 +861,7 @@ function dayLines(e) {
     const span = spanLabel(e.first, e.last);
     const names = xs.filter(x => x.kind !== "event").map(x => shortSes(x.name));
     return `<div class="mtg-day tba"><span class="mtg-dl">${esc(e.first === e.last ? weekdayOf(e.first) : span)}</span>
-      <span class="mtg-ses">${names.length ? `${names.map(n => `<span class="ses">${esc(n)}</span>`).join("")}<span class="tba-note">times TBA</span>` : `<span class="muted">Timetable TBA</span>`}</span></div>`;
+      <span class="mtg-ses">${names.length ? `<span class="tba-list">${esc(names.join(", "))}<span class="tba-note">, times TBA</span></span>` : `<span class="muted">Timetable TBA</span>`}</span></div>`;
   }
   const byDay = new Map();
   for (const x of xs) { const d = localDay(x); if (!byDay.has(d)) byDay.set(d, []); byDay.get(d).push(x); }
@@ -872,14 +872,25 @@ function dayLines(e) {
   }).join("")}</span></div>`).join("");
 }
 
-// Where to watch, once per event: the badge when the whole weekend shares it, else which sessions are on which.
+// Where to watch, once per event: the badge for the race (the session people plan around), then any other service
+// in plain words ("P1–P3 free on Apple TV app"). One badge when the whole weekend shares it.
+const sesRange = names => {
+  const n = names.map(x => x.match(/^P(\d)$/)?.[1]).map(Number);
+  return names.length > 2 && n.every((v, i) => v && (i === 0 || v === n[i - 1] + 1)) ? `${names[0]}–${names.at(-1)}` : names.join(", ");
+};
 function watchLine(e, same = null) {
   const groups = new Map();
-  for (const x of e.sessions) { const k = JSON.stringify(x.watch || null); if (!groups.has(k)) groups.set(k, { w: x.watch, names: [] }); groups.get(k).names.push(shortSes(x.name)); }
+  for (const x of e.sessions) {
+    const k = JSON.stringify(x.watch || null);
+    if (!groups.has(k)) groups.set(k, { w: x.watch, names: [], race: false });
+    const g = groups.get(k); g.names.push(shortSes(x.name)); g.race ||= RACE_KINDS.has(x.kind);
+  }
   const gs = [...groups.values()].filter(g => g.w);
   if (!gs.length) return "";
   if (gs.length === 1 && groups.size === 1) return same && JSON.stringify(gs[0].w) === same ? "" : `<div class="mtg-watch">${badge(gs[0].w)}</div>`;
-  return `<div class="mtg-watch split">${gs.map(g => `<span class="mtg-w">${badge(g.w)}<span class="mtg-wfor">${esc(g.names.join(", "))}</span></span>`).join("")}</div>`;
+  const lead = gs.find(g => g.race) || gs[0];
+  const others = gs.filter(g => g !== lead).map(g => `${sesRange(g.names)} ${g.w.badge === "FREE" ? "free on" : "on"} ${g.w.label}`);
+  return `<div class="mtg-watch">${badge(lead.w)}${others.length ? `<span class="mtg-wfor">${esc(others.join(" · "))}</span>` : ""}</div>`;
 }
 
 function meetingCard(m) {
