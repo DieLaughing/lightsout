@@ -588,7 +588,7 @@ a.item { text-decoration: none; color: inherit; }
   background: color-mix(in srgb, var(--tc) 12%, transparent); border-left: 3px solid var(--tcr); }
 .wk-mine b { color: var(--text); }
 .wk-line { list-style: none; margin: 14px 0 2px; padding: 0; display: grid; gap: 0; }
-.wk-line li { position: relative; display: grid; grid-template-columns: 38px 74px 1fr; align-items: baseline; gap: 2px 8px; padding: 6px 0 6px 22px;
+.wk-line li { position: relative; display: grid; grid-template-columns: 38px 74px auto 1fr; align-items: baseline; gap: 2px 8px; padding: 6px 0 6px 22px;
   font-size: 13.5px; font-variant-numeric: tabular-nums; }
 /* the timeline: a line through the dots; done = filled, live = pulsing, next = ringed in the team colour */
 .wk-line li::before { content: ""; position: absolute; left: 6px; top: 0; bottom: 0; width: 2px; background: var(--border); }
@@ -602,7 +602,16 @@ a.item { text-decoration: none; color: inherit; }
 .wk-line li.next .wk-ses, .wk-line li.live .wk-ses { font-weight: 700; }
 .wk-day { color: var(--muted); font-weight: 600; }
 .wk-tick { color: var(--tcr); font-size: 12px; }
-.wk-watch { grid-column: 2 / -1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 3px; }
+/* Where to watch (and the weather) sit at the end of the next session's own line, one row: badge word, then the service. */
+.wk-watch { grid-column: 4; justify-self: start; margin-left: 10px; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.wk-watch .badge { flex-direction: row; align-items: center; gap: 6px; max-width: none; text-align: left; }
+.wk-watch .badge span { margin-top: 0; font-size: 12px; }
+.wk-watch .wx { margin-left: 0; }
+/* Narrow phones: the session keeps its room and where to watch drops under it, lined up with the name. */
+@media (max-width: 480px) {
+  .wk-line li { grid-template-columns: 38px 74px 1fr; }
+  .wk-watch { grid-column: 3; justify-self: start; margin: 2px 0 0; flex-wrap: wrap; white-space: normal; }
+}
 .wk-timing { margin-top: 10px; }
 
 /* Driver pages: photo + Wikipedia lines, this season's cards, F1 career */
