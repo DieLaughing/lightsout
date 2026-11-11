@@ -49,6 +49,8 @@ function switchOnNewSeries() {
   store.set("seenSeries", all);
 }
 
+// Someone brand new (nothing saved on the server, nothing in this browser) gets the two-step setup (web/welcome.js).
+let FIRST_RUN = false;
 async function loadSettings() {
   if (ME.settings) { SETTINGS = ME.settings; return; }
   // Never saved on the server: bring this browser's settings along.
@@ -58,6 +60,13 @@ async function loadSettings() {
     if (v !== undefined) SETTINGS[k] = v;
   }
   if (Object.keys(SETTINGS).length) await saveSettings().catch(() => {});
+  else FIRST_RUN = !local("welcomed", false);
+}
+function openWelcome() {
+  if (!FIRST_RUN) return;
+  FIRST_RUN = false;
+  import("./welcome.js?v=1").then(m => m.open({ esc, chip, SERIES, BY_ID, normalise, loadNames, store, follows, enabled: enabledSeries,
+    api: fast, done: () => loadFollowStatus().then(() => route(true)) })).catch(() => {});
 }
 
 const KINDS = [
@@ -2594,6 +2603,7 @@ async function route(quiet = false) {
     updateNewDot();
     brandLine();
     setTimeout(startDock, 1500);   // after the first page has drawn
+    if (FIRST_RUN) setTimeout(openWelcome, 300);
     if (FOLLOW_FIRST && hash !== "/") { await FOLLOW_FIRST; FOLLOW_FIRST = null; }
     const m = hash.match(/^\/series\/([\w-]+)(?:\/(\w+))?$/);
     const lv = hash.match(/^\/live\/([\w-]+)$/);

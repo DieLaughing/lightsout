@@ -154,6 +154,11 @@ How the app moves (what animates, what must hold still, timings, rules for new U
   session in the next 7 days, refreshed every 6 h (1 h when a session is < 36 h away), cached in /data/weather.json.
   Sessions get {c, rain, code} at the start hour or {hi, lo, rain, code} for untimed days; °C stored, user setting
   `units` (f/c). Unmatched venues are logged ("no weather place for ..."): add them to venues.yaml. W2RC skipped.
+- First-run setup (web/welcome.js, on demand): only when /api/me has no settings, this browser has no saved copy and
+  localStorage `welcomed` isn't set (loadSettings sets FIRST_RUN). Step 1 = series by category, default_on ones
+  picked; step 2 = drivers: the top three of each picked series with standings (up to 6 series) plus a search over
+  /api/names. Done saves series + follows (store.set, synced); Skip saves the default series so the server has
+  settings and it never returns.
 - Compare (#/compare/<a>[/<b>], web/compare.js loaded on demand by compareView; /api/compare?a=&b=): for each series
   both race in this season, their championship rows and, from round_result, the head-to-head (ahead at the finish when
   both were classified), wins, podiums, top 10s, average finish, retirements (a non-numeric finish), and every round's
