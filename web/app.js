@@ -1053,8 +1053,16 @@ async function searchView() {
   const section = (title, rows) => rows.length ? `<h2>${title}</h2><div class="card">${rows.join("")}</div>` : "";
   const draw = () => {
     searchText = box.value;
-    if (searchText.trim().length < 2) { out.innerHTML = `<p class="help small muted">Type a name: Verstappen, Penske, IMSA, Daytona, Monaco…</p>`; return; }
+    if (searchText.trim().length < 2) { out.innerHTML = `<p class="help small muted">Type a name: Verstappen, Penske, IMSA, Daytona, Monaco… or two drivers with “vs” between them to compare.</p>`; return; }
     if (!lists) { out.innerHTML = `<div class="empty">Loading…</div>`; return; }
+    const vs = searchText.split(/\s+(?:vs\.?|v)\s+/i);
+    if (vs.length === 2 && vs.every(x => x.trim().length >= 2)) {   // "Verstappen vs Norris": compare them
+      const [x, y] = vs.map(q => searchResults(q, ...lists).drivers[0]);
+      if (x && y && x.name !== y.name) {
+        out.innerHTML = section("Compare", [`<a class="item" href="#/compare/${encodeURIComponent(x.name)}/${encodeURIComponent(y.name)}"><b>${esc(x.name)} vs ${esc(y.name)}</b><span class="muted">Head to head ›</span></a>`]);
+        return;
+      }
+    }
     const r = searchResults(searchText, ...lists);
     const html = section("Series", r.series.map(x => `<a class="item" href="#/series/${x.id}"><div>${chip(x.id)} <b>${esc(x.name)}</b></div><span class="muted">›</span></a>`))
       + section("Drivers", r.drivers.map(d => `<a class="item" href="#/driver/${encodeURIComponent(d.name)}"><b>${esc(d.name)}</b><span>${seriesTags(d.series)}</span></a>`))
@@ -2000,7 +2008,7 @@ async function personView(type, name) {
       <div><h1>${esc(name)}</h1>${about ? `<div class="muted small">${esc(about)}</div>` : ""}
       ${a?.backer ? `<div class="small backed">Races in ${a.f1_team ? "the colours of " : ""}${backerTag({ ...a, wildcard: false })}${a.f1_team ? "" : " colours"}</div>` : ""}</div></div>
     <div class="person-head">${seriesIds.map(chip).join(" ")} <span class="muted small">${tagged === "team" ? "Team" : "Driver"}</span>
-      <button class="btn${followed ? "" : " primary"}" id="follow">${followed ? "Following ✓" : "Follow"}</button></div>
+      ${tagged === "team" ? "" : `<a class="btn" href="#/compare/${encodeURIComponent(name)}">⇄ Compare</a>`}<button class="btn${followed ? "" : " primary"}" id="follow">${followed ? "Following ✓" : "Follow"}</button></div>
     ${bio}
     ${outLinks ? `<div class="series-links">${outLinks}</div>` : ""}
     ${academy.length ? `<h2>In F1 ACADEMY</h2><p class="small muted">The all-women series on F1 weekends. These drivers race in ${esc(name)}'s colours.</p>
@@ -2449,13 +2457,21 @@ function reportView(kind = "bug") {
   showMyReports("myreports");
 }
 
+// Compare two drivers (web/compare.js, loaded on demand).
+async function compareView(a, b) {
+  setNav("");
+  const m = await import("./compare.js?v=1");
+  await m.render({ api: fast, esc, chip, paint, view, backLink, listen, loadNames, normalise, entries: () => fast("/api/entries"),
+    same: (x, y) => normalise(x) === normalise(y) }, a, b);
+}
+
 // ---- page transitions ------------------------------------------------------------------------
 // "Slapshot": the old page goes at once and the new one flies in from the side already at speed, overshoots and
 // snaps back. Upcoming -> Wire -> Standings -> Series in tab order; deeper pages from the right, back from the left.
 // Plays once the new page's content is on screen; never for quiet redraws or the same page re-shown; off with
 // Settings > Display or the phone's Reduce Motion. Whole-pixel moves only, so text doesn't shift when it stops.
 const NAV_ORDER = { "": 0, wire: 1, picks: 2, standings: 3, series: 4, search: 5, settings: 5, new: 6, app: 6, report: 6, admin: 6 };
-const DEEP = new Set(["event", "driver", "team", "story", "live"]);
+const DEEP = new Set(["event", "driver", "team", "story", "live", "compare"]);
 let QUIET_ROUTE = false, lastHash = null, lastPage = null, pendingShot = 0;
 const motionOn = () => SETTINGS?.animations !== false && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 function shotFrom(prev, next, prevHash, nextHash) {
@@ -2513,12 +2529,12 @@ const VIEW_PLAIN = new Set(["/report", "/wire", "/new", "/app", "/series", "/set
 const VIEW_DEEP = [[/^\/series\/[\w-]+(?:\/\w+)?$/, "series/:id"], [/^\/live\/[\w-]+$/, "live/:series"],
   [/^\/driver\/.+$/, "driver/:name"], [/^\/team\/.+$/, "team/:name"], [/^\/story\/[\w-]+\/.+$/, "story/:id"],
   [/^\/event\/[\w-]+\/.+$/, "event/:id"], [/^\/track\/[\w-]+$/, "track/:id"],
-  [/^\/standings\/[\w-]+(?:\/\w+)?$/, "standings/:series"], [/^\/picks\/[\w-]+(?:\/.+)?$/, "picks/:sub"]];
+  [/^\/standings\/[\w-]+(?:\/\w+)?$/, "standings/:series"], [/^\/picks\/[\w-]+(?:\/.+)?$/, "picks/:sub"], [/^\/compare\/.+$/, "compare"]];
 const VIEW_NAME = { home: "Home", wire: "Race Wire", new: "What's new", app: "Get the app", series: "Series list",
   settings: "Settings", standings: "Standings", picks: "Pick'em", report: "Report a problem", "series/:id": "A series' page",
   "live/:series": "Live timing", "driver/:name": "Driver page", "team/:name": "Team page", "story/:id": "Race story",
   "event/:id": "Event page", "track/:id": "Track page", "standings/:series": "Standings, a series",
-  "picks/:sub": "Pick'em, a race or table" };
+  "picks/:sub": "Pick'em, a race or table", compare: "Compare" };
 
 function countView(hash) {
   if (ME?.status !== "approved" || ME.admin) return;
@@ -2587,6 +2603,7 @@ async function route(quiet = false) {
     const trk = hash.match(/^\/track\/([\w-]+)$/);
     const sd = hash.match(/^\/standings(?:\/([\w-]+)(?:\/(\w+))?)?$/);
     const pk = hash.match(/^\/picks(?:\/([\w-]+)(?:\/(.+))?)?$/);
+    const cmp = hash.match(/^\/compare\/([^/]+)(?:\/([^/]+))?$/);
     if (hash !== "/report") reportFrom = location.hash || "#/";
     document.getElementById("foot").hidden = hash === "/report";
     if (hash === "/report") reportView();
@@ -2594,6 +2611,7 @@ async function route(quiet = false) {
     else if (hash === "/wire") await wireView();
     else if (hash === "/new") whatsNewView();
     else if (hash === "/search") await searchView();
+    else if (cmp) await compareView(decodeURIComponent(cmp[1]), cmp[2] ? decodeURIComponent(cmp[2]) : "");
     else if (hash === "/app") appView();
     else if (trk) await trackView(trk[1]);
     else if (person) await personView(person[1], decodeURIComponent(person[2]));

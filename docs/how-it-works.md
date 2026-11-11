@@ -154,6 +154,12 @@ How the app moves (what animates, what must hold still, timings, rules for new U
   session in the next 7 days, refreshed every 6 h (1 h when a session is < 36 h away), cached in /data/weather.json.
   Sessions get {c, rain, code} at the start hour or {hi, lo, rain, code} for untimed days; °C stored, user setting
   `units` (f/c). Unmatched venues are logged ("no weather place for ..."): add them to venues.yaml. W2RC skipped.
+- Compare (#/compare/<a>[/<b>], web/compare.js loaded on demand by compareView; /api/compare?a=&b=): for each series
+  both race in this season, their championship rows and, from round_result, the head-to-head (ahead at the finish when
+  both were classified), wins, podiums, top 10s, average finish, retirements (a non-numeric finish), and every round's
+  pair of finishes (the strip). Better number in bold; split header in the two team colours (same colour: the second
+  side darker). One side: a picker with teammates by series (same series + team in /api/entries) and a name search over
+  /api/names. Ways in: ⇄ Compare on driver pages, "X vs Y" in Search.
 - Lights out (web/start.js, loaded on demand by lightsOut()): the start gantry, full screen (five pods, a light a
   second, a random 0.2-3 s hold, all out). When Home's countdown reaches a race / sprint / rally day in a followed
   series ([data-start] on .wk-count), startTicker plays it once per session per device (localStorage `started`) then

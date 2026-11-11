@@ -558,6 +558,54 @@ async def save_settings(request: Request):
     return clean
 
 
+@app.get("/api/compare")
+def compare(a: str, b: str):
+    """Two drivers side by side, for every series they both race in this season: their championship rows, and from
+    round_result the head-to-head (who finished ahead when both were classified), wins, podiums, top 10s, average
+    finish and DNFs, plus every round's pair of finishes (the duel strip). Series only one of them races in are listed
+    by id so the page can say so."""
+    a, b = a.strip()[:80], b.strip()[:80]
+    sa, sb = follow.status(store, [a, b])
+    out = []
+    for sid in [x for x in sa["series"] if x in sb["series"]]:
+        table = store.standings(sid) or {}
+        rows = [*(table.get("drivers") or []), *[r for v in (table.get("classes") or {}).values() for r in v]]
+        row = lambda n: next((r for r in rows if follow.matches(n, r["name"])), None)  # noqa: E731
+        ra, rb = row(a), row(b)
+        season = refresh.season_of(table.get("season_label", ""))
+        def finish(r: dict, n: str):
+            key = n if n in r["rows"] else next((k for k in r["rows"] if follow.matches(n, k)), None)
+            return str(r["rows"][key][0]) if key else None
+        duel, h2h = [], [0, 0]
+        stats = [{"starts": 0, "wins": 0, "podiums": 0, "top10": 0, "dnf": 0, "sum": 0, "classified": 0} for _ in (0, 1)]
+        for r in store.rounds(sid, season):
+            pa, pb = finish(r, a), finish(r, b)
+            if pa is None and pb is None:
+                continue
+            duel.append({"event": r["event"], "a": pa, "b": pb})
+            for st, p in ((stats[0], pa), (stats[1], pb)):
+                if p is None:
+                    continue
+                st["starts"] += 1
+                if p.isdigit():
+                    n = int(p)
+                    st["classified"] += 1; st["sum"] += n
+                    st["wins"] += n == 1; st["podiums"] += n <= 3; st["top10"] += n <= 10
+                else:
+                    st["dnf"] += 1
+            if pa and pb and pa.isdigit() and pb.isdigit():
+                h2h[0 if int(pa) < int(pb) else 1] += 1
+        side = lambda r, st: {**({k: r.get(k) for k in ("name", "team", "pos", "points", "wins")} if r else {}),  # noqa: E731
+                              "color": colors.for_team((r or {}).get("team", ""), sid) if r else "",
+                              **{k: v for k, v in st.items() if k not in ("sum", "classified")},
+                              "avg": round(st["sum"] / st["classified"], 1) if st["classified"] else None}
+        out.append({"series": sid, "season": table.get("season_label", ""), "a": side(ra, stats[0]), "b": side(rb, stats[1]),
+                    "h2h": h2h, "duel": duel})
+    out.sort(key=lambda x: (not (x["a"].get("pos") and x["b"].get("pos")), -len(x["duel"])))
+    return {"a": a, "b": b, "series": out, "only_a": [x for x in sa["series"] if x not in sb["series"]],
+            "only_b": [x for x in sb["series"] if x not in sa["series"]]}
+
+
 @app.get("/api/person/{name}")
 def person(name: str):
     """Everything known about one followed name (driver or team): where they race, what's next, this season's

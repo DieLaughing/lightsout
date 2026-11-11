@@ -633,3 +633,23 @@ def test_season_story_moves_ribbon_and_rounds_left(tmp_path, monkeypatch):
     playoff = {**table, "drivers": [table["drivers"][2], table["drivers"][0]]}
     assert "moves" not in app_module.season_story("f1", playoff)
     assert "moves" not in app_module.season_story("f1", {**table, "last_event": "Las Vegas Grand Prix"})
+
+
+def test_compare_head_to_head_from_rounds(tmp_path, monkeypatch):
+    from lightsout import app as app_module
+    store = Store(tmp_path / "t.db")
+    monkeypatch.setattr(app_module, "store", store)
+    ev = Event("2026-r1", 2026, "Round 1", "Circuit", "USA", sessions=[Session("r", "Race", RACE, start=datetime(2026, 12, 1, tzinfo=timezone.utc))])
+    store.save("f1", AdapterResult([ev], [2026], [Entry("Max Verstappen", "Red Bull"), Entry("Isack Hadjar", "Red Bull")]))
+    from lightsout.models import StandingRow, Standings
+    store.save_standings("f1", Standings(drivers=[StandingRow(1, "Max Verstappen", "Red Bull", 50.0), StandingRow(2, "Isack Hadjar", "Red Bull", 30.0)],
+                                         season_label="2026 · after round 3"))
+    store.save_round("f1", 2026, "A", "2026-03-01", {"Max Verstappen": ["1", 25], "Isack Hadjar": ["4", 12]})
+    store.save_round("f1", 2026, "B", "2026-03-08", {"Max Verstappen": ["R", 0], "Isack Hadjar": ["2", 18]})
+    store.save_round("f1", 2026, "C", "2026-03-15", {"Max Verstappen": ["3", 15], "Isack Hadjar": ["9", 2]})
+    out = app_module.compare("verstappen", "Isack Hadjar")
+    f1 = out["series"][0]
+    assert f1["series"] == "f1" and f1["h2h"] == [2, 0]  # round B: Verstappen retired, so it doesn't count
+    assert f1["a"]["wins"] == 1 and f1["a"]["podiums"] == 2 and f1["a"]["dnf"] == 1 and f1["a"]["avg"] == 2.0
+    assert f1["b"]["podiums"] == 1 and f1["b"]["top10"] == 3 and f1["b"]["avg"] == 5.0
+    assert [d["a"] for d in f1["duel"]] == ["1", "R", "3"] and f1["a"]["name"] == "Max Verstappen"

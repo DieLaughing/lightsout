@@ -5,6 +5,12 @@
 
 - date: 2026-11-10
   kind: new
+  title: Compare any two drivers
+  text: Put two drivers side by side: who finished ahead more often when both made it to the flag, and their wins, podiums, top 10s, average finish and retirements this season, with every round's result next to each other. Tap ⇄ Compare on a driver's page (teammates are one tap away), or type two names with "vs" in Search.
+  link: "#/search"
+
+- date: 2026-11-10
+  kind: new
   title: Lights out
   text: When a race in a series you follow starts while Home is open, the five red lights come on one by one, hold, and go out. And any time, "Test your start" on the race weekend card is a reaction test with the real start sequence. Tap the moment the lights go out to get your time; jump the start and it'll tell you. Your best is kept on this device.
   link: "#/"
