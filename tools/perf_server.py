@@ -71,6 +71,12 @@ def seed(store, email: str) -> None:
             drivers=[StandingRow(pos=n + 1, name=d, team=t, points=300 - 11 * n) for n, (d, t) in enumerate(zip(drivers, teams))],
             teams=[StandingRow(pos=n + 1, name=f"{s.short} Team {n + 1}", points=500 - 30 * n) for n in range(DRIVERS // 2)],
             last_event=f"{s.short} Round 6", season_label=str(today.year)))
+        # The six races so far (Standings' season ribbon and the places gained/lost at Round 6): a rotating finishing order.
+        paid = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+        for r, ev in enumerate(events[:6]):
+            order = drivers[r:] + drivers[:r] if r < 5 else [drivers[1], drivers[3], drivers[2], drivers[0], *drivers[5:], drivers[4]]  # P5 scores nothing: P4 and P5 swap
+            store.save_round(s.id, today.year, ev.name, ev.start_day.isoformat(),
+                             {d: [str(p + 1), float(paid[p]) if p < len(paid) else 0.0] for p, d in enumerate(order)})
         for n in range(6):
             news.append({"id": f"perf-{s.id}-{n}", "time": (datetime.now(timezone.utc) - timedelta(hours=7 * n + i)).strftime("%Y-%m-%dT%H:%M:%SZ"),
                          "title": f"{s.name}: story {n + 1}", "text": "A made-up story for speed checks.",

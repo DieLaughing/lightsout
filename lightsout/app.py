@@ -132,7 +132,7 @@ def list_series():
 @app.get("/api/sessions")
 def list_sessions(start: str | None = None, end: str | None = None, series: str | None = None):
     now = datetime.now(timezone.utc)
-    start = start or _iso(now - timedelta(hours=12))
+    start = start or _iso(now - timedelta(days=3))   # the whole race weekend so far: Home's weekend timeline shows what's done
     end = end or _iso(now + timedelta(days=60))
     ids = [s for s in series.split(",") if s in BY_ID] if series else None
     return places.tag(weather.attach(_with_watch(store.sessions(start, end, ids))))
@@ -160,7 +160,38 @@ def series_standings(series_id: str):
     if table and series_id == "f1a":
         for rows in (table.get("drivers") or [], table.get("last_results") or [], *(table.get("qualifying") or {}).values()):
             f1a.tag(store, rows)
-    return colors.tint(table, series_id) if table else {}
+    return {**colors.tint(table, series_id), **season_story(series_id, table)} if table else {}
+
+
+def _loose(text: str | None) -> str:
+    return " ".join("".join(c if c.isalnum() else " " for c in (text or "").lower()).split())
+
+
+def season_story(series_id: str, table: dict) -> dict:
+    """What the Standings page draws around the table, from round_result and the schedule:
+    rounds  every race of the season so far, oldest first, with each name's finishing position (the season ribbon);
+    moves   places each driver gained (+) or lost (-) at the last race: points before it = points now minus what that
+            race paid, re-sorted. Only for tables ordered by points (a playoff table isn't) and only when the newest
+            saved round is the table's last race;
+    left    races still to run this season (events after the newest round with a race, sprint or rally day)."""
+    season = refresh.season_of(table.get("season_label", ""))
+    rounds = store.rounds(series_id, season)
+    out: dict = {"rounds": [{"event": r["event"], "day": r["day"], "pos": {n: v[0] for n, v in r["rows"].items()}} for r in rounds]}
+    after = rounds[-1]["day"][:10] if rounds else datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    out["left"] = sum(1 for e in store.events(series_id) if e["season"] == season and (e["start_day"] or "") > after
+                      and any(x["kind"] in (RACE, SPRINT, RALLY_DAY, EVENT) for x in e["sessions"]))
+    drivers = table.get("drivers") or []
+    last = rounds[-1] if rounds else None
+    by_points = all(a["points"] >= b["points"] for a, b in zip(drivers, drivers[1:]))
+    if drivers and by_points and last and _loose(last["event"]) and _loose(last["event"]) == _loose(table.get("last_event")):
+        def scored(name: str) -> float:
+            key = name if name in last["rows"] else next((k for k in last["rows"] if follow.matches(name, k)), None)
+            return float(last["rows"][key][1] or 0) if key else 0.0
+        before = sorted(drivers, key=lambda r: (-(r["points"] - scored(r["name"])), r["pos"]))
+        prev = {r["name"]: i + 1 for i, r in enumerate(before)}
+        out["moves"] = {r["name"]: prev[r["name"]] - r["pos"] for r in drivers}
+        out["moves_at"] = last["event"]
+    return out
 
 
 @app.get("/api/live")

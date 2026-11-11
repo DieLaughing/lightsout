@@ -607,3 +607,29 @@ def test_whole_table_reads_are_kept_until_a_save(tmp_path):
     assert store.entries() is first and [r["name"] for r in store.entry_lists_with_events()] == ["Elfyn Evans"]
     store.save("wrc", AdapterResult([ev], [2027], [Entry("Elfyn Evans", "Toyota"), Entry("Kalle Rovanpera", "Toyota")]))
     assert [r["name"] for r in store.entries()] == ["Elfyn Evans", "Kalle Rovanpera"]
+
+
+def test_season_story_moves_ribbon_and_rounds_left(tmp_path, monkeypatch):
+    from lightsout import app as app_module
+    store = Store(tmp_path / "t.db")
+    monkeypatch.setattr(app_module, "store", store)
+    table = {"season_label": "2026 · after round 2", "last_event": "Brazilian Grand Prix",
+             "drivers": [{"pos": 1, "name": "A Driver", "points": 50.0}, {"pos": 2, "name": "B Driver", "points": 40.0},
+                         {"pos": 3, "name": "C Driver", "points": 39.0}]}
+    store.save_round("f1", 2026, "Mexico City Grand Prix", "2026-11-01", {"B Driver": ["1", 25.0], "C Driver": ["2", 18.0], "A Driver": ["3", 15.0]})
+    store.save_round("f1", 2026, "Brazilian Grand Prix", "2026-11-08", {"A Driver": ["1", 25.0], "C Driver": ["2", 18.0], "B Driver": ["9", 2.0]})
+    later = datetime(2026, 11, 21, 6, tzinfo=timezone.utc)
+    store.save("f1", AdapterResult([Event("2026-vegas", 2026, "Las Vegas Grand Prix", "Las Vegas", "USA", start_day=date(2026, 11, 20),
+                                          sessions=[Session("r", "Race", RACE, start=later)]),
+                                    Event("2026-test", 2026, "Post-season test", "Yas Marina", "UAE", start_day=date(2026, 12, 9),
+                                          sessions=[Session("t", "Test", PRACTICE, start=later + timedelta(days=18))])], [2026]))
+    out = app_module.season_story("f1", table)
+    assert [r["event"] for r in out["rounds"]] == ["Mexico City Grand Prix", "Brazilian Grand Prix"]
+    assert out["rounds"][1]["pos"]["A Driver"] == "1"
+    # Before Brazil: A 25, B 38, C 21 -> B, A, C. After: A, B, C. So A +1, B -1, C 0.
+    assert out["moves"] == {"A Driver": 1, "B Driver": -1, "C Driver": 0} and out["moves_at"] == "Brazilian Grand Prix"
+    assert out["left"] == 1  # Vegas; a test with no race doesn't count
+    # A table that isn't ordered by points (a playoff format) gets no moves; nor does one whose last race isn't saved yet.
+    playoff = {**table, "drivers": [table["drivers"][2], table["drivers"][0]]}
+    assert "moves" not in app_module.season_story("f1", playoff)
+    assert "moves" not in app_module.season_story("f1", {**table, "last_event": "Las Vegas Grand Prix"})

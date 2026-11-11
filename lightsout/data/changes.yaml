@@ -5,6 +5,12 @@
 
 - date: 2026-11-10
   kind: new
+  title: Race weekend on Home, and a livelier Standings
+  text: Home now leads with the race weekend that matters to you, in your driver's team colour, with a live countdown, where your driver stands, and the whole weekend as a timeline that fills in as sessions finish. Standings opens with the title fight (who leads, by how much, races left), a strip of every race this season showing who won and where your driver finished, arrows for places gained or lost at the last race, and a bar on every row for points against the leader.
+  link: "#/standings"
+
+- date: 2026-11-10
+  kind: new
   title: A new menu bar
   text: The tab bar is now one floating menu bar, like Shots on Goal's. It sits at the bottom under your thumb, with Search on one side and the menu on the other, and in the middle it tells you what's next ("F1 Qualifying · in 2h 05m") or what's on right now. The menu opens full screen with a line under each page saying what's waiting there. Prefer it on top? Settings > Display > Menu bar. On a computer it sits on top with every page in it.
   link: "#/settings"

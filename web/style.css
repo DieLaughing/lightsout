@@ -220,6 +220,36 @@ input:disabled { opacity: .6; }
 .standings .num { text-align: right; font-size: 13px; white-space: nowrap; }
 .standings .pts { font-weight: 700; }
 .standings .srow.followed { box-shadow: inset 3px 0 0 var(--accent); }
+/* Places gained or lost at the last race, under the position; a bar in the team colour for points against the leader. */
+.standings .pos { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.15; }
+.mv { font-size: 10px; font-weight: 800; letter-spacing: -.02em; }
+.mv.up { color: var(--free-fg); } .mv.down { color: var(--lost-fg); }
+.gapbar { display: block; height: 3px; margin-top: 5px; border-radius: 2px; width: calc(var(--w) * 100%); background: var(--tcr); opacity: .55; }
+.srow.followed .gapbar { opacity: .9; }
+
+/* ---- Standings: the title fight and the season ribbon (web/app.js titleFight, seasonRibbon) ---- */
+.title-fight { display: grid; grid-template-columns: 1fr auto; gap: 4px 14px; align-items: end; margin: 6px 0 10px; padding: 14px 16px;
+  border-radius: 16px; border: 1px solid var(--border);
+  background: radial-gradient(110% 100% at 0% 0%, color-mix(in srgb, var(--tc) 26%, transparent) 0%, transparent 65%), var(--surface); }
+.tf-who { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tf-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.tf-who .who-link b { font-size: 21px; font-weight: 850; letter-spacing: -.01em; }
+.tf-who .tteam { color: var(--tcr); font-weight: 650; font-size: 13px; }
+.tf-gap { text-align: right; white-space: nowrap; }
+.tf-gap b { display: block; font-size: 40px; font-weight: 250; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.tf-gap small { font-size: 12px; color: var(--muted); font-weight: 600; }
+.tf-left { grid-column: 1 / -1; margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.ribbon { margin: 0 0 12px; }
+.rb-head { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 2px 6px; }
+.rb-tiles { list-style: none; margin: 0; padding: 0 0 2px; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.rb-tiles::-webkit-scrollbar { display: none; }
+.rb-tiles li { flex: 0 0 44px; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 5px 0 6px; border-radius: 10px;
+  background: color-mix(in srgb, var(--tc, var(--muted)) 20%, var(--surface)); border: 1px solid color-mix(in srgb, var(--tc, var(--border)) 35%, var(--border));
+  font-variant-numeric: tabular-nums; }
+.rb-n { font-size: 10px; color: var(--muted); font-weight: 700; }
+.rb-tiles b { font-size: 12px; font-weight: 800; color: var(--tcr); letter-spacing: .02em; }
+.rb-me { font-size: 11px; font-weight: 700; color: var(--text); }
+.rb-me.win { color: var(--free-fg); }
 
 .live-card { text-decoration: none; }
 .tabs a.live-tab { color: var(--live); border-color: var(--live); }
@@ -490,9 +520,9 @@ a.item { text-decoration: none; color: inherit; }
 .on-chip span { opacity: .7; margin-left: 2px; }
 
 /* ---- Team colour (--tc from colors.yaml) made readable on either theme ---- */
-.hero, .countdown, .standings .srow { --tcr: color-mix(in oklab, var(--tc, var(--muted)) 78%, black); }
+.hero, .wk, .title-fight, .ribbon, .standings .srow { --tcr: color-mix(in oklab, var(--tc, var(--muted)) 78%, black); }
 @media (prefers-color-scheme: dark) {
-  .hero, .countdown, .standings .srow { --tcr: color-mix(in oklab, var(--tc, var(--muted)) 62%, white); }
+  .hero, .wk, .title-fight, .ribbon, .standings .srow { --tcr: color-mix(in oklab, var(--tc, var(--muted)) 62%, white); }
 }
 .standings .tteam { color: var(--tcr); font-weight: 600; }
 .standings .tteam-name::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px;
@@ -529,14 +559,40 @@ a.item { text-decoration: none; color: inherit; }
 .hero-foot .news { margin-top: 0; }
 .hero-next b { color: var(--text); font-weight: 650; }
 
-/* ---- Next up countdown ---- */
-.countdown { display: block; margin: 18px 0 4px; padding: 14px; border-radius: 14px; border: 1px solid var(--border); color: inherit;
-  text-decoration: none; background: linear-gradient(160deg, color-mix(in srgb, var(--tc) 18%, var(--surface)) 0%, var(--surface) 70%); }
-.cd-label { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
-.cd-label b { color: var(--text); }
-.cd-time { margin-top: 4px; }
-.cd-time b { font-size: 46px; font-weight: 300; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-.cd-time small { margin: 0 12px 0 2px; font-size: 13px; font-weight: 750; color: var(--muted); }
+/* ---- The race weekend: Home's lead card (web/app.js weekendHero) ----
+   Your driver's team colour washes in from the corner; the countdown is big and thin; the weekend runs underneath as a
+   timeline whose dots fill in as sessions finish. */
+.wk { position: relative; margin: 10px 0 6px; padding: 16px 16px 12px; border-radius: 18px; border: 1px solid var(--border); overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--tc) 34%, transparent) 0%, transparent 60%),
+    linear-gradient(160deg, color-mix(in srgb, var(--tc) 14%, var(--surface)) 0%, var(--surface) 75%); }
+.wk-top { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+.wk-name { display: block; margin: 8px 0 2px; font-size: 24px; font-weight: 850; letter-spacing: -.01em; line-height: 1.1; color: var(--text); text-decoration: none; }
+.wk-label { font-size: 13px; color: var(--muted); margin-top: 10px; }
+.wk-count { margin-top: 2px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wk-count b { font-size: 52px; font-weight: 250; letter-spacing: -.03em; line-height: 1; }
+.wk-count small { margin: 0 12px 0 3px; font-size: 13px; font-weight: 750; color: var(--muted); }
+.wk-now { margin-top: 12px; font-size: 18px; }
+.wk-mine { margin-top: 10px; padding: 7px 10px; border-radius: 10px; font-size: 13px; color: var(--muted);
+  background: color-mix(in srgb, var(--tc) 12%, transparent); border-left: 3px solid var(--tcr); }
+.wk-mine b { color: var(--text); }
+.wk-line { list-style: none; margin: 14px 0 2px; padding: 0; display: grid; gap: 0; }
+.wk-line li { position: relative; display: grid; grid-template-columns: 38px 74px 1fr; align-items: baseline; gap: 2px 8px; padding: 6px 0 6px 22px;
+  font-size: 13.5px; font-variant-numeric: tabular-nums; }
+/* the timeline: a line through the dots; done = filled, live = pulsing, next = ringed in the team colour */
+.wk-line li::before { content: ""; position: absolute; left: 6px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+.wk-line li:first-child::before { top: 15px; } .wk-line li:last-child::before { bottom: calc(100% - 15px); }
+.wk-line li::after { content: ""; position: absolute; left: 2px; top: 10px; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--surface); border: 2px solid var(--border); box-sizing: border-box; }
+.wk-line li.done::after { background: var(--tcr); border-color: var(--tcr); }
+.wk-line li.done { color: var(--muted); }
+.wk-line li.live::after { background: var(--live); border-color: var(--live); animation: pulse 1.4s infinite; }
+.wk-line li.next::after { border-color: var(--tcr); box-shadow: 0 0 0 3px color-mix(in srgb, var(--tc) 25%, transparent); }
+.wk-line li.next .wk-ses, .wk-line li.live .wk-ses { font-weight: 700; }
+.wk-day { color: var(--muted); font-weight: 600; }
+.wk-tick { color: var(--tcr); font-size: 12px; }
+.wk-watch { grid-column: 2 / -1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 3px; }
+.wk-timing { margin-top: 10px; }
 
 /* Driver pages: photo + Wikipedia lines, this season's cards, F1 career */
 .dhead { display: flex; align-items: center; gap: 14px; margin: 6px 0 10px; }

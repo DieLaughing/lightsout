@@ -154,6 +154,22 @@ How the app moves (what animates, what must hold still, timings, rules for new U
   session in the next 7 days, refreshed every 6 h (1 h when a session is < 36 h away), cached in /data/weather.json.
   Sessions get {c, rain, code} at the start hour or {hi, lo, rain, code} for untimed days; °C stored, user setting
   `units` (f/c). Unmatched venues are logged ("no weather place for ..."): add them to venues.yaml. W2RC skipped.
+- Home's race weekend card (web/app.js weekendHero/weekendPick): the weekend of a live session (followed series first),
+  else of the next timed session that counts (practice only when nothing else is timed); the menu bar's line uses the
+  same pick. Painted in the followed driver's team colour (their /api/cards row for that series) or the series colour;
+  a countdown ticking every second (startTicker: one interval for every [data-until], stops when none are left and
+  redraws Home when the session starts), the driver's place and points, and every session of the weekend as a timeline
+  (done / live / next with where to watch and weather / later). /api/sessions now starts 3 days back (was 12 h) so a
+  Sunday still shows Friday's sessions as done; Home filters finished sessions out of the list itself. Other live
+  sessions follow as "Also on now".
+- Standings extras (app.season_story, added to /api/series/<id>/standings): `rounds` (every saved race this season,
+  each name's finish: the season ribbon, winner tiles in the winner's team colour, your driver's finish under each),
+  `left` (events after the newest round with a race, sprint or rally day: "N races left", "Season complete" at 0 with
+  3+ rounds done), `moves` + `moves_at` (places gained/lost at the last race: points before it = points now minus what
+  that round paid, re-sorted; only when the newest saved round is the table's last_event and the table is ordered by
+  points, so NASCAR's playoff table gets none). Drivers tab without a class picked: title-fight card (leader, gap to
+  P2) + ribbon (ribbonsToEnd scrolls it sideways to the newest race); every row gets a gap bar (points / leader's).
+  Round results come from refresh.py's save_round (F1 + NASCAR backfilled; other series fill forward from 2026-10).
 - Upcoming is grouped per day, then one card per race weekend (eventCards/eventCard: series chip, event, place, watch
   badge once when every session shares it, else per line). Per-series "Show on Upcoming" = settings.show
   {series: qualifying|races} (absent = all), set on the series page (.show-bar) or the Series list select; applied by
