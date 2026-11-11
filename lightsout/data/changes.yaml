@@ -6,7 +6,7 @@
 - date: 2026-11-10
   kind: new
   title: Compare any two drivers
-  text: Put two drivers side by side: who finished ahead more often when both made it to the flag, and their wins, podiums, top 10s, average finish and retirements this season, with every round's result next to each other. Tap ⇄ Compare on a driver's page (teammates are one tap away), or type two names with "vs" in Search.
+  text: "Put two drivers side by side: who finished ahead more often when both made it to the flag, and their wins, podiums, top 10s, average finish and retirements this season, with every round's result next to each other. Tap ⇄ Compare on a driver's page (teammates are one tap away), or type two names with \"vs\" in Search."
   link: "#/search"
 
 - date: 2026-11-10
