@@ -54,7 +54,13 @@ PILLS = """([sel, on, pill]) => [...document.querySelectorAll(sel)].filter(sw =>
   return [[name, Math.max(Math.abs(a.left - b.left), Math.abs(a.width - b.width))]]; })"""
 # Taps the first card on screen and lists the view-transition animations that run in the next 1.2 s.
 MORPHS = """async tap => {
-  const a = [...document.querySelectorAll(tap)].find(a => { const r = a.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; });
+  const onScreen = () => [...document.querySelectorAll(tap)].find(a => { const r = a.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; });
+  let a = onScreen();
+  if (!a && document.querySelector(tap)) {   // below the fold (banners and cards come first): scroll to it like a person would
+    scrollTo(0, scrollY + document.querySelector(tap).getBoundingClientRect().top - innerHeight / 2);
+    await new Promise(r => setTimeout(r, 400));
+    a = onScreen();
+  }
   if (!a) return null;
   const seen = new Set(), t0 = performance.now();
   a.click();

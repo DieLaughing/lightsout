@@ -5,6 +5,7 @@ This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit th
 
 ## November 10, 2026
 
+- **Fixed: Nothing hides under a side status bar.** On phones that put the time and battery down the side of the screen (like iPhone Duo folded, or any iPhone turned sideways), the top buttons, pages and tab bar now stay clear of it. Settings has a new "This screen" line that shows how much room your phone keeps clear on each side, in case something still looks cut off.
 - **Fixed: IMSA is back, with the 2027 calendar.** IMSA stopped updating on November 4, when imsa.com was rebuilt with new pages. It's fixed, and all 12 WeatherTech rounds of 2027 are in, from the Roar on January 22 to Petit Le Mans on October 9. Session times show up as IMSA posts each weekend's schedule, a few weeks before the event. The 2026 season stays as it was.
 
 ## October 25, 2026

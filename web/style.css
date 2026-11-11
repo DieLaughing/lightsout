@@ -28,6 +28,9 @@
 }
 
 * { box-sizing: border-box; }
+/* Side safe areas: 0 everywhere except screens that put something on a side (iPhone Duo's status-bar rail on the
+   cover screen and in landscape, any iPhone turned sideways), so these leave every other device exactly as it was. */
+:root { --sl: env(safe-area-inset-left, 0px); --sr: env(safe-area-inset-right, 0px); }
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
@@ -45,7 +48,7 @@ a { color: inherit; }
 .top {
   position: sticky; top: 0; z-index: 5;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+  padding: calc(10px + env(safe-area-inset-top)) calc(16px + var(--sr)) 10px calc(16px + var(--sl));
   background: var(--surface); border-bottom: 1px solid var(--border);
 }
 .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; text-decoration: none; letter-spacing: .02em; }
@@ -55,7 +58,8 @@ a { color: inherit; }
 .top nav a { text-decoration: none; padding: 6px 10px; border-radius: 8px; color: var(--muted); font-weight: 500; }
 .top nav a.active { color: var(--text); background: var(--bg); }
 
-main { max-width: 760px; margin: 0 auto; padding: 8px 16px calc(88px + env(safe-area-inset-bottom)); }
+main { max-width: calc(760px + var(--sl) + var(--sr)); margin: 0 auto;
+  padding: 8px calc(16px + var(--sr)) calc(88px + env(safe-area-inset-bottom)) calc(16px + var(--sl)); }
 h1 { font-size: 20px; margin: 18px 0 8px; }
 h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 22px 0 8px; }
 .muted { color: var(--muted); }
@@ -316,7 +320,7 @@ input:disabled { opacity: .6; }
 .news-item { text-decoration: none; color: inherit; }
 
 /* bug reports */
-.foot { max-width: 760px; margin: -24px auto 0; padding: 0 16px 28px; text-align: center; font-size: 13px; }
+.foot { max-width: calc(760px + var(--sl) + var(--sr)); margin: -24px auto 0; padding: 0 calc(16px + var(--sr)) 28px calc(16px + var(--sl)); text-align: center; font-size: 13px; }
 .foot a { color: var(--muted); }
 .pad16 { padding: 14px 16px; }
 .help { margin: 6px 2px 0; }
@@ -335,7 +339,7 @@ input:disabled { opacity: .6; }
 .top-link.has-new::after { content: ""; position: absolute; top: -3px; right: -3px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
 @media (max-width: 380px) { .top-label { display: none; } .top-link { padding: 7px; } }
 .tabbar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 5; display: flex; justify-content: center; gap: 4px; isolation: isolate;
-  padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); background: var(--surface); border-top: 1px solid var(--border); }
+  padding: 6px calc(8px + var(--sr)) calc(6px + env(safe-area-inset-bottom)) calc(8px + var(--sl)); background: var(--surface); border-top: 1px solid var(--border); }
 .tabbar a { flex: 1; max-width: 160px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 4px 5px;
   text-decoration: none; color: var(--muted); font-weight: 600; font-size: 11.5px; border-radius: 10px; transition: gap 180ms ease, padding 180ms ease, color 160ms ease; }
 .tabbar a.active { color: var(--text); }
@@ -585,3 +589,7 @@ details.more-odds > summary { padding: 8px 12px; border-top: 1px solid var(--bor
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 200ms; }
 ::view-transition-group(hero) { animation-duration: 340ms; animation-timing-function: cubic-bezier(.2, .9, .3, 1); }
 ::view-transition-old(hero), ::view-transition-new(hero) { animation-duration: 340ms; height: 100%; object-fit: contain; }
+
+/* Settings > This screen: reads the safe areas the device reports (web/app.js screenEdges). */
+.edge-probe { position: fixed; top: 0; left: 0; width: 0; height: 0; visibility: hidden; pointer-events: none;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
