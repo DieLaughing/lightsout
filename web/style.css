@@ -39,7 +39,7 @@ body {
   font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   /* Room for the menu bar: at the bottom on phones by default, on top when picked there (and on wide screens). */
   padding-top: calc(var(--bar-top) + env(safe-area-inset-top));
-  padding-bottom: calc(var(--bar-bottom) + env(safe-area-inset-bottom));
+  padding-bottom: calc(var(--bar-bottom) + var(--dock-h) + env(safe-area-inset-bottom));
   /* At least as tall as the screen: in an installed iPhone app a page shorter than the screen (Tonight with two games)
      got a shorter frame, and the tab bar pinned to its bottom sat above the bottom of the display. */
   min-height: 100vh;
@@ -50,8 +50,9 @@ a { color: inherit; }
 /* ---- the menu bar (web/app.js: openMenu, brandLine, applyNavAt), from Shots on Goal ----
    One floating pill, centred: Search, the name with what's next (or on now), the menu. A wide screen also gets the
    main pages either side of the name. Phones have it at the bottom, under the thumb, unless moved (Settings > Display). */
-:root { --bar-top: 78px; --bar-bottom: 24px; }
-:root[data-nav="bottom"] { --bar-top: 8px; --bar-bottom: 92px; }
+:root { --bar-top: 78px; --bar-bottom: 24px; --dock-h: 0px; --dock-at: 10px; }
+:root[data-nav="bottom"] { --bar-top: 8px; --bar-bottom: 92px; --dock-at: 84px; }
+body.has-dock { --dock-h: 66px; }
 .top { position: fixed; top: 0; left: 0; right: 0; z-index: 8; display: flex; justify-content: center; pointer-events: none;
   padding: calc(10px + env(safe-area-inset-top)) calc(10px + var(--sr)) 0 calc(10px + var(--sl)); }
 :root[data-nav="bottom"] .top { top: auto; bottom: 0; padding: 0 calc(10px + var(--sr)) calc(12px + env(safe-area-inset-bottom)) calc(10px + var(--sl)); }
@@ -85,7 +86,7 @@ a { color: inherit; }
 /* Wide screens: the main pages sit in the pill, the active one underlined, and the bar is always on top. */
 .pill-link { display: none; }
 @media (min-width: 900px) {
-  :root[data-nav] { --bar-top: 86px; --bar-bottom: 24px; }
+  :root[data-nav] { --bar-top: 86px; --bar-bottom: 24px; --dock-at: 10px; }
   :root[data-nav] .top { top: 0; bottom: auto; padding: calc(12px + env(safe-area-inset-top)) calc(10px + var(--sr)) 0 calc(10px + var(--sl)); }
   .navpill { height: 62px; padding: 0 8px; border-radius: 31px; }
   .pill-link { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 11px 4px; font-size: 14.5px; font-weight: 600;
@@ -752,3 +753,30 @@ details.more-odds > summary { padding: 8px 12px; border-top: 1px solid var(--bor
 .mtg-sub .mtg-subhead .mtg-watch { order: 2; margin: 0 0 0 auto; }
 .mtg-sub .mtg-day { color: var(--muted); }
 .mtg-sub .ses { color: var(--muted); }
+
+/* ---- The live dock (web/dock.js): your drivers' places on every page while a session is live ----
+   Floats at the bottom (just above the menu bar when that's at the bottom); two sessions at once swipe sideways. */
+.dock { position: fixed; z-index: 6; left: calc(10px + var(--sl)); right: calc(10px + var(--sr)); bottom: calc(var(--dock-at) + env(safe-area-inset-bottom));
+  max-width: 440px; margin: 0 auto; display: flex; gap: 6px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+  border-radius: 16px; transition: transform 200ms ease; }
+.dock::-webkit-scrollbar { display: none; }
+.dock[hidden] { display: none; }
+:root[data-nav="bottom"] .top.tucked ~ .dock { transform: translateY(74px); }
+@media (min-width: 900px) { :root[data-nav] .top.tucked ~ .dock { transform: none; } }
+.dock-item { flex: 0 0 100%; scroll-snap-align: start; display: flex; flex-direction: column; gap: 3px; padding: 8px 12px; border-radius: 16px;
+  text-decoration: none; color: var(--text); background: color-mix(in srgb, var(--surface) 92%, transparent); border: 1px solid var(--border);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 6px 20px rgba(0, 0, 0, .22); }
+.dock.many .dock-item { flex-basis: 88%; }
+.dk-top { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); min-width: 0; white-space: nowrap; }
+.dk-ses { display: inline-flex; align-items: center; gap: 6px; color: var(--text); font-weight: 650; overflow: hidden; text-overflow: ellipsis; }
+.live-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--live); animation: pulse 1.4s infinite; }
+.dk-lap { font-variant-numeric: tabular-nums; }
+.dk-flag { margin-left: auto; font-size: 10.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; padding: 2px 6px; border-radius: 5px; }
+.dk-flag.yellow { background: #f5c400; color: #1a1a1a; } .dk-flag.red { background: var(--live); color: #fff; }
+.dk-people { display: flex; gap: 16px; font-size: 15px; font-variant-numeric: tabular-nums; }
+.dk-who { display: inline-flex; align-items: baseline; gap: 6px; padding-left: 8px; border-left: 3px solid var(--tc, var(--border)); }
+.dk-who b { font-size: 17px; font-weight: 800; }
+.dk-who.lead { color: var(--muted); } .dk-who.lead b { color: var(--text); }
+.dk-who small { font-size: 10px; font-weight: 800; color: var(--muted); }
+.dk-who i { font-style: normal; font-size: 11px; font-weight: 800; } .dk-who i.up { color: var(--free-fg); } .dk-who i.down { color: var(--lost-fg); }
+@media (prefers-reduced-motion: reduce) { .dock { transition: none; } .live-dot { animation: none; } }

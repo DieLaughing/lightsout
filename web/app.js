@@ -357,6 +357,18 @@ function setNav(name) {
 // waiting there. Where the bar sits (bottom or top) is per device; wide screens always have it on top.
 const topBar = document.getElementById("top"), menu = document.getElementById("menu"), menuBtn = document.getElementById("menu-btn");
 let menuOpen = false;
+// The live dock (web/dock.js): your drivers' places while a session with live timing is on. Per device, on unless
+// switched off in Settings > Display. Loaded once the first page is up.
+const dockOn = () => local("dock", true) !== false;
+let dock = null;
+function startDock() {
+  if (dock) return;
+  dock = import("./dock.js?v=1").then(m => {
+    m.start({ api, esc, chip, dockOn, enabled: enabledSeries,   // follows read fresh each time: changing them needs no reload
+      isMine: r => [r.name, r.team].some(n => n && follows().some(f => normalise(f.name) === normalise(n))) });
+    return m;
+  }).catch(() => { dock = null; });
+}
 const navAt = () => { try { return localStorage.getItem("navAt") === "top" ? "top" : "bottom"; } catch { return "bottom"; } };
 function applyNavAt() { document.documentElement.dataset.nav = navAt(); }
 const sessionsCopy = () => SERIES.length ? GET_CACHE.get(`/api/sessions?series=${enabledSeries().join(",")}`)?.data || [] : [];
@@ -1468,6 +1480,8 @@ async function settingsView() {
       <div class="item"><span>Page motion<span class="small muted" style="display:block">Rise: each page builds in from the top. Slapshot: it flies in from the side.</span></span>
       <div class="seg" role="group" aria-label="Page motion">${[["rise", "Rise"], ["slapshot", "Slapshot"]].map(([k, l]) =>
         `<button data-motion="${k}" class="${motionStyle() === k ? "active" : ""}">${l}</button>`).join("")}</div></div>
+      <label class="item"><span>Live dock<span class="small muted" style="display:block">While a session with live timing is on, a strip at the bottom of every page shows where your drivers are. Tap it for live timing.</span></span>
+      <input type="checkbox" id="dock" ${dockOn() ? "checked" : ""}></label>
       <div class="item"><span>Menu bar<span class="small muted" style="display:block">Where the menu bar sits on a phone, on this device. At the bottom it's under your thumb. Wide screens always have it on top.</span></span>
       <div class="seg" role="group" aria-label="Menu bar">${[["bottom", "Bottom"], ["top", "Top"]].map(([k, l]) =>
         `<button data-navat="${k}" class="${navAt() === k ? "active" : ""}">${l}</button>`).join("")}</div></div>
@@ -1512,6 +1526,10 @@ async function settingsView() {
     if (motionOn()) b.dataset.motion === "rise" ? rise() : slapshot(1);   // a taste of it
   }));
   view.querySelector("#odds").addEventListener("change", e => store.set("odds", e.target.checked));
+  view.querySelector("#dock").addEventListener("change", e => {
+    try { localStorage.setItem("dock", JSON.stringify(e.target.checked)); } catch { /* this visit only */ }
+    dock?.then(m => m?.refresh());
+  });
   view.querySelectorAll("[data-navat]").forEach(b => b.addEventListener("click", () => {
     try { localStorage.setItem("navAt", b.dataset.navat); } catch { /* this visit only */ }
     view.querySelectorAll("[data-navat]").forEach(x => x.classList.toggle("active", x === b));
@@ -2547,6 +2565,7 @@ async function route(quiet = false) {
     }
     updateNewDot();
     brandLine();
+    setTimeout(startDock, 1500);   // after the first page has drawn
     if (FOLLOW_FIRST && hash !== "/") { await FOLLOW_FIRST; FOLLOW_FIRST = null; }
     const m = hash.match(/^\/series\/([\w-]+)(?:\/(\w+))?$/);
     const lv = hash.match(/^\/live\/([\w-]+)$/);

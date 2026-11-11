@@ -154,6 +154,14 @@ How the app moves (what animates, what must hold still, timings, rules for new U
   session in the next 7 days, refreshed every 6 h (1 h when a session is < 36 h away), cached in /data/weather.json.
   Sessions get {c, rain, code} at the start hour or {hi, lo, rain, code} for untimed days; °C stored, user setting
   `units` (f/c). Unmatched venues are logged ("no weather place for ..."): add them to venues.yaml. W2RC skipped.
+- Live dock (web/dock.js, from Shots on Goal; loaded by startDock 1.5 s after the first page): polls /api/live every
+  10 s while something is live (30 s otherwise, never while the tab is hidden) and /api/live/<series> for each
+  connected feed in a switched-on series. One .dock-item per session (two swipe sideways): chip, session, lap or
+  clock, a flag label (yellow / safety car / red), and your followed drivers' places (up to 2; else the leader) with
+  ▲▼ for places changed since the last poll (30 s). Taps open #/live/<series>; hidden on that page. Sits above the
+  menu bar (--dock-at), body.has-dock adds --dock-h of room; per device localStorage `dock` (Settings > Display).
+  Testing with fake feeds: Playwright route() on /api/live needs service_workers="block", and page.wait_for_timeout
+  (time.sleep blocks the route handlers).
 - Home's race weekend card (web/app.js weekendHero/weekendPick): the weekend of a live session (followed series first),
   else of the next timed session that counts (practice only when nothing else is timed); the menu bar's line uses the
   same pick. Painted in the followed driver's team colour (their /api/cards row for that series) or the series colour;
