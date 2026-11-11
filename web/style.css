@@ -37,7 +37,9 @@ body {
   background: var(--bg);
   color: var(--text);
   font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  padding-bottom: env(safe-area-inset-bottom);
+  /* Room for the menu bar: at the bottom on phones by default, on top when picked there (and on wide screens). */
+  padding-top: calc(var(--bar-top) + env(safe-area-inset-top));
+  padding-bottom: calc(var(--bar-bottom) + var(--dock-h) + env(safe-area-inset-bottom));
   /* At least as tall as the screen: in an installed iPhone app a page shorter than the screen (Tonight with two games)
      got a shorter frame, and the tab bar pinned to its bottom sat above the bottom of the display. */
   min-height: 100vh;
@@ -45,21 +47,84 @@ body {
 }
 a { color: inherit; }
 
-.top {
-  position: sticky; top: 0; z-index: 5;
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: calc(10px + env(safe-area-inset-top)) calc(16px + var(--sr)) 10px calc(16px + var(--sl));
-  background: var(--surface); border-bottom: 1px solid var(--border);
-}
-.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; text-decoration: none; letter-spacing: .02em; }
+/* ---- the menu bar (web/app.js: openMenu, brandLine, applyNavAt), from Shots on Goal ----
+   One floating pill, centred: Search, the name with what's next (or on now), the menu. A wide screen also gets the
+   main pages either side of the name. Phones have it at the bottom, under the thumb, unless moved (Settings > Display). */
+:root { --bar-top: 78px; --bar-bottom: 24px; --dock-h: 0px; --dock-at: 10px; }
+:root[data-nav="bottom"] { --bar-top: 8px; --bar-bottom: 92px; --dock-at: 84px; }
+body.has-dock { --dock-h: 66px; }
+.top { position: fixed; top: 0; left: 0; right: 0; z-index: 8; display: flex; justify-content: center; pointer-events: none;
+  padding: calc(10px + env(safe-area-inset-top)) calc(10px + var(--sr)) 0 calc(10px + var(--sl)); }
+:root[data-nav="bottom"] .top { top: auto; bottom: 0; padding: 0 calc(10px + var(--sr)) calc(12px + env(safe-area-inset-bottom)) calc(10px + var(--sl)); }
+.navpill { pointer-events: auto; display: flex; align-items: center; gap: 2px; min-width: 0; height: 58px; padding: 0 6px; border-radius: 29px;
+  background: color-mix(in srgb, var(--surface) 86%, transparent); border: 1px solid var(--border);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); box-shadow: 0 6px 22px rgba(0, 0, 0, .08); }
+.pill-btn { flex: none; width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; position: relative;
+  border: 0; border-radius: 22px; background: transparent; color: var(--text); cursor: pointer; text-decoration: none; }
+.pill-btn .ico { width: 21px; height: 21px; display: block; color: currentColor; }
+.pill-btn.active { background: color-mix(in srgb, var(--text) 7%, transparent); }
+/* Hover looks only where there's a mouse: a phone keeps :hover on the last thing touched (a menu line stayed red). */
+@media (hover: hover) { .pill-btn:hover { background: color-mix(in srgb, var(--text) 7%, transparent); } .menu-links a:hover b { color: var(--accent); } }
+.brand { min-width: 160px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 0 10px; text-decoration: none; }
+.brand-name { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 16px; line-height: 1; letter-spacing: .02em; white-space: nowrap; }
 .lights { display: inline-flex; gap: 2px; }
 .lights i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: block; }
-.top nav { display: flex; gap: 4px; }
-.top nav a { text-decoration: none; padding: 6px 10px; border-radius: 8px; color: var(--muted); font-weight: 500; }
-.top nav a.active { color: var(--text); background: var(--bg); }
+.brand-line { display: flex; align-items: center; gap: 5px; font-size: 11px; line-height: 1.2; font-weight: 600; color: var(--muted);
+  white-space: nowrap; font-variant-numeric: tabular-nums; max-width: 210px; overflow: hidden; text-overflow: ellipsis; }
+.brand-line:empty { display: none; }
+.brand-line.live { color: var(--text); }
+.brand-line.live::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--live); animation: pulse 1.4s infinite; }
+.burger { position: relative; width: 18px; height: 12px; }
+.burger i { position: absolute; left: 0; width: 18px; height: 2px; border-radius: 1px; background: currentColor; }
+.burger i:first-child { top: 1px; } .burger i:last-child { top: 9px; }
+#menu-btn[aria-expanded="true"] { background: var(--text); color: var(--bg); }
+#menu-btn[aria-expanded="true"] .burger i:first-child { transform: translateY(4px) rotate(45deg); }
+#menu-btn[aria-expanded="true"] .burger i:last-child { transform: translateY(-4px) rotate(-45deg); }
+@media (prefers-reduced-motion: no-preference) { .burger i { transition: transform 200ms ease; } #menu-btn { transition: background 160ms ease, color 160ms ease; } }
+#menu-btn.has-new::after { content: ""; position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 0 2px var(--surface); }
+/* Wide screens: the main pages sit in the pill, the active one underlined, and the bar is always on top. */
+.pill-link { display: none; }
+@media (min-width: 900px) {
+  :root[data-nav] { --bar-top: 86px; --bar-bottom: 24px; --dock-at: 10px; }
+  :root[data-nav] .top { top: 0; bottom: auto; padding: calc(12px + env(safe-area-inset-top)) calc(10px + var(--sr)) 0 calc(10px + var(--sl)); }
+  .navpill { height: 62px; padding: 0 8px; border-radius: 31px; }
+  .pill-link { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 11px 4px; font-size: 14.5px; font-weight: 600;
+    color: var(--muted); text-decoration: none; border-radius: 10px; }
+  .pill-link::after { content: ""; width: 20px; height: 3px; border-radius: 2px; background: transparent; }
+  .pill-link:hover, .pill-link.active { color: var(--text); }
+  .pill-link.active::after { background: var(--accent); }
+  .brand-name { font-size: 17px; }
+}
+@media (prefers-reduced-motion: no-preference) { .pill-link, .pill-link::after { transition: color 160ms ease, background 160ms ease; } }
+/* Signed out or waiting to be let in: just the name. */
+body.gated :is(.pill-btn, .pill-link) { display: none; }
+/* The menu: the whole screen, big capitals, a line under each saying what's there. At the bottom it reads upward
+   from the bar, the main pages nearest the thumb. */
+.menu { position: fixed; inset: 0; z-index: 7; overflow-y: auto; overscroll-behavior: contain; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; gap: 30px;
+  padding: calc(92px + env(safe-area-inset-top)) calc(24px + var(--sr)) calc(28px + env(safe-area-inset-bottom)) calc(24px + var(--sl)); }
+.menu[hidden] { display: none; }
+:root[data-nav="bottom"] .menu { flex-direction: column-reverse; justify-content: flex-start;
+  padding: calc(28px + env(safe-area-inset-top)) calc(24px + var(--sr)) calc(96px + env(safe-area-inset-bottom)) calc(24px + var(--sl)); }
+.menu-links { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+:root[data-nav="bottom"] .menu-links { flex-direction: column-reverse; }
+.menu-links a { display: flex; flex-direction: column; align-items: inherit; gap: 2px; text-decoration: none; color: var(--text); padding: 2px 6px; border-radius: 10px; }
+.menu-links b { font-size: 38px; line-height: 1; font-weight: 900; text-transform: uppercase; letter-spacing: -.01em; font-style: italic; }
+.menu-links span { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--muted); }
+.menu-links a.active span::before { content: ""; width: 22px; height: 3px; border-radius: 2px; background: var(--accent); }
+/* The mini game sits with the pages, set off a little so it doesn't read as one. */
+.menu-links .menu-game { display: flex; flex-direction: column; align-items: inherit; gap: 2px; padding: 12px 6px 2px; border: 0; background: none; color: var(--text);
+  font: inherit; cursor: pointer; border-top: 1px dashed var(--border); margin-top: 6px; }
+.menu-links .menu-game b { font-size: 26px; line-height: 1; font-weight: 900; text-transform: uppercase; font-style: italic; color: var(--accent); }
+:root[data-nav="bottom"] .menu-links .menu-game { border-top: 0; border-bottom: 1px dashed var(--border); margin: 0 0 6px; padding: 2px 6px 12px; }
+.menu-links a.has-new b::after { content: ""; display: inline-block; vertical-align: super; margin-left: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+@media (min-width: 900px) { :root[data-nav] .menu { flex-direction: column; justify-content: flex-start;
+  padding-top: calc(110px + env(safe-area-inset-top)); padding-bottom: 32px; } :root[data-nav] .menu-links { flex-direction: column; } }
+html.menu-open, html.menu-open body { overflow: hidden; }
 
 main { max-width: calc(760px + var(--sl) + var(--sr)); margin: 0 auto;
-  padding: 8px calc(16px + var(--sr)) calc(88px + env(safe-area-inset-bottom)) calc(16px + var(--sl)); }
+  padding: 8px calc(16px + var(--sr)) 24px calc(16px + var(--sl)); }
 h1 { font-size: 20px; margin: 18px 0 8px; }
 h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 22px 0 8px; }
 .muted { color: var(--muted); }
@@ -129,7 +194,6 @@ code.url { display: block; word-break: break-all; font-size: 12px; padding: 8px;
 .past { opacity: .55; }
 
 @media (max-width: 420px) {
-  .top nav a { padding: 6px 7px; }
   .row { grid-template-columns: 66px 1fr auto; gap: 8px; }
   .row .time { font-size: 13px; }
   .brand { font-size: 15px; }
@@ -162,6 +226,47 @@ input:disabled { opacity: .6; }
 .standings .num { text-align: right; font-size: 13px; white-space: nowrap; }
 .standings .pts { font-weight: 700; }
 .standings .srow.followed { box-shadow: inset 3px 0 0 var(--accent); }
+/* Places gained or lost at the last race, under the position; a bar in the team colour for points against the leader. */
+.standings .pos { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.15; }
+.mv { font-size: 10px; font-weight: 800; letter-spacing: -.02em; }
+.mv.up { color: var(--free-fg); } .mv.down { color: var(--lost-fg); }
+.gapbar { display: block; height: 3px; margin-top: 5px; border-radius: 2px; width: calc(var(--w) * 100%); background: var(--tcr); opacity: .55; }
+.srow.followed .gapbar { opacity: .9; }
+
+/* ---- Standings: the title fight and the season ribbon (web/app.js titleFight, seasonRibbon) ---- */
+.title-fight { display: grid; grid-template-columns: 1fr auto; gap: 4px 14px; align-items: end; margin: 6px 0 10px; padding: 14px 16px;
+  border-radius: 16px; border: 1px solid var(--border);
+  background: radial-gradient(110% 100% at 0% 0%, color-mix(in srgb, var(--tc) 26%, transparent) 0%, transparent 65%), var(--surface); }
+.tf-who { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tf-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.tf-who .who-link b { font-size: 21px; font-weight: 850; letter-spacing: -.01em; }
+.tf-who .tteam { color: var(--tcr); font-weight: 650; font-size: 13px; }
+.tf-gap { text-align: right; white-space: nowrap; }
+.tf-gap b { display: block; font-size: 40px; font-weight: 250; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.tf-gap small { font-size: 12px; color: var(--muted); font-weight: 600; }
+.tf-left { grid-column: 1 / -1; margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.ribbon { margin: 0 0 12px; }
+.rb-head { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 2px 6px; }
+.rb-tiles { list-style: none; margin: 0; padding: 0 0 2px; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.rb-tiles::-webkit-scrollbar { display: none; }
+/* Phones swipe it: the side with more races behind it fades out (web/app.js ribbonsToEnd sets .more-l / .more-r). */
+.rb-tiles.more-l { -webkit-mask-image: linear-gradient(to right, transparent, #000 28px); mask-image: linear-gradient(to right, transparent, #000 28px); }
+.rb-tiles.more-r { -webkit-mask-image: linear-gradient(to left, transparent, #000 28px); mask-image: linear-gradient(to left, transparent, #000 28px); }
+.rb-tiles.more-l.more-r { -webkit-mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+/* With a mouse there's no swipe (a wheel scrolls the page): every race shows, in even rows of up to 20 (--cols). */
+@media (pointer: fine) {
+  .rb-tiles { display: grid; grid-template-columns: repeat(var(--cols, 20), minmax(0, 1fr)); overflow: visible;
+    -webkit-mask-image: none !important; mask-image: none !important; }
+  .rb-tiles li { min-width: 0; }
+}
+.rb-tiles li { flex: 0 0 44px; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 5px 0 6px; border-radius: 10px;
+  background: color-mix(in srgb, var(--tc, var(--muted)) 20%, var(--surface)); border: 1px solid color-mix(in srgb, var(--tc, var(--border)) 35%, var(--border));
+  font-variant-numeric: tabular-nums; }
+.rb-n { font-size: 10px; color: var(--muted); font-weight: 700; }
+.rb-tiles b { font-size: 12px; font-weight: 800; color: var(--tcr); letter-spacing: .02em; }
+.rb-me { font-size: 11px; font-weight: 700; color: var(--text); }
+.rb-me.win { color: var(--free-fg); }
 
 .live-card { text-decoration: none; }
 .tabs a.live-tab { color: var(--live); border-color: var(--live); }
@@ -249,18 +354,11 @@ input:disabled { opacity: .6; }
 .ico { width: 18px; height: 18px; vertical-align: -4px; }
 
 /* five links don't fit beside the name on a phone: keep the lights, drop the word, let the links scroll */
-@media (max-width: 520px) {
-  /* (the name used to hide here to make room for the top menu; the menu now lives at the bottom) */
-  .top nav { overflow-x: auto; scrollbar-width: none; gap: 0; }
-  .top nav a { padding: 6px 8px; font-size: 14px; white-space: nowrap; }
-}
 .tag.tix { border-color: transparent; color: var(--tv-fg); font-weight: 650; }
 .who-link { text-decoration: none; }
 .who-link:hover b { text-decoration: underline; }
 
 /* What's new */
-.top nav a.has-new { position: relative; }
-.top nav a.has-new::after { content: ""; position: absolute; top: 3px; right: 1px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
 .newbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0; padding: 10px 12px; border-radius: 12px;
   background: var(--surface); border: 1px solid var(--border); font-size: 13.5px; }
 .newbar > span:nth-child(2) { flex: 1; min-width: 120px; }
@@ -287,11 +385,6 @@ input:disabled { opacity: .6; }
 .standings-title a { margin-left: auto; color: var(--muted); }
 .tabs { scrollbar-width: none; }
 .tabs::-webkit-scrollbar { display: none; }
-.nav-icon { display: none; vertical-align: middle; }
-@media (max-width: 520px) {
-  .top nav a .nav-text { display: none; }
-  .top nav a .nav-icon { display: inline-block; }
-}
 
 /* Wire filters (driver / team) */
 .filters { margin: 8px 0 4px; }
@@ -331,27 +424,13 @@ input:disabled { opacity: .6; }
 .report-head { display: flex; gap: 8px; align-items: baseline; }
 .report-reply { padding: 6px 10px; border-left: 3px solid var(--border); }
 
-/* ---- navigation: bottom tab bar with icons, Settings button on top (web/index.html, web/app.js) ---- */
-.top-link { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--text); background: var(--surface);
-  border: 1px solid var(--border); padding: 6px 11px; border-radius: 10px; font-weight: 600; font-size: 14px; position: relative; }
-.top-link .ico { width: 17px; height: 17px; display: block; }
-.top-link.active { background: var(--bg); border-color: var(--text); }
-.top-link.has-new::after { content: ""; position: absolute; top: -3px; right: -3px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
-@media (max-width: 380px) { .top-label { display: none; } .top-link { padding: 7px; } }
-.tabbar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 5; display: flex; justify-content: center; gap: 4px; isolation: isolate;
-  padding: 6px calc(8px + var(--sr)) calc(6px + env(safe-area-inset-bottom)) calc(8px + var(--sl)); background: var(--surface); border-top: 1px solid var(--border); }
-.tabbar a { flex: 1; max-width: 160px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 4px 5px;
-  text-decoration: none; color: var(--muted); font-weight: 600; font-size: 11.5px; border-radius: 10px; transition: gap 180ms ease, padding 180ms ease, color 160ms ease; }
-.tabbar a.active { color: var(--text); }
-.tab-ico { width: 20px; height: 20px; display: block; transition: height 180ms ease, opacity 140ms ease; }
-.tabbar a.active .tab-ico { color: var(--accent); }
-.tab-pill { position: absolute; left: 0; top: 6px; height: calc(100% - 12px - env(safe-area-inset-bottom)); border-radius: 10px; background: var(--bg);
-  z-index: -1; }   /* moved by web/app.js movePill (Web Animations) */
-/* Scrolling down folds the icons away and slides the top bar off; any scroll up brings them back. */
-.tabbar.compact a { gap: 0; padding: 5px 4px 4px; }
-.tabbar.compact .tab-ico { height: 0; opacity: 0; }
+/* Scrolling down slides the menu bar off its edge; any scroll up (or the top of the page, or a new page) brings it
+   back (web/app.js setCompact). */
 .top { transition: transform 200ms ease; will-change: transform; }
-.top.tucked { transform: translateY(-100%); }
+.top.tucked { transform: translateY(calc(-100% - 4px)); }
+:root[data-nav="bottom"] .top.tucked { transform: translateY(calc(100% + 4px)); }
+@media (min-width: 900px) { :root[data-nav] .top.tucked { transform: translateY(calc(-100% - 4px)); } }
+@media (prefers-reduced-motion: reduce) { .top { transition: none; } }
 /* The status bar area (notch, Dynamic Island) keeps a solid strip in the top bar's colour, and the top bar slides
    fully away underneath it. Leaving a slice of the bar showing instead put half its buttons under the island. */
 body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top, 0px); z-index: 6;
@@ -362,7 +441,6 @@ html, body { overflow-x: clip; }
   border: 1px solid var(--border); background: var(--surface); color: var(--text); text-decoration: none; font-weight: 600; font-size: 14px; }
 .back:hover { color: var(--text); border-color: var(--muted); }
 .back-ico { width: 17px; height: 17px; display: block; }
-@media (prefers-reduced-motion: reduce) { .tabbar a, .tab-ico, .top, .tab-pill { transition: none; } }
 
 /* Pick'em */
 .racebar { display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; gap: 8px; text-align: center; margin: 4px 0 8px; }
@@ -403,6 +481,41 @@ html, body { overflow-x: clip; }
 /* Upcoming: one card per race weekend per day, sessions as short lines under it */
 .evcs { display: flex; flex-direction: column; gap: 8px; }
 .evc.followed { box-shadow: inset 3px 0 0 var(--accent); }
+/* ---- Upcoming by race weekend (web/app.js meetingCard): one card per meeting, a line per day ---- */
+.h2-span { color: var(--muted); font-weight: 600; letter-spacing: .02em; text-transform: none; }
+.mtg.followed { box-shadow: inset 3px 0 0 var(--accent); }
+.mtg-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 12px 14px 6px; }
+.mtg-title { min-width: 0; }
+.mtg-title .ev { font-weight: 750; font-size: 16px; display: flex; align-items: center; gap: 7px; min-width: 0; }
+.mtg-title .ev .ev-link { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mtg-title .small { margin-top: 2px; }
+.mtg-in { flex: none; font-size: 12.5px; font-weight: 500; color: var(--muted); padding-top: 3px; font-variant-numeric: tabular-nums; }
+.mtg-main { padding: 2px 14px 10px; }
+.mtg-day { display: grid; grid-template-columns: 44px 1fr; gap: 8px; align-items: baseline; padding: 4px 0; font-size: 14px; }
+.mtg-day.tba .mtg-dl { white-space: nowrap; }
+.mtg-day.tba { grid-template-columns: auto 1fr; }
+.mtg-dl { color: var(--muted); font-weight: 500; font-size: 13px; }
+.mtg-ses { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 18px; min-width: 0; }
+.ses { white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--text); }
+/* sessions are separated by space, not dots */
+.ses b { font-weight: 600; }
+.ses.prac { color: var(--muted); } .ses.prac b { font-weight: 500; }
+.ses.race b { font-weight: 750; }
+.ses.race { font-weight: 650; }
+.ses .wx { margin-left: 6px; }
+.mtg-watch { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 6px; }
+.mtg-watch .badge, .mtg-subhead .badge { flex-direction: row; align-items: center; gap: 6px; max-width: none; text-align: left; }
+.mtg-watch .badge span, .mtg-subhead .badge span { margin-top: 0; font-size: 12px; }
+.mtg-w { display: inline-flex; align-items: center; gap: 6px; }
+.mtg-wfor { font-size: 12px; color: var(--muted); }
+
+.mtg-sub { padding: 8px 14px 10px; border-top: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 45%, transparent); }
+.mtg-subhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13.5px; font-weight: 650; margin-bottom: 2px; }
+.mtg-subhead .mtg-watch { margin: 0 0 0 auto; }
+.mtg-sub .mtg-day { font-size: 13px; }
+.tba-list { display: block; }
+.tba-note { color: var(--muted); font-style: italic; }
+.mtg-also { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 6px; font-size: 13px; }
 .evc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 11px 12px 8px; }
 .evc-title { min-width: 0; }
 .evc-title .ev { font-weight: 700; display: flex; align-items: center; gap: 6px; min-width: 0; }
@@ -459,9 +572,9 @@ a.item { text-decoration: none; color: inherit; }
 .on-chip span { opacity: .7; margin-left: 2px; }
 
 /* ---- Team colour (--tc from colors.yaml) made readable on either theme ---- */
-.hero, .countdown, .standings .srow { --tcr: color-mix(in oklab, var(--tc, var(--muted)) 78%, black); }
+.hero, .wk, .title-fight, .ribbon, .standings .srow { --tcr: color-mix(in oklab, var(--tc, var(--muted)) 78%, black); }
 @media (prefers-color-scheme: dark) {
-  .hero, .countdown, .standings .srow { --tcr: color-mix(in oklab, var(--tc, var(--muted)) 62%, white); }
+  .hero, .wk, .title-fight, .ribbon, .standings .srow { --tcr: color-mix(in oklab, var(--tc, var(--muted)) 62%, white); }
 }
 .standings .tteam { color: var(--tcr); font-weight: 600; }
 .standings .tteam-name::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px;
@@ -498,14 +611,50 @@ a.item { text-decoration: none; color: inherit; }
 .hero-foot .news { margin-top: 0; }
 .hero-next b { color: var(--text); font-weight: 650; }
 
-/* ---- Next up countdown ---- */
-.countdown { display: block; margin: 18px 0 4px; padding: 14px; border-radius: 14px; border: 1px solid var(--border); color: inherit;
-  text-decoration: none; background: linear-gradient(160deg, color-mix(in srgb, var(--tc) 18%, var(--surface)) 0%, var(--surface) 70%); }
-.cd-label { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
-.cd-label b { color: var(--text); }
-.cd-time { margin-top: 4px; }
-.cd-time b { font-size: 46px; font-weight: 300; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-.cd-time small { margin: 0 12px 0 2px; font-size: 13px; font-weight: 750; color: var(--muted); }
+/* ---- The race weekend: Home's lead card (web/app.js weekendHero) ----
+   Your driver's team colour washes in from the corner; the countdown is big and thin; the weekend runs underneath as a
+   timeline whose dots fill in as sessions finish. */
+.wk { position: relative; margin: 10px 0 6px; padding: 16px 16px 12px; border-radius: 18px; border: 1px solid var(--border); overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--tc) 34%, transparent) 0%, transparent 60%),
+    linear-gradient(160deg, color-mix(in srgb, var(--tc) 14%, var(--surface)) 0%, var(--surface) 75%); }
+.wk-top { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+.wk-name { display: block; margin: 8px 0 2px; font-size: 24px; font-weight: 850; letter-spacing: -.01em; line-height: 1.1; color: var(--text); text-decoration: none; }
+.wk-label { font-size: 13px; color: var(--muted); margin-top: 10px; }
+.wk-count { margin-top: 2px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wk-count b { font-size: 52px; font-weight: 250; letter-spacing: -.03em; line-height: 1; }
+.wk-count small { margin: 0 12px 0 3px; font-size: 13px; font-weight: 750; color: var(--muted); }
+.wk-now { margin-top: 12px; font-size: 18px; }
+.wk-mine { margin-top: 10px; padding: 7px 10px; border-radius: 10px; font-size: 13px; color: var(--muted);
+  background: color-mix(in srgb, var(--tc) 12%, transparent); border-left: 3px solid var(--tcr); }
+.wk-mine b { color: var(--text); }
+.wk-line { list-style: none; margin: 14px 0 2px; padding: 0; display: grid; gap: 0; }
+.wk-line li { position: relative; display: grid; grid-template-columns: 38px 74px auto 1fr; align-items: baseline; gap: 2px 8px; padding: 6px 0 6px 22px;
+  font-size: 13.5px; font-variant-numeric: tabular-nums; }
+/* the timeline: a line through the dots; done = filled, live = pulsing, next = ringed in the team colour */
+.wk-line li::before { content: ""; position: absolute; left: 6px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+.wk-line li:first-child::before { top: 15px; } .wk-line li:last-child::before { bottom: calc(100% - 15px); }
+.wk-line li::after { content: ""; position: absolute; left: 2px; top: 10px; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--surface); border: 2px solid var(--border); box-sizing: border-box; }
+.wk-line li.done::after { background: var(--tcr); border-color: var(--tcr); }
+.wk-line li.done { color: var(--muted); }
+.wk-line li.live::after { background: var(--live); border-color: var(--live); animation: pulse 1.4s infinite; }
+.wk-line li.next::after { border-color: var(--tcr); box-shadow: 0 0 0 3px color-mix(in srgb, var(--tc) 25%, transparent); }
+.wk-line li.next .wk-ses, .wk-line li.live .wk-ses { font-weight: 700; }
+.wk-day { color: var(--muted); font-weight: 600; }
+.wk-tick { color: var(--tcr); font-size: 12px; }
+/* Where to watch (and the weather) sit at the end of the next session's own line, one row: badge word, then the service. */
+.wk-watch { grid-column: 4; justify-self: start; margin-left: 10px; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.wk-watch .badge { flex-direction: row; align-items: center; gap: 6px; max-width: none; text-align: left; }
+.wk-watch .badge span { margin-top: 0; font-size: 12px; }
+.wk-watch .wx { margin-left: 0; }
+/* Narrow phones: the session keeps its room and where to watch drops under it, lined up with the name. */
+@media (max-width: 480px) {
+  .wk-line li { grid-template-columns: 38px 74px 1fr; }
+  .wk-watch { grid-column: 3; justify-self: start; margin: 2px 0 0; flex-wrap: wrap; white-space: normal; }
+}
+.wk-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+.wk-react { margin-left: auto; font-size: 12.5px; color: var(--muted); }
 
 /* Driver pages: photo + Wikipedia lines, this season's cards, F1 career */
 .dhead { display: flex; align-items: center; gap: 14px; margin: 6px 0 10px; }
@@ -583,7 +732,6 @@ details.more-odds > summary { padding: 8px 12px; border-top: 1px solid var(--bor
 /* ---- search (web/app.js searchView) ---- */
 .search-box { width: 100%; font-size: 16px; padding: 11px 13px; border-radius: 10px; border: 1px solid var(--border);
   background: var(--surface); color: var(--text); margin: 6px 0 4px; }
-.top .brand + .top-link { margin-left: auto; }   /* Search sits next to Settings, not mid-bar */
 
 /* ---- shared-element page changes (web/app.js navigate): what you tapped grows into the next page's title ---- */
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 200ms; }
@@ -593,3 +741,127 @@ details.more-odds > summary { padding: 8px 12px; border-top: 1px solid var(--bor
 /* Settings > This screen: reads the safe areas the device reports (web/app.js screenEdges). */
 .edge-probe { position: fixed; top: 0; left: 0; width: 0; height: 0; visibility: hidden; pointer-events: none;
   padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+
+/* Upcoming stays calm: quiet links, and where-to-watch words in their colour without the filled box (the word still
+   says PAID ONLY / FREE / TV, as the where-to-watch rule wants). */
+.mtg .place-link { text-decoration: none; }
+.mtg .place-link:hover { text-decoration: underline; }
+.mtg .tag.tix { padding: 0; background: none; border: 0; color: var(--muted); font-weight: 500; }
+.mtg .tag.tix:hover { color: var(--text); }
+.mtg .badge b { background: none !important; padding: 0; letter-spacing: .07em; }
+.mtg-watch { align-items: baseline; gap: 4px 12px; margin-top: 4px; }
+.mtg-subhead { font-weight: 600; }
+/* a support series is one line: chip, its days, then where to watch at the end */
+.mtg-sub { background: none; padding: 8px 14px 9px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.mtg-sub .mtg-subhead { display: contents; }
+.mtg-sub .mtg-subhead .chip { order: 0; align-self: flex-start; margin-top: 1px; }
+.mtg-sub .mtg-day { order: 1; flex: 1 1 220px; padding: 0; }
+.mtg-sub .mtg-subhead .mtg-watch { order: 2; margin: 0 0 0 auto; }
+.mtg-sub .mtg-day { color: var(--muted); }
+.mtg-sub .ses { color: var(--muted); }
+
+/* ---- The live dock (web/dock.js): your drivers' places on every page while a session is live ----
+   Floats at the bottom (just above the menu bar when that's at the bottom); two sessions at once swipe sideways. */
+.dock { position: fixed; z-index: 6; left: calc(10px + var(--sl)); right: calc(10px + var(--sr)); bottom: calc(var(--dock-at) + env(safe-area-inset-bottom));
+  max-width: 440px; margin: 0 auto; display: flex; gap: 6px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+  border-radius: 16px; transition: transform 200ms ease; }
+.dock::-webkit-scrollbar { display: none; }
+.dock[hidden] { display: none; }
+:root[data-nav="bottom"] .top.tucked ~ .dock { transform: translateY(74px); }
+@media (min-width: 900px) { :root[data-nav] .top.tucked ~ .dock { transform: none; } }
+.dock-item { flex: 0 0 100%; scroll-snap-align: start; display: flex; flex-direction: column; gap: 3px; padding: 8px 12px; border-radius: 16px;
+  text-decoration: none; color: var(--text); background: color-mix(in srgb, var(--surface) 92%, transparent); border: 1px solid var(--border);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 6px 20px rgba(0, 0, 0, .22); }
+.dock.many .dock-item { flex-basis: 88%; }
+.dk-top { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); min-width: 0; white-space: nowrap; }
+.dk-ses { display: inline-flex; align-items: center; gap: 6px; color: var(--text); font-weight: 650; overflow: hidden; text-overflow: ellipsis; }
+.live-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--live); animation: pulse 1.4s infinite; }
+.dk-lap { font-variant-numeric: tabular-nums; }
+.dk-flag { margin-left: auto; font-size: 10.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; padding: 2px 6px; border-radius: 5px; }
+.dk-flag.yellow { background: #f5c400; color: #1a1a1a; } .dk-flag.red { background: var(--live); color: #fff; }
+.dk-people { display: flex; gap: 16px; font-size: 15px; font-variant-numeric: tabular-nums; }
+.dk-who { display: inline-flex; align-items: baseline; gap: 6px; padding-left: 8px; border-left: 3px solid var(--tc, var(--border)); }
+.dk-who b { font-size: 17px; font-weight: 800; }
+.dk-who.lead { color: var(--muted); } .dk-who.lead b { color: var(--text); }
+.dk-who small { font-size: 10px; font-weight: 800; color: var(--muted); }
+.dk-who i { font-style: normal; font-size: 11px; font-weight: 800; } .dk-who i.up { color: var(--free-fg); } .dk-who i.down { color: var(--lost-fg); }
+@media (prefers-reduced-motion: reduce) { .dock { transition: none; } .live-dot { animation: none; } }
+
+/* ---- Lights out: the start gantry (web/start.js) ----
+   Five pods of two lamps on black, as on the gantry; each comes on red with a glow, and they all go out together. */
+html.gantry-open, html.gantry-open body { overflow: hidden; }
+.gantry { position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; overflow-y: auto;
+  padding: calc(24px + env(safe-area-inset-top)) calc(20px + var(--sr)) calc(24px + env(safe-area-inset-bottom)) calc(20px + var(--sl));
+  background: #07080a; color: #f3f4f6; outline: 0; touch-action: manipulation; user-select: none; -webkit-user-select: none; cursor: pointer;
+  animation: gt-in 220ms ease-out; }
+.gantry.closing { opacity: 0; transition: opacity 200ms ease-in; }
+@keyframes gt-in { from { opacity: 0; } }
+.gt-x { position: absolute; top: calc(14px + env(safe-area-inset-top)); right: calc(14px + var(--sr)); width: 40px; height: 40px; border-radius: 20px;
+  border: 0; background: rgba(255, 255, 255, .1); color: #fff; font-size: 16px; cursor: pointer; }
+.gt-label { font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #8b919c; text-align: center; }
+.gt-lights { display: flex; gap: clamp(8px, 2.5vw, 18px); padding: 14px clamp(10px, 3vw, 22px); border-radius: 14px; background: #16181c;
+  box-shadow: inset 0 0 0 1px #24272d; }
+.gt-lights span { display: flex; flex-direction: column; gap: clamp(6px, 1.8vw, 12px); padding: 8px; border-radius: 10px; background: #0d0e10; }
+.gt-lights i { width: clamp(30px, 11vw, 64px); aspect-ratio: 1; border-radius: 50%; background: #2a1517; box-shadow: inset 0 3px 8px rgba(0, 0, 0, .6); }
+.gt-lights span.on i { background: radial-gradient(circle at 40% 35%, #ff6a5c, #e10600 55%, #9e0400);
+  box-shadow: 0 0 22px 4px rgba(225, 6, 0, .55), inset 0 -3px 6px rgba(0, 0, 0, .25); }
+.gt-say { min-height: 64px; font-size: 15px; color: #b6bbc4; text-align: center; }
+.gt-say b { display: block; font-size: clamp(40px, 12vw, 76px); font-weight: 900; font-style: italic; letter-spacing: -.01em; text-transform: uppercase; color: #fff; line-height: 1; }
+.gt-say small { font-size: 18px; color: #8b919c; margin-left: 4px; }
+.gantry .gt-say:has(small) b { display: inline; font-style: normal; font-weight: 300; font-variant-numeric: tabular-nums; text-transform: none; }
+.gt-sub { min-height: 20px; font-size: 14px; color: #8b919c; text-align: center; }
+.gantry.jump .gt-say b { color: #ffcf33; }
+.gt-acts { display: flex; gap: 10px; } .gt-acts[hidden] { display: none; }
+.gt-acts button { min-width: 110px; min-height: 44px; border-radius: 12px; border: 1px solid #2c3036; background: #16181c; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.gt-acts .gt-again { background: #e10600; border-color: #e10600; }
+.gt-board { width: min(100%, 340px); }
+.gt-board:empty { display: none; }
+.gt-bh { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #8b919c; margin-bottom: 6px; }
+.gt-bh small { font-weight: 500; letter-spacing: 0; text-transform: none; margin-left: 4px; }
+.gt-board ol { list-style: none; margin: 0; padding: 0; border-radius: 12px; background: #111316; box-shadow: inset 0 0 0 1px #24272d; overflow: hidden; }
+.gt-board li { display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; padding: 7px 12px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.gt-board li + li { border-top: 1px solid #1d2025; }
+.gt-board li span { color: #8b919c; } .gt-board li b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .gt-board li em { font-style: normal; color: #c9cdd4; }
+.gt-board li.me { background: rgba(225, 6, 0, .16); } .gt-board li.me b, .gt-board li.me em { color: #fff; font-weight: 800; }
+.gt-board li.gap { display: block; text-align: center; color: #5b6069; padding: 2px; }
+@media (prefers-reduced-motion: reduce) { .gantry { animation: none; } .gantry.closing { transition: none; } }
+
+/* ---- Compare (web/compare.js): two drivers, split in their team colours, the better number in bold ---- */
+.cp-title { margin-bottom: 10px; }
+.cp-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; padding: 18px 14px; border-radius: 16px; color: #fff;
+  background: linear-gradient(101deg, color-mix(in srgb, var(--a) 70%, #0a0d12) 50%, color-mix(in srgb, var(--b) 70%, #0a0d12) 50%); }
+.cp-side { display: grid; justify-items: center; gap: 4px; min-width: 0; text-align: center; color: inherit; text-decoration: none; }
+.cp-name { font-size: 19px; font-weight: 850; line-height: 1.1; overflow-wrap: anywhere; }
+.cp-sub { font-size: 12px; color: rgba(255, 255, 255, .78); }
+.cp-vs { font-size: 13px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; opacity: .65; }
+.cp-swap { display: block; width: max-content; margin: 8px auto 0; font-size: 12.5px; color: var(--muted); }
+.cp-card { padding: 4px 0; }
+.cp-h2h { display: grid; grid-template-columns: 64px 1fr 64px; align-items: center; padding: 12px 14px 6px; text-align: center; }
+.cp-h2h b { font-size: 40px; font-weight: 250; line-height: 1; font-variant-numeric: tabular-nums; color: var(--muted); }
+.cp-h2h b.lead { color: var(--text); font-weight: 400; }
+.cp-h2h span { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.cp-h2h small { display: block; margin-top: 2px; font-size: 11.5px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); }
+.cp-bar { display: flex; gap: 3px; height: 6px; margin: 4px 14px 10px; }
+.cp-bar i { border-radius: 3px; background: var(--a); } .cp-bar i + i { background: var(--b); }
+.cp-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: baseline; gap: 10px; padding: 8px 14px; border-top: 1px solid var(--border);
+  font-variant-numeric: tabular-nums; }
+.cp-row .k { font-size: 12.5px; color: var(--muted); text-align: center; }
+.cp-row .v { font-size: 16px; font-weight: 450; color: var(--muted); } .cp-row .v:last-child { text-align: right; }
+.cp-row .v.best { font-weight: 800; color: var(--text); }
+.cp-duel { margin: 10px 0 4px; }
+.cp-tiles { list-style: none; margin: 0; padding: 0 0 2px; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.cp-tiles::-webkit-scrollbar { display: none; }
+.cp-tiles li { flex: 0 0 38px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0 5px; border-radius: 9px;
+  background: var(--surface); border: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.cp-tiles b { font-size: 12px; font-weight: 600; color: var(--muted); }
+.cp-tiles li.a .pa, .cp-tiles li.b .pb { color: var(--text); font-weight: 850; }
+.cp-tiles li.a { box-shadow: inset 0 3px 0 color-mix(in srgb, var(--a) 80%, transparent); }
+.cp-tiles li.b { box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--b) 80%, transparent); }
+@media (pointer: fine) { .cp-tiles { flex-wrap: wrap; } }
+.cp-find { width: 100%; font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+#cp-found { margin-top: 10px; }
+.cp-other { margin-top: 18px; text-align: center; font-size: 13px; }
+#view a.chip-btn { display: inline-block; text-decoration: none; color: var(--text); border: 1px solid var(--border); background: var(--surface);
+  padding: 6px 12px; border-radius: 999px; font-size: 13.5px; font-weight: 600; }
+#view a.chip-btn:hover { border-color: var(--text); }
+.cp-mates { align-items: center; margin-bottom: 8px; }

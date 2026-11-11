@@ -132,7 +132,7 @@ def list_series():
 @app.get("/api/sessions")
 def list_sessions(start: str | None = None, end: str | None = None, series: str | None = None):
     now = datetime.now(timezone.utc)
-    start = start or _iso(now - timedelta(hours=12))
+    start = start or _iso(now - timedelta(days=3))   # the whole race weekend so far: Home's weekend timeline shows what's done
     end = end or _iso(now + timedelta(days=60))
     ids = [s for s in series.split(",") if s in BY_ID] if series else None
     return places.tag(weather.attach(_with_watch(store.sessions(start, end, ids))))
@@ -160,7 +160,38 @@ def series_standings(series_id: str):
     if table and series_id == "f1a":
         for rows in (table.get("drivers") or [], table.get("last_results") or [], *(table.get("qualifying") or {}).values()):
             f1a.tag(store, rows)
-    return colors.tint(table, series_id) if table else {}
+    return {**colors.tint(table, series_id), **season_story(series_id, table)} if table else {}
+
+
+def _loose(text: str | None) -> str:
+    return " ".join("".join(c if c.isalnum() else " " for c in (text or "").lower()).split())
+
+
+def season_story(series_id: str, table: dict) -> dict:
+    """What the Standings page draws around the table, from round_result and the schedule:
+    rounds  every race of the season so far, oldest first, with each name's finishing position (the season ribbon);
+    moves   places each driver gained (+) or lost (-) at the last race: points before it = points now minus what that
+            race paid, re-sorted. Only for tables ordered by points (a playoff table isn't) and only when the newest
+            saved round is the table's last race;
+    left    races still to run this season (events after the newest round with a race, sprint or rally day)."""
+    season = refresh.season_of(table.get("season_label", ""))
+    rounds = store.rounds(series_id, season)
+    out: dict = {"rounds": [{"event": r["event"], "day": r["day"], "pos": {n: v[0] for n, v in r["rows"].items()}} for r in rounds]}
+    after = rounds[-1]["day"][:10] if rounds else datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    out["left"] = sum(1 for e in store.events(series_id) if e["season"] == season and (e["start_day"] or "") > after
+                      and any(x["kind"] in (RACE, SPRINT, RALLY_DAY, EVENT) for x in e["sessions"]))
+    drivers = table.get("drivers") or []
+    last = rounds[-1] if rounds else None
+    by_points = all(a["points"] >= b["points"] for a, b in zip(drivers, drivers[1:]))
+    if drivers and by_points and last and _loose(last["event"]) and _loose(last["event"]) == _loose(table.get("last_event")):
+        def scored(name: str) -> float:
+            key = name if name in last["rows"] else next((k for k in last["rows"] if follow.matches(name, k)), None)
+            return float(last["rows"][key][1] or 0) if key else 0.0
+        before = sorted(drivers, key=lambda r: (-(r["points"] - scored(r["name"])), r["pos"]))
+        prev = {r["name"]: i + 1 for i, r in enumerate(before)}
+        out["moves"] = {r["name"]: prev[r["name"]] - r["pos"] for r in drivers}
+        out["moves_at"] = last["event"]
+    return out
 
 
 @app.get("/api/live")
@@ -438,6 +469,36 @@ def admin_usage(since: str | None = None):
 
 
 # ---- page views (anonymous counts per page and day; see usage.py) ------------------------------
+REACTION_MIN_MS, REACTION_MAX_MS = 100, 2000   # quicker than 0.1 s isn't a person reacting; slower isn't a start
+
+
+def _reaction_board(email: str) -> dict:
+    """The Reaction test leaderboard: everyone's best, by the name friends see on Pick'em (never the email)."""
+    names = friend_names()
+    rows = [r for r in store.reactions() if r["email"] in names]   # only people still approved
+    board = [{"rank": i + 1, "name": names[r["email"]], "ms": r["best_ms"], "me": r["email"] == email} for i, r in enumerate(rows)]
+    mine = next((b for b in board if b["me"]), None)
+    return {"top": board[:10], "me": mine, "players": len(board)}
+
+
+@app.get("/api/reaction")
+def reaction_board(request: Request):
+    return _reaction_board(request.state.email)
+
+
+@app.post("/api/reaction")
+async def reaction_try(request: Request):
+    """A finished start ({ms}). Only the best counts; impossible times are refused."""
+    try:
+        ms = int((await request.json()).get("ms"))
+    except (ValueError, TypeError, AttributeError):
+        raise HTTPException(400, "bad time")
+    if not REACTION_MIN_MS <= ms <= REACTION_MAX_MS:
+        raise HTTPException(422, "not a real start")
+    await asyncio.to_thread(store.save_reaction, request.state.email, ms, _iso(datetime.now(timezone.utc)))
+    return _reaction_board(request.state.email)
+
+
 @app.post("/api/views")
 async def page_views(request: Request):
     """A phone's batch of page views ({views: {route: count}}). The owner's own views aren't counted."""
@@ -525,6 +586,54 @@ async def save_settings(request: Request):
         clean["nickname"] = " ".join("".join(c for c in str(body["nickname"] or "") if c.isprintable()).split())[:24]
     store.save_settings(request.state.email, clean)
     return clean
+
+
+@app.get("/api/compare")
+def compare(a: str, b: str):
+    """Two drivers side by side, for every series they both race in this season: their championship rows, and from
+    round_result the head-to-head (who finished ahead when both were classified), wins, podiums, top 10s, average
+    finish and DNFs, plus every round's pair of finishes (the duel strip). Series only one of them races in are listed
+    by id so the page can say so."""
+    a, b = a.strip()[:80], b.strip()[:80]
+    sa, sb = follow.status(store, [a, b])
+    out = []
+    for sid in [x for x in sa["series"] if x in sb["series"]]:
+        table = store.standings(sid) or {}
+        rows = [*(table.get("drivers") or []), *[r for v in (table.get("classes") or {}).values() for r in v]]
+        row = lambda n: next((r for r in rows if follow.matches(n, r["name"])), None)  # noqa: E731
+        ra, rb = row(a), row(b)
+        season = refresh.season_of(table.get("season_label", ""))
+        def finish(r: dict, n: str):
+            key = n if n in r["rows"] else next((k for k in r["rows"] if follow.matches(n, k)), None)
+            return str(r["rows"][key][0]) if key else None
+        duel, h2h = [], [0, 0]
+        stats = [{"starts": 0, "wins": 0, "podiums": 0, "top10": 0, "dnf": 0, "sum": 0, "classified": 0} for _ in (0, 1)]
+        for r in store.rounds(sid, season):
+            pa, pb = finish(r, a), finish(r, b)
+            if pa is None and pb is None:
+                continue
+            duel.append({"event": r["event"], "a": pa, "b": pb})
+            for st, p in ((stats[0], pa), (stats[1], pb)):
+                if p is None:
+                    continue
+                st["starts"] += 1
+                if p.isdigit():
+                    n = int(p)
+                    st["classified"] += 1; st["sum"] += n
+                    st["wins"] += n == 1; st["podiums"] += n <= 3; st["top10"] += n <= 10
+                else:
+                    st["dnf"] += 1
+            if pa and pb and pa.isdigit() and pb.isdigit():
+                h2h[0 if int(pa) < int(pb) else 1] += 1
+        side = lambda r, st: {**({k: r.get(k) for k in ("name", "team", "pos", "points", "wins")} if r else {}),  # noqa: E731
+                              "color": colors.for_team((r or {}).get("team", ""), sid) if r else "",
+                              **{k: v for k, v in st.items() if k not in ("sum", "classified")},
+                              "avg": round(st["sum"] / st["classified"], 1) if st["classified"] else None}
+        out.append({"series": sid, "season": table.get("season_label", ""), "a": side(ra, stats[0]), "b": side(rb, stats[1]),
+                    "h2h": h2h, "duel": duel})
+    out.sort(key=lambda x: (not (x["a"].get("pos") and x["b"].get("pos")), -len(x["duel"])))
+    return {"a": a, "b": b, "series": out, "only_a": [x for x in sa["series"] if x not in sb["series"]],
+            "only_b": [x for x in sb["series"] if x not in sa["series"]]}
 
 
 @app.get("/api/person/{name}")

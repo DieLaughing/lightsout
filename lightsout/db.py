@@ -43,6 +43,9 @@ CREATE TABLE IF NOT EXISTS round_result (   -- each race's classification, for s
     data TEXT NOT NULL,                     -- {name: [pos text, points]}
     PRIMARY KEY (series, season, event)
 );
+CREATE TABLE IF NOT EXISTS reaction (   -- the Reaction test mini game: each person's best start, for the leaderboard
+    email TEXT PRIMARY KEY, best_ms INTEGER NOT NULL, tries INTEGER NOT NULL DEFAULT 0, at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS user (
     email TEXT PRIMARY KEY,
     status TEXT NOT NULL,          -- pending | approved | denied | revoked
@@ -256,6 +259,17 @@ class Store:
 
     def round_events(self, series: str, season: int) -> set[str]:
         return {r[0] for r in self.conn.execute("SELECT event FROM round_result WHERE series=? AND season=?", (series, season))}
+
+    def save_reaction(self, email: str, ms: int, at: str) -> int:
+        """One finished start; keeps the person's best. Returns their best."""
+        with self.lock, self.conn:
+            self.conn.execute("INSERT INTO reaction VALUES (?,?,1,?) ON CONFLICT(email) DO UPDATE SET tries = tries + 1, "
+                              "at = CASE WHEN excluded.best_ms < best_ms THEN excluded.at ELSE at END, "
+                              "best_ms = MIN(best_ms, excluded.best_ms)", (email, ms, at))
+        return self.conn.execute("SELECT best_ms FROM reaction WHERE email=?", (email,)).fetchone()[0]
+
+    def reactions(self) -> list[dict]:
+        return [dict(r) for r in self.conn.execute("SELECT email, best_ms, tries, at FROM reaction ORDER BY best_ms, at")]
 
     def cached(self, key: str) -> tuple[object, str] | None:
         """A saved profile part: (data, fetched iso) or None."""

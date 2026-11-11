@@ -40,14 +40,21 @@ How the app moves (what animates, what must hold still, timings, rules for new U
   own data (other pages wait for it), later ones refresh behind the scenes. Home's get-the-app/alerts banner fills its
   slot after the page draws (BANNER keeps the last one). Pages fetch in parallel (series: standings + live + events;
   person: the Wire from the phone's copy of the person). showLoading() paints after 350 ms.
-- Navigation: bottom .tabbar (#tabs; icons + labels; one .tab-pill moved by movePill()), Search = magnifier .top-link,
-  Settings = gear .top-link, Admin is a link in Settings. Scrolling down folds the tab icons (.compact) and slides the
-  header off (.tucked); any scroll up restores both. Page animation when a navigation's content lands in #view
+- Navigation (menu bar, from Shots on Goal; index.html #top + #menu, web/app.js startBar/openMenu/brandLine/menuLines):
+  one floating .navpill, at the bottom on phones by default (localStorage `navAt` = top|bottom, Settings > Display; an
+  inline script in index.html sets html[data-nav] before the first paint), always on top at >= 900 px where the five
+  main pages sit in the pill (.pill-link, underlined when active). Phone pill = Search, the name with brandLine()
+  (a live session, followed series first, else the next timed session that counts and "in 2h 05m"; redrawn whenever
+  /api/sessions lands and every 30 s), and the menu button. The menu (#menu) is full screen: the pages in big capitals,
+  each with a line from the phone's own copies (menuLines: next session, Wire items since `wireSeen`, the first
+  follow's championship place, series switched on, unseen What's new); it reads upward from a bottom bar; Esc closes;
+  view and footer go inert while it's open. The What's new dot sits on the menu button and the menu's Settings line.
+  Gate pages add body.gated (just the name). Scrolling down slides the bar off its edge (.tucked), any scroll up
+  brings it back. Page animation when a navigation's content lands in #view
   (Web Animations API): Rise (default; #view's blocks fade up 14 px, 35 ms apart, first 8 staggered, h1 un-blurs) or
   Slapshot (whole-pixel slide), per device in localStorage `motion` (Settings > Display); off with settings.animations
   = false or prefers-reduced-motion. backLink() has a chevron. Both from / like OpenUI's trip planner demo, as in SOG.
-- Pills: liquid() stretches a highlight to the picked option (leading edge first, small overshoot, 380 ms): the tab
-  bar (movePill) and every switch (.series-pick, .tabs, .seg via placeSwitches). A MutationObserver that only reacts
+- Pills: liquid() stretches a highlight to the picked option (leading edge first, small overshoot, 380 ms): every switch (.series-pick, .tabs, .seg via placeSwitches). A MutationObserver that only reacts
   to changes touching a switch places pills once per frame (rAF), so a page built in steps is measured once (placing
   them synchronously cost ~45 ms on a first visit); placeSwitches drops its own mutation records and only writes when
   something changed (any class write wakes the observer: a switch with nothing picked froze SOG once). Redrawn
@@ -147,8 +154,65 @@ How the app moves (what animates, what must hold still, timings, rules for new U
   session in the next 7 days, refreshed every 6 h (1 h when a session is < 36 h away), cached in /data/weather.json.
   Sessions get {c, rain, code} at the start hour or {hi, lo, rain, code} for untimed days; °C stored, user setting
   `units` (f/c). Unmatched venues are logged ("no weather place for ..."): add them to venues.yaml. W2RC skipped.
-- Upcoming is grouped per day, then one card per race weekend (eventCards/eventCard: series chip, event, place, watch
-  badge once when every session shares it, else per line). Per-series "Show on Upcoming" = settings.show
+- First-run setup (web/welcome.js, on demand): only when /api/me has no settings, this browser has no saved copy and
+  localStorage `welcomed` isn't set (loadSettings sets FIRST_RUN). Step 1 = series by category, default_on ones
+  picked; step 2 = drivers: the top three of each picked series with standings (up to 6 series) plus a search over
+  /api/names. Done saves series + follows (store.set, synced); Skip saves the default series so the server has
+  settings and it never returns.
+- Compare (#/compare/<a>[/<b>], web/compare.js loaded on demand by compareView; /api/compare?a=&b=): for each series
+  both race in this season, their championship rows and, from round_result, the head-to-head (ahead at the finish when
+  both were classified), wins, podiums, top 10s, average finish, retirements (a non-numeric finish), and every round's
+  pair of finishes (the strip). Better number in bold; split header in the two team colours (same colour: the second
+  side darker). One side: a picker with teammates by series (same series + team in /api/entries) and a name search over
+  /api/names. Ways in: ⇄ Compare on driver pages, "X vs Y" in Search.
+- Lights out (web/start.js, loaded on demand by lightsOut()): the start gantry, full screen (five pods, a light a
+  second, a random 0.2-3 s hold, all out). When Home's countdown reaches a race / sprint / rally day in a followed
+  series ([data-start] on .wk-count), startTicker plays it once per session per device (localStorage `started`) then
+  redraws Home as live. The menu's Reaction test (a button set apart under the pages; its line shows your best) and "Mini game: reaction
+  test" on the weekend card open it as the reaction test: tap when they go out,
+  time in seconds, best kept in localStorage `reactionBest`; a tap before they go out is a jump start. Each finished
+  start is POSTed to /api/reaction (table `reaction`: email, best_ms, tries, at; 100-2000 ms only, else 422) which keeps
+  the person's best and returns the leaderboard (top 10 + your row, names from friend_names() like Pick'em, approved
+  people only, never emails); the menu line adds "#5 of 6" from localStorage `reactionRank`. Again / Close after a
+  result (a stray tap doesn't close it). Esc / ✕ /
+  tap close. No dimming: Lights Out has no theme switch of its own yet (SOG's Dim at puck drop needs House lights).
+- Live dock (web/dock.js, from Shots on Goal; loaded by startDock 1.5 s after the first page): polls /api/live every
+  10 s while something is live (30 s otherwise, never while the tab is hidden) and /api/live/<series> for each
+  connected feed in a switched-on series. One .dock-item per session (two swipe sideways): chip, session, lap or
+  clock, a flag label (yellow / safety car / red), and your followed drivers' places (up to 2; else the leader) with
+  ▲▼ for places changed since the last poll (30 s). Taps open #/live/<series>; hidden on that page. Sits above the
+  menu bar (--dock-at), body.has-dock adds --dock-h of room; per device localStorage `dock` (Settings > Display).
+  Testing with fake feeds: Playwright route() on /api/live needs service_workers="block", and page.wait_for_timeout
+  (time.sleep blocks the route handlers).
+- Home's race weekend card (web/app.js weekendHero/weekendPick): the weekend of a live session (followed series first),
+  else of the next timed session that counts (practice only when nothing else is timed); the menu bar's line uses the
+  same pick. Painted in the followed driver's team colour (their /api/cards row for that series) or the series colour;
+  a countdown ticking every second (startTicker: one interval for every [data-until], stops when none are left and
+  redraws Home when the session starts), the driver's place and points, and every session of the weekend as a timeline
+  (done / live / next with where to watch and weather / later). /api/sessions now starts 3 days back (was 12 h) so a
+  Sunday still shows Friday's sessions as done; Home filters finished sessions out of the list itself. Other live
+  sessions follow as "Also on now".
+- Standings extras (app.season_story, added to /api/series/<id>/standings): `rounds` (every saved race this season,
+  each name's finish: the season ribbon, winner tiles in the winner's team colour, your driver's finish under each),
+  `left` (events after the newest round with a race, sprint or rally day: "N races left", "Season complete" at 0 with
+  3+ rounds done), `moves` + `moves_at` (places gained/lost at the last race: points before it = points now minus what
+  that round paid, re-sorted; only when the newest saved round is the table's last_event and the table is ordered by
+  points, so NASCAR's playoff table gets none). Drivers tab without a class picked: title-fight card (leader, gap to
+  P2) + ribbon (ribbonsToEnd scrolls it sideways to the newest race); every row gets a gap bar (points / leader's).
+  Round results come from refresh.py's save_round (F1 + NASCAR backfilled; other series fill forward from 2026-10).
+- Upcoming (web/app.js upcomingList/meetingsOf/meetingCard; the by-day version is git tag upcoming-by-day-2026-11-10):
+  the filtered sessions become events (series + event), events at the same place.slug on overlapping days (±1) become
+  one meeting (main = a followed series, else the earliest in SERIES; support series under it, or just named under
+  "Also on track" when their lines and stream match the main event's), and meetings group by weekend (the Sunday ending
+  their first day's week: "This weekend", "Next weekend", else the date span; followed meetings first). Each event shows
+  one line per day (shortSes: P1, Quali; races bold in the accent colour, practice muted; an all-TBA timetable is one
+  line) and where to watch once (watchLine: one badge, or "badge · P1, P2, P3" per service; a support series on the
+  main event's service doesn't repeat it). "in 9d" = the meeting's next timed session. Kept calm on purpose (2026-11-10, "busy" feedback): one
+  accent per card (the followed stripe; races stand out by weight, not colour), sessions spaced not dotted, plain-text
+  "in 9d" / Tickets / place, where-to-watch as coloured words without the filled box (still saying PAID ONLY / FREE / TV),
+  the race's service as the badge and other services as words ("P1–P3 free on Apple TV app"), support series on one
+  line, an all-TBA timetable as a sentence. eventCards/eventCard (one card per
+  event, a row per session) remain for Home's "Also on now" and track pages. Per-series "Show on Upcoming" = settings.show
   {series: qualifying|races} (absent = all), set on the series page (.show-bar) or the Series list select; applied by
   shows() in homeView. Series pages use the same compact lines (seriesRows).
 - Places (lightsout/places.py): venues.yaml also has town / region (US, Canada, Australia only) / cc, hand-checked;

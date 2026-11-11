@@ -18,24 +18,41 @@
   <link rel="manifest" href="manifest.webmanifest?v=4">
   <link rel="icon" href="icons/icon.svg?v=3" type="image/svg+xml">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=4">
+  <!-- Where the menu bar sits, before the first paint (no jump): bottom unless this device picked the top. -->
+  <script>try { document.documentElement.dataset.nav = localStorage.getItem("navAt") === "top" ? "top" : "bottom"; } catch { document.documentElement.dataset.nav = "bottom"; }</script>
   <link rel="stylesheet" href="style.css">
   <link rel="modulepreload" href="match.js?v=2">  <!-- app.js imports it: fetch both at once (same URL as the import) -->
 </head>
 <body>
-  <header class="top">
-    <a class="brand" href="#/"><span class="lights" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>Lights Out</a>
-    <a class="top-link" href="#/search" data-nav="search" aria-label="Search"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></a>
-    <a class="top-link" href="#/settings" data-nav="settings" aria-label="Settings"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="top-label">Settings</span></a>
+  <!-- The menu bar: one floating pill, at the bottom under the thumb (or on top, Settings > Display; wide screens always
+       on top). On a phone it holds Search, the name with what's next or on now, and the menu; a wide screen adds the
+       main pages either side of the name (web/app.js: openMenu, brandLine, applyNavAt). -->
+  <header class="top" id="top">
+    <div class="navpill">
+      <a class="pill-btn" href="#/search" data-nav="search" aria-label="Search"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></a>
+      <a class="pill-link" href="#/" data-nav="home">Upcoming</a>
+      <a class="pill-link" href="#/wire" data-nav="wire">Wire</a>
+      <a class="brand" href="#/"><span class="brand-name"><span class="lights" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>Lights Out</span><span class="brand-line" id="brand-line"></span></a>
+      <a class="pill-link" href="#/picks" data-nav="picks">Pick'em</a>
+      <a class="pill-link" href="#/standings" data-nav="standings">Standings</a>
+      <a class="pill-link" href="#/series" data-nav="series">Series</a>
+      <button class="pill-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu"><span class="burger" aria-hidden="true"><i></i><i></i></span></button>
+    </div>
   </header>
+  <div class="menu" id="menu" hidden>
+    <nav class="menu-links" aria-label="Main">
+      <a href="#/" data-nav="home"><b>Upcoming</b><span id="info-home">Every race weekend, in your time</span></a>
+      <a href="#/wire" data-nav="wire"><b>Wire</b><span id="info-wire">News and what happened on track</span></a>
+      <a href="#/picks" data-nav="picks"><b>Pick'em</b><span id="info-picks">Duels and podium calls</span></a>
+      <a href="#/standings" data-nav="standings"><b>Standings</b><span id="info-standings">Drivers, teams and the last race</span></a>
+      <a href="#/series" data-nav="series"><b>Series</b><span id="info-series">Every championship, on or off</span></a>
+      <a href="#/search" data-nav="search"><b>Search</b><span>Drivers, teams, series and tracks</span></a>
+      <a href="#/settings" data-nav="settings"><b>Settings</b><span id="info-settings">Drivers you follow, alerts, calendar</span></a>
+      <button type="button" class="menu-game" data-react><b>Reaction test</b><span id="info-react">Mini game: beat the five red lights</span></button>
+    </nav>
+  </div>
   <main id="view" aria-live="polite"></main>
   <footer class="foot" id="foot" hidden><a href="#/report">Something wrong? Report it</a></footer>
-  <nav class="tabbar" id="tabs" hidden>
-    <a href="#/" data-nav="home"><svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4M5 4.5h11l-2 3.5 2 3.5H5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Upcoming</span></a>
-    <a href="#/wire" data-nav="wire"><svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4.5" width="16" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 9h9M7.5 12.5h9M7.5 16h5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Wire</span></a>
-    <a href="#/picks" data-nav="picks"><svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 12.5l2.5 2.5 4.5-5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Pick'em</span></a>
-    <a href="#/standings" data-nav="standings"><svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5h10v4a5 5 0 0 1-10 0v-4zM7 6.5H4.5a2.5 2.5 0 0 0 2.6 3M17 6.5h2.5a2.5 2.5 0 0 1-2.6 3M12 13.5v3M8.5 19.5h7M10 16.5h4v3h-4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Standings</span></a>
-    <a href="#/series" data-nav="series"><svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="13" y="4" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="13" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="13" y="13" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Series</span></a>
-  </nav>
   <script type="module" src="app.js"></script>
 </body>
 </html>

@@ -49,6 +49,8 @@ function switchOnNewSeries() {
   store.set("seenSeries", all);
 }
 
+// Someone brand new (nothing saved on the server, nothing in this browser) gets the two-step setup (web/welcome.js).
+let FIRST_RUN = false;
 async function loadSettings() {
   if (ME.settings) { SETTINGS = ME.settings; return; }
   // Never saved on the server: bring this browser's settings along.
@@ -58,6 +60,13 @@ async function loadSettings() {
     if (v !== undefined) SETTINGS[k] = v;
   }
   if (Object.keys(SETTINGS).length) await saveSettings().catch(() => {});
+  else FIRST_RUN = !local("welcomed", false);
+}
+function openWelcome() {
+  if (!FIRST_RUN) return;
+  FIRST_RUN = false;
+  import("./welcome.js?v=1").then(m => m.open({ esc, chip, SERIES, BY_ID, normalise, loadNames, store, follows, enabled: enabledSeries,
+    api: fast, done: () => loadFollowStatus().then(() => route(true)) })).catch(() => {});
 }
 
 const KINDS = [
@@ -98,7 +107,11 @@ const api = path => fetch(path, { headers: { Accept: "application/json" } }).the
   if (PI_DOWN(r.status)) goOffline();
   if (!r.ok) throw new Error(`${path}: ${r.status}`);
   return r.json();
-}).then(data => { GET_CACHE.set(path, { at: Date.now(), data }); return data; });
+}).then(data => {
+  GET_CACHE.set(path, { at: Date.now(), data });
+  if (path.startsWith("/api/sessions")) queueMicrotask(brandLine);   // the menu bar's "next up" reads this copy
+  return data;
+});
 
 // A page's data, fast: fresh data if it lands within FRESH_WAIT (so the page draws once, current), otherwise the
 // phone's copy straight away and one quiet redraw (after any page animation) if the fresh data differs.
@@ -345,7 +358,112 @@ function listen() { viewOff.abort(); viewOff = new AbortController(); return { s
 
 function setNav(name) {
   document.querySelectorAll("[data-nav]").forEach(a => a.classList.toggle("active", a.dataset.nav === name));
-  movePill();
+}
+
+// ---- the menu bar (index.html): one pill with Search, the name and the menu, from Shots on Goal ----------------------
+// The name's second line says what's on: a live session (followed series first), else the next one that counts and
+// how long until it. The menu takes the whole screen: the pages in big capitals, each with a line saying what's
+// waiting there. Where the bar sits (bottom or top) is per device; wide screens always have it on top.
+const topBar = document.getElementById("top"), menu = document.getElementById("menu"), menuBtn = document.getElementById("menu-btn");
+let menuOpen = false;
+// The live dock (web/dock.js): your drivers' places while a session with live timing is on. Per device, on unless
+// switched off in Settings > Display. Loaded once the first page is up.
+const dockOn = () => local("dock", true) !== false;
+let dock = null;
+function startDock() {
+  if (dock) return;
+  dock = import("./dock.js?v=1").then(m => {
+    m.start({ api, esc, chip, dockOn, enabled: enabledSeries,   // follows read fresh each time: changing them needs no reload
+      isMine: r => [r.name, r.team].some(n => n && follows().some(f => normalise(f.name) === normalise(n))) });
+    return m;
+  }).catch(() => { dock = null; });
+}
+const navAt = () => { try { return localStorage.getItem("navAt") === "top" ? "top" : "bottom"; } catch { return "bottom"; } };
+function applyNavAt() { document.documentElement.dataset.nav = navAt(); }
+const sessionsCopy = () => SERIES.length ? GET_CACHE.get(`/api/sessions?series=${enabledSeries().join(",")}`)?.data || [] : [];
+function untilText(iso) {
+  const mins = Math.max(0, Math.round((Date.parse(iso) - Date.now()) / 60000));
+  if (mins < 60) return `in ${mins} min`;
+  if (mins < 24 * 60) return `in ${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, "0")}m`;
+  return new Date(iso).toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" });
+}
+// The session the bar talks about: the same one Home's weekend card leads with (weekendPick), from the same list.
+function headline() {
+  const list = sessionsCopy().filter(x => shows(x) || isLive(x)), s = weekendPick(list, followedSeries());
+  if (!s) return null;
+  return { s, live: isLive(s), more: isLive(s) ? list.filter(isLive).length - 1 : 0 };
+}
+function brandLine() {
+  const el = document.getElementById("brand-line");
+  let text = "", live = false;
+  if (!document.body.classList.contains("gated")) {
+    const h = headline();
+    if (h?.live) { live = true; text = `${BY_ID[h.s.series]?.short || ""} ${h.s.name} · live${h.more ? ` · +${h.more}` : ""}`; }
+    else if (h) text = `${BY_ID[h.s.series]?.short || ""} ${h.s.name} · ${untilText(h.s.start_utc)}`;
+    else text = new Date().toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  }
+  if (el.textContent !== text) el.textContent = text;
+  el.classList.toggle("live", live);
+}
+// The menu's lines that say what's waiting, read from the phone's own copies (prefetch() keeps them under ~90 s old),
+// so opening the menu never makes a request. No copy yet: the plain description stays.
+const MENU_INFO = { react: "Mini game: beat the five red lights", home: "Every race weekend, in your time", wire: "News and what happened on track", standings: "Drivers, teams and the last race",
+  series: "Every championship, on or off", settings: "Drivers you follow, alerts, calendar" };
+function menuLines() {
+  const set = (id, text) => { const el = document.getElementById(`info-${id}`); if (el && el.textContent !== (text || MENU_INFO[id])) el.textContent = text || MENU_INFO[id]; };
+  const h = headline();
+  set("home", h ? `${h.live ? "On now" : "Next"}: ${BY_ID[h.s.series]?.short || ""} ${h.s.event_name} · ${h.live ? h.s.name : untilText(h.s.start_utc)}` : "");
+  const seen = local("wireSeen", ""), items = GET_CACHE.get(wirePath({ kind: "", series: "", driver: "", team: "", mine: false, ...local("wire", {}) }))?.data || [];
+  const fresh = seen ? items.filter(i => i.time > seen).length : 0;
+  set("wire", fresh ? `${fresh} new since ${new Date(seen).toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" })}` : "");
+  const c = (GET_CACHE.get("/api/cards")?.data || []).find(x => x.pos && x.kind !== "team");
+  set("standings", c ? `${c.name}: P${c.pos} in ${BY_ID[c.series]?.short || c.series}` : "");
+  set("series", SERIES.length ? `${enabledSeries().length} of ${SERIES.length} switched on` : "");
+  const unseen = unseenChanges().length;
+  set("settings", unseen ? `${unseen} new in What's new` : "");
+  const best = Number(local("reactionBest", 0));
+  const rank = local("reactionRank", "");
+  set("react", best ? `Mini game · your best ${(best / 1000).toFixed(3)} s${rank ? ` · ${rank}` : ""}` : "");
+}
+function openMenu(byKey) {
+  if (menuOpen) return;
+  menuOpen = true;
+  setCompact(false);
+  menuLines();
+  menu.hidden = false;
+  menuBtn.setAttribute("aria-expanded", "true");
+  menuBtn.setAttribute("aria-label", "Close menu");
+  document.documentElement.classList.add("menu-open");
+  for (const el of [view, document.getElementById("foot")]) if (el) el.inert = true;
+  if (motionOn()) {
+    menu.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: "ease-out" });
+    [...menu.querySelectorAll(".menu-links a")].slice(0, 8).forEach((a, i) => a.animate(
+      [{ transform: "translateY(14px)", opacity: 0 }, { transform: "none", opacity: 1 }],
+      { duration: 300, delay: i * 30, easing: "cubic-bezier(.2, .9, .3, 1)", fill: "backwards" }));
+  }
+  if (byKey) (menu.querySelector(".menu-links a.active") || menu.querySelector(".menu-links a")).focus({ preventScroll: true });
+}
+function closeMenu() {
+  if (!menuOpen) return;
+  menuOpen = false;
+  menuBtn.setAttribute("aria-expanded", "false");
+  menuBtn.setAttribute("aria-label", "Menu");
+  document.documentElement.classList.remove("menu-open");
+  for (const el of [view, document.getElementById("foot")]) if (el) el.inert = false;
+  const done = () => { if (!menuOpen) menu.hidden = true; };   // opened again meanwhile: leave it
+  if (!motionOn()) return done();
+  menu.getAnimations().forEach(a => a.cancel());
+  menu.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: "ease-in" }).finished.then(done, done);
+}
+function startBar() {
+  applyNavAt();
+  menuBtn.addEventListener("click", e => menuOpen ? closeMenu() : openMenu(e.detail === 0));
+  menu.addEventListener("click", e => {
+    if (e.target.closest("a")) closeMenu();   // the page change closes it too
+    else if (e.target.closest("[data-react]")) { closeMenu(); lightsOut({ label: "Reaction test", react: true }); }
+  });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && menuOpen) { closeMenu(); menuBtn.focus(); } });
+  setInterval(() => { if (!document.hidden) brandLine(); }, 30000);   // "in 12 min" keeps counting
 }
 
 // Liquid highlight (from OpenUI's trip planner demo): the leading edge gets to the new spot first and the trailing
@@ -369,15 +487,6 @@ function placePill(pill, on, from) {
   Object.assign(pill.style, { width: `${to.w}px`, transform: `translateX(${to.x}px)`, opacity: "1" });
   Object.assign(pill.dataset, to);
   if (from) liquid(pill, from, to);
-}
-
-// The bottom bar's highlight is one pill that slides to the active tab.
-function movePill() {
-  const bar = document.getElementById("tabs"), on = bar?.querySelector("a.active");
-  if (!bar) return;
-  let pill = bar.querySelector(".tab-pill");
-  if (!pill) { pill = document.createElement("span"); pill.className = "tab-pill"; bar.prepend(pill); }
-  if (on) placePill(pill, on); else pill.style.opacity = "0";
 }
 
 // Every switch (.series-pick: F1 / F2 / ..., .tabs: Drivers / Teams / ..., .seg) gets the same pill. Pages that redraw
@@ -424,15 +533,14 @@ const switchWatch = new MutationObserver(records => {
   if (!switchFrame && records.some(touchesSwitch)) switchFrame = requestAnimationFrame(() => { switchFrame = 0; placeSwitches(); });
 });
 switchWatch.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
-window.addEventListener("resize", () => { movePill(); placeSwitches(); });
+window.addEventListener("resize", () => placeSwitches());
 
-// Scrolling down folds the bottom bar's icons away and slides the top bar off; any scroll up (or the top of the
-// page, or a new page) brings both back. One passive listener, read once per frame.
+// Scrolling down slides the menu bar off its edge; any scroll up (or the top of the page, or a new page) brings it
+// back. One passive listener, read once per frame.
 let lastScrollY = 0, scrollQueued = false;
 function setCompact(on) {
-  const bar = document.getElementById("tabs");
-  document.querySelector(".top")?.classList.toggle("tucked", on);
-  if (bar && bar.classList.contains("compact") !== on) { bar.classList.toggle("compact", on); requestAnimationFrame(movePill); }
+  if (on && menuOpen) return;
+  topBar.classList.toggle("tucked", on);
 }
 window.addEventListener("scroll", () => {
   if (scrollQueued) return;
@@ -507,21 +615,78 @@ function formBars(form) {
   return `<div class="formbars" role="img" aria-label="Season form, ${form.length} rounds">${bars}</div>`;
 }
 
-// Next up: a big countdown to the next session that counts (qualifying, sprint, race, rally day) in a series you
-// follow, else in any series on Upcoming. Practice and test days only when nothing else is timed.
-function countdown(upcoming, followed) {
-  const now = Date.now();
-  const timed = upcoming.filter(s => s.start_utc && Date.parse(s.start_utc) > now);
-  const counts = timed.filter(s => s.kind !== "practice");
-  const s = counts.find(x => followed.has(x.series)) || counts[0] || timed[0];
-  if (!s) return "";
-  const mins = Math.max(0, Math.floor((Date.parse(s.start_utc) - now) / 60000));
-  const d = Math.floor(mins / 1440), h = Math.floor(mins % 1440 / 60), m = mins % 60;
+// ---- The race weekend: Home's lead card -------------------------------------------------------------------
+// The weekend of the session that matters most right now: one that's live (a series you follow first), else the next
+// session that counts (qualifying, sprint, race, rally day; practice only when nothing else is timed). Painted in your
+// driver's team colour when you follow someone in that series, with a live countdown, your driver's standing and the
+// whole weekend as a timeline: done, on now, next (with where to watch), later.
+function weekendPick(sessions, followed) {
+  const now = Date.now(), first = xs => xs.find(x => followed.has(x.series)) || xs[0];
+  const live = sessions.filter(isLive);
+  if (live.length) return first(live);
+  const timed = sessions.filter(s => s.start_utc && Date.parse(s.start_utc) > now);
+  return first(timed.filter(s => s.kind !== "practice")) || timed[0] || null;
+}
+const sessionDone = (s, today) => s.end_utc ? Date.parse(s.end_utc) <= Date.now() : (s.end_day || s.day) < today;
+function untilParts(iso) {
+  const secs = Math.max(0, Math.floor((Date.parse(iso) - Date.now()) / 1000));
+  const d = Math.floor(secs / 86400), h = Math.floor(secs % 86400 / 3600), m = Math.floor(secs % 3600 / 60), sec = secs % 60;
   const part = (n, u) => `<b>${String(n).padStart(2, "0")}</b><small>${u}</small>`;
-  const time = d ? part(d, "d") + part(h, "h") + part(m, "min") : h ? part(h, "h") + part(m, "min") : part(m, "min");
-  return `<a class="countdown" href="#/event/${esc(s.series)}/${encodeURIComponent(s.event_key)}" style="--tc:${esc(BY_ID[s.series]?.color || "var(--accent)")}">
-    <div class="cd-label">${chip(s.series)} <span><b>${esc(s.event_name)}</b> · ${esc(s.name)} starts in</span></div>
-    <div class="cd-time">${time}</div></a>`;
+  return d ? part(d, "d") + part(h, "h") + part(m, "m") : part(h, "h") + part(m, "m") + part(sec, "s");
+}
+function weekendHero(sessions, followed, cards, feeds, today) {
+  const s = weekendPick(sessions, followed);
+  if (!s) return "";
+  const all = sessions.filter(x => x.series === s.series && x.event_key === s.event_key);
+  const card = (cards || []).find(c => c.series === s.series && c.kind !== "team");
+  const colour = card?.color || BY_ID[s.series]?.color || "var(--accent)";
+  const live = isLive(s), feed = live && (feeds || []).find(f => f.series === s.series && f.connected);
+  const nextUp = all.find(x => !sessionDone(x, today) && !isLive(x));
+  const line = all.map(x => {
+    const state = isLive(x) ? "live" : sessionDone(x, today) ? "done" : x === nextUp ? "next" : "";
+    const when = x.start_utc ? new Date(x.start_utc) : null;
+    const day = when ? when.toLocaleDateString(undefined, { weekday: "short" }) : new Date(`${x.day}T12:00`).toLocaleDateString(undefined, { weekday: "short" });
+    const time = when ? when.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : "TBA";
+    return `<li class="${state}"><span class="wk-day">${esc(day)}</span><span class="wk-time">${esc(time)}</span>
+      <span class="wk-ses">${esc(x.name)}${state === "live" ? ' <span class="live">LIVE</span>' : state === "done" ? ' <span class="wk-tick" aria-label="done">✓</span>' : ""}</span>
+      ${state === "next" ? `<span class="wk-watch">${badge(x.watch)}${weatherTag(x.weather)}</span>` : ""}</li>`;
+  }).join("");
+  const head = live
+    ? `<div class="wk-now"><span class="live">LIVE</span> <b>${esc(s.name)}</b> is on now</div>`
+    : `<div class="wk-label">${esc(s.name)} starts in</div><div class="wk-count" data-until="${esc(s.start_utc)}"${RACE_KINDS.has(s.kind) && followed.has(s.series)
+      ? ` data-start="${esc(`${s.series}|${s.event_key}|${s.key || s.name}`)}" data-start-label="${esc(`${BY_ID[s.series]?.short || ""} · ${s.event_name}`)}"` : ""}>${untilParts(s.start_utc)}</div>`;
+  const mine = card ? `<div class="wk-mine"><b>${esc(card.name)}</b> · P${esc(card.pos)}${card.kind === "class" ? " in class" : ""} · ${pts(card.points)} pts${card.behind != null ? ` · −${pts(card.behind)} to the leader` : card.pos === 1 ? " · leading" : ""}</div>` : "";
+  return `<section class="wk" style="--tc:${esc(colour)}">
+    <div class="wk-top">${chip(s.series)}<span>${esc(s.place?.label || s.venue || "")}</span></div>
+    <a class="ev-link wk-name" href="#/event/${esc(s.series)}/${encodeURIComponent(s.event_key)}">${esc(s.event_name)} ›</a>
+    ${head}${mine}
+    <ol class="wk-line">${line}</ol>
+    <div class="wk-foot">${feed ? `<a class="btn wk-timing" href="#/live/${esc(s.series)}">Live timing →</a>` : ""}<button class="link wk-react" type="button" data-react>Mini game: reaction test ›</button></div>
+  </section>`;
+}
+// The start gantry (web/start.js): a race you follow starting now, or the reaction test from the weekend card.
+const lightsOut = opts => import("./start.js?v=2").then(m => m.play(opts)).catch(() => {});
+// One ticker for the countdown(s) on screen: every second, and it stops itself once they're gone.
+let tickTimer = 0;
+function startTicker() {
+  if (tickTimer) return;
+  tickTimer = setInterval(() => {
+    const els = document.querySelectorAll("[data-until]");
+    if (!els.length) { clearInterval(tickTimer); tickTimer = 0; return; }
+    if (document.hidden) return;
+    for (const el of els) {
+      if (Date.parse(el.dataset.until) <= Date.now()) {   // it's started: the lights go out (a race you follow, once), then Home redraws as live
+        clearInterval(tickTimer); tickTimer = 0;
+        if (el.dataset.start && local("started", "") !== el.dataset.start) {
+          try { localStorage.setItem("started", JSON.stringify(el.dataset.start)); } catch { /* fine */ }
+          lightsOut({ label: el.dataset.startLabel });
+        }
+        route(true);
+        return;
+      }
+      el.innerHTML = untilParts(el.dataset.until);
+    }
+  }, 1000);
 }
 
 let BANNER = "";   // the home banner's last text, so a redraw doesn't make the page jump while it's re-checked
@@ -555,15 +720,18 @@ async function homeView() {
       <span class="${f.connected ? "live" : "muted small"}">${f.connected ? "LIVE" : "Results"}</span></a>`).join("")}</div>`;
   }
 
-  if (live.length) {
-    html += `<h2>Live now</h2><div class="evcs">${eventCards(live, followed)}</div>`;
+  const today = localDay({ start_utc: new Date().toISOString() });
+  const hero = weekendHero(sessions.filter(s => shows(s) || isLive(s)), followed, cards, feeds, today);
+  const heroEvent = hero && weekendPick(sessions.filter(s => shows(s) || isLive(s)), followed);
+  html = hero + html;   // the weekend leads; other series' live timing follows
+  const otherLive = live.filter(s => !(heroEvent && s.series === heroEvent.series && s.event_key === heroEvent.event_key));
+  if (otherLive.length) {
+    html += `<h2>Also on now</h2><div class="evcs">${eventCards(otherLive, followed)}</div>`;
   }
 
   if (follows().length) html += `<h2>Following</h2>${heroCards(cards)}`;
 
-  const today = localDay({ start_utc: new Date().toISOString() });
   const upcoming = sessions.filter(s => !isLive(s) && shows(s) && (s.start_utc ? Date.parse(s.end_utc) > Date.now() : (s.end_day || s.day) >= today));
-  html += countdown(upcoming, followed);
   if (upcoming.length) html += filterBar(upcoming);
   html += `<div id="upcoming">${upcomingList(upcoming, followed, today)}</div>`;
   // The get-the-app / alerts banner never holds the page up (checking alerts can wait up to 2 s for the service
@@ -584,11 +752,14 @@ async function homeView() {
       BANNER = "";
       view.querySelector(".getapp")?.remove();
     } else if (t.closest("#newbar-x")) { t.closest(".newbar")?.remove(); markChangesSeen(); }
+    else if (t.closest("[data-react]")) lightsOut({ label: "Reaction test", react: true });
     else if (dismiss) { store.set("dismissed", [...dismissed(), dismiss.dataset.dismiss]); homeView(); }
     // The whole card opens the driver page; its buttons (dismiss) and links keep their own job.
     else if (card && !t.closest("a, button")) location.hash = card.dataset.href;
   }, on);
   wireFilters(upcoming, followed, today, on);
+  startTicker();
+  brandLine();   // follows are loaded now: the bar names the same session as the weekend card
 }
 
 // ---- Upcoming filters (remembered per device) ------------------------------------
@@ -673,22 +844,133 @@ function filterBar(upcoming) {
   </div>`;
 }
 
+// ---- Upcoming, by race weekend ------------------------------------------------------------------------------
+// One card per race meeting, grouped by weekend: everything at the same track on overlapping days is one card (the main
+// series on top, support series under it), each day on one line with races in bold and practice quiet, a whole TBA
+// timetable as one line, and where to watch said once per event. Filters still pick the sessions first.
+const SHORT_SES = [[/^(?:free )?practice (\d)$/i, "P$1"], [/^free practice$/i, "Practice"], [/^qualifying$/i, "Quali"],
+  [/^sprint qualifying$/i, "Sprint quali"], [/^sprint shootout$/i, "Shootout"]];
+const shortSes = name => { for (const [re, to] of SHORT_SES) if (re.test(name)) return name.replace(re, to); return name; };
+const SERIES_RANK = id => { const i = SERIES.findIndex(x => x.id === id); return i < 0 ? 999 : i; };
+const weekdayOf = day => new Date(`${day}T12:00`).toLocaleDateString(undefined, { weekday: "short" });
+function spanLabel(a, b) {
+  if (a === b) return shortDate(a);
+  const [, ma] = a.split("-"), [, mb] = b.split("-");
+  return ma === mb ? `${shortDate(a)}–${Number(b.split("-")[2])}` : `${shortDate(a)} – ${shortDate(b)}`;
+}
+const sundayOf = day => addDays(day, (7 - new Date(`${day}T12:00`).getDay()) % 7);
+function untilShort(iso) {
+  const mins = Math.round((Date.parse(iso) - Date.now()) / 60000);
+  if (mins < 60) return `in ${Math.max(mins, 1)} min`;
+  if (mins < 24 * 60) return `in ${Math.round(mins / 60)}h`;
+  return `in ${Math.round(mins / 1440)}d`;
+}
+
+// Events (series + event) -> meetings (same place, overlapping days) -> weekends (by the Sunday ending that week).
+function meetingsOf(rows, followed) {
+  const events = new Map();
+  for (const x of rows) {
+    const k = `${x.series}|${x.event_key || x.event_name}`;
+    if (!events.has(k)) events.set(k, { series: x.series, sessions: [] });
+    events.get(k).sessions.push(x);
+  }
+  const list = [...events.values()].map(e => {
+    const days = e.sessions.flatMap(x => [localDay(x), x.end_day && x.end_day > localDay(x) ? x.end_day : localDay(x)]).sort();
+    return { ...e, first: days[0], last: days.at(-1), s0: e.sessions[0] };
+  });
+  const meetings = [];
+  for (const e of list.sort((a, b) => a.first.localeCompare(b.first))) {
+    const slug = e.s0.place?.slug;
+    const m = slug && meetings.find(m => m.slug === slug && e.first <= addDays(m.last, 1) && e.last >= addDays(m.first, -1));
+    if (m) { m.events.push(e); m.first = e.first < m.first ? e.first : m.first; m.last = e.last > m.last ? e.last : m.last; }
+    else meetings.push({ slug, first: e.first, last: e.last, events: [e] });
+  }
+  for (const m of meetings) {
+    m.events.sort((a, b) => (followed.has(b.series) - followed.has(a.series)) || SERIES_RANK(a.series) - SERIES_RANK(b.series));
+    m.followed = m.events.some(e => followed.has(e.series));
+    m.next = m.events.flatMap(e => e.sessions).filter(x => x.start_utc && Date.parse(x.start_utc) > Date.now()).sort((a, b) => a.start_utc.localeCompare(b.start_utc))[0];
+  }
+  return meetings;
+}
+
+// Each day of one event on a single line: "Thu  P1 7:30 PM · P2 11:00 PM". A timetable that's all TBA is one line.
+function dayLines(e) {
+  const xs = [...e.sessions].sort((a, b) => (a.sort_utc || a.start_utc || a.day || "").localeCompare(b.sort_utc || b.start_utc || b.day || ""));
+  if (xs.every(x => !x.start_utc)) {
+    const span = spanLabel(e.first, e.last);
+    const names = xs.filter(x => x.kind !== "event").map(x => shortSes(x.name));
+    return `<div class="mtg-day tba"><span class="mtg-dl">${esc(e.first === e.last ? weekdayOf(e.first) : span)}</span>
+      <span class="mtg-ses">${names.length ? `<span class="tba-list">${esc(names.join(", "))}<span class="tba-note">, times TBA</span></span>` : `<span class="muted">Timetable TBA</span>`}</span></div>`;
+  }
+  const byDay = new Map();
+  for (const x of xs) { const d = localDay(x); if (!byDay.has(d)) byDay.set(d, []); byDay.get(d).push(x); }
+  return [...byDay].map(([d, ys]) => `<div class="mtg-day"><span class="mtg-dl">${esc(weekdayOf(d))}</span><span class="mtg-ses">${ys.map(x => {
+    const kind = RACE_KINDS.has(x.kind) ? "race" : x.kind === "practice" ? "prac" : "";
+    const t = x.start_utc ? new Date(x.start_utc).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : "TBA";
+    return `<span class="ses ${kind}" title="${esc(x.name)}"><b>${esc(shortSes(x.name))}</b> ${esc(t)}${kind === "race" ? weatherTag(x.weather) : ""}</span>`;
+  }).join("")}</span></div>`).join("");
+}
+
+// Where to watch, once per event: the badge for the race (the session people plan around), then any other service
+// in plain words ("P1–P3 free on Apple TV app"). One badge when the whole weekend shares it.
+const sesRange = names => {
+  const n = names.map(x => x.match(/^P(\d)$/)?.[1]).map(Number);
+  return names.length > 2 && n.every((v, i) => v && (i === 0 || v === n[i - 1] + 1)) ? `${names[0]}–${names.at(-1)}` : names.join(", ");
+};
+function watchLine(e, same = null) {
+  const groups = new Map();
+  for (const x of e.sessions) {
+    const k = JSON.stringify(x.watch || null);
+    if (!groups.has(k)) groups.set(k, { w: x.watch, names: [], race: false });
+    const g = groups.get(k); g.names.push(shortSes(x.name)); g.race ||= RACE_KINDS.has(x.kind);
+  }
+  const gs = [...groups.values()].filter(g => g.w);
+  if (!gs.length) return "";
+  if (gs.length === 1 && groups.size === 1) return same && JSON.stringify(gs[0].w) === same ? "" : `<div class="mtg-watch">${badge(gs[0].w)}</div>`;
+  const lead = gs.find(g => g.race) || gs[0];
+  const others = gs.filter(g => g !== lead).map(g => `${sesRange(g.names)} ${g.w.badge === "FREE" ? "free on" : "on"} ${g.w.label}`);
+  return `<div class="mtg-watch">${badge(lead.w)}${others.length ? `<span class="mtg-wfor">${esc(others.join(" · "))}</span>` : ""}</div>`;
+}
+
+function meetingCard(m) {
+  const [main, ...rest] = m.events, s0 = main.s0;
+  const name = e => e.s0.event_key ? `<a class="ev-link" href="#/event/${e.series}/${encodeURIComponent(e.s0.event_key)}">${esc(e.s0.event_name)}</a>` : esc(e.s0.event_name);
+  const place = placeLine(s0.venue && !norm(s0.event_name).includes(norm(s0.venue)) ? s0.venue : "", s0.event_name, s0.place, s0.country);
+  const tix = main.sessions.find(x => x.tickets)?.tickets;
+  const mainWatch = (() => { const ws = new Set(main.sessions.map(x => JSON.stringify(x.watch || null))); return ws.size === 1 ? [...ws][0] : null; })();
+  const sub = e => `<div class="mtg-sub"><div class="mtg-subhead">${chip(e.series)}${norm(e.s0.event_name) === norm(s0.event_name) || norm(e.s0.event_name).includes(norm(s0.place?.label?.split(",")[0])) ? "" : ` ${name(e)}`}${watchLine(e, mainWatch)}</div>${dayLines(e)}</div>`;
+  // Support series with exactly the main event's lines and stream (Macau's World Cups, all TBA) are just named.
+  const twin = e => dayLines(e) === dayLines(main) && !watchLine(e, mainWatch);
+  const twins = rest.filter(twin), subs = rest.filter(e => !twin(e));
+  return `<div class="card mtg${m.followed ? " followed" : ""}">
+    <div class="mtg-head"><div class="mtg-title"><div class="ev">${chip(main.series)} ${name(main)}</div>
+      <div class="muted small">${place}${tix ? `${place ? " · " : ""}<a class="tag tix" href="${esc(tix.url)}" target="_blank" rel="noopener" title="${esc(tix.label)}">Tickets ↗</a>` : ""}</div></div>
+      ${m.next ? `<span class="mtg-in">${esc(untilShort(m.next.start_utc))}</span>` : ""}</div>
+    <div class="mtg-main">${dayLines(main)}${twins.length ? `<div class="mtg-also"><span class="muted">Also on track</span>${twins.map(e => chip(e.series)).join("")}</div>` : ""}${watchLine(main)}</div>
+    ${subs.map(sub).join("")}
+  </div>`;
+}
+
 function upcomingList(upcoming, followed, today) {
   const f = upFilters();
   const shown = upcoming.filter(s => passes(s, f, today));
-  const groups = new Map();
-  for (const s of shown) {
-    const d = localDay(s);
-    if (!groups.has(d)) groups.set(d, []);
-    groups.get(d).push(s);
-  }
   let html = f.near && home() ? `<div id="near-tracks">${NEAR_BOX}</div>` : "";
   html += filtersOn(f) ? `<p class="muted small filter-count">Showing ${shown.length} of ${upcoming.length} sessions ·
     <button class="link" id="f-clear">Clear filters</button></p>` : "";
-  if (!upcoming.length) html += `<div class="empty">Nothing scheduled in the next 60 days for your series.</div>`;
-  else if (!shown.length) html += `<div class="empty">Nothing matches these filters in the next 60 days.</div>`;
-  for (const [d, rows] of [...groups].sort((a, b) => a[0].localeCompare(b[0]))) {
-    html += `<h2>${esc(dayLabel(d))}</h2><div class="evcs">${eventCards(rows, followed)}</div>`;
+  if (!upcoming.length) return html + `<div class="empty">Nothing scheduled in the next 60 days for your series.</div>`;
+  if (!shown.length) return html + `<div class="empty">Nothing matches these filters in the next 60 days.</div>`;
+  const weeks = new Map(), thisSunday = sundayOf(today);
+  for (const m of meetingsOf(shown, followed)) {
+    const k = sundayOf(m.first < today ? today : m.first);
+    if (!weeks.has(k)) weeks.set(k, []);
+    weeks.get(k).push(m);
+  }
+  for (const [sun, ms] of [...weeks].sort((a, b) => a[0].localeCompare(b[0]))) {
+    const first = ms.map(m => m.first < today ? today : m.first).sort()[0], last = ms.map(m => m.last).sort().at(-1);
+    const label = sun === thisSunday ? "This weekend" : sun === addDays(thisSunday, 7) ? "Next weekend" : "";
+    ms.sort((a, b) => (b.followed - a.followed) || a.first.localeCompare(b.first) || SERIES_RANK(a.events[0].series) - SERIES_RANK(b.events[0].series));
+    html += `<h2>${label ? `${esc(label)} <span class="h2-span">· ${esc(spanLabel(first, last))}</span>` : esc(spanLabel(first, last))}</h2>
+      <div class="evcs">${ms.map(meetingCard).join("")}</div>`;
   }
   return html;
 }
@@ -786,8 +1068,16 @@ async function searchView() {
   const section = (title, rows) => rows.length ? `<h2>${title}</h2><div class="card">${rows.join("")}</div>` : "";
   const draw = () => {
     searchText = box.value;
-    if (searchText.trim().length < 2) { out.innerHTML = `<p class="help small muted">Type a name: Verstappen, Penske, IMSA, Daytona, Monaco…</p>`; return; }
+    if (searchText.trim().length < 2) { out.innerHTML = `<p class="help small muted">Type a name: Verstappen, Penske, IMSA, Daytona, Monaco… or two drivers with “vs” between them to compare.</p>`; return; }
     if (!lists) { out.innerHTML = `<div class="empty">Loading…</div>`; return; }
+    const vs = searchText.split(/\s+(?:vs\.?|v)\s+/i);
+    if (vs.length === 2 && vs.every(x => x.trim().length >= 2)) {   // "Verstappen vs Norris": compare them
+      const [x, y] = vs.map(q => searchResults(q, ...lists).drivers[0]);
+      if (x && y && x.name !== y.name) {
+        out.innerHTML = section("Compare", [`<a class="item" href="#/compare/${encodeURIComponent(x.name)}/${encodeURIComponent(y.name)}"><b>${esc(x.name)} vs ${esc(y.name)}</b><span class="muted">Head to head ›</span></a>`]);
+        return;
+      }
+    }
     const r = searchResults(searchText, ...lists);
     const html = section("Series", r.series.map(x => `<a class="item" href="#/series/${x.id}"><div>${chip(x.id)} <b>${esc(x.name)}</b></div><span class="muted">›</span></a>`))
       + section("Drivers", r.drivers.map(d => `<a class="item" href="#/driver/${encodeURIComponent(d.name)}"><b>${esc(d.name)}</b><span>${seriesTags(d.series)}</span></a>`))
@@ -1011,6 +1301,7 @@ async function seriesView(id, tab = "schedule") {
     return;
   }
   paint(`${head}<div class="swap">${standingsBody(id, tab, st)}</div>`);
+  ribbonsToEnd();
   const on = listen();
   bindShow(on);
   wireClassPicker(() => seriesView(id, tab), on);
@@ -1060,13 +1351,62 @@ function standingsBody(id, tab, st) {
   const lead = rows?.[0]?.points ?? 0;
   const picker = classes.length ? `<div class="chips" data-swaps>${[s.short, ...classes].map((c, i) =>
     `<button class="chip-btn${(i === 0 ? !cls : c === cls) ? " active" : ""}" data-class="${i === 0 ? "" : esc(c)}" data-for="${id}">${esc(c)}</button>`).join("")}</div>` : "";
-  return rows?.length ? `${picker}<p class="muted small">${esc(st.season_label)} · ${updated}</p>
+  const overall = tab === "drivers" && !cls, moves = overall ? st.moves || {} : {};
+  const move = r => { const m = moves[r.name]; return m ? `<span class="mv ${m > 0 ? "up" : "down"}" title="${m > 0 ? "Gained" : "Lost"} ${Math.abs(m)} at ${esc(st.moves_at)}">${m > 0 ? "▲" : "▼"}${Math.abs(m)}</span>` : ""; };
+  const bar = r => lead > 0 ? `<i class="gapbar" style="--w:${Math.max(0, Math.min(1, r.points / lead)).toFixed(3)}"></i>` : "";
+  return rows?.length ? `${picker}${overall ? titleFight(st, rows, isMine) + seasonRibbon(st, rows, isMine) : ""}<p class="muted small">${esc(st.season_label)} · ${updated}${overall && st.moves_at ? ` · ▲▼ places since the ${esc(st.moves_at)}` : ""}</p>
     <div class="card standings">${rows.map(r => `<div class="srow${isMine(r.name, tab === "teams" ? r.name : null, r.f1_team) ? " followed" : ""}"${tc(r)}>
-      <span class="pos">${r.pos}</span><span class="who">${tab === "teams" ? whoLink(r.name, "team", "tteam-name") : whoLink(r.name)}<span class="tteam">${esc(r.team)}${backerTag(r)}</span></span>
+      <span class="pos">${r.pos}${move(r)}</span><span class="who">${tab === "teams" ? whoLink(r.name, "team", "tteam-name") : whoLink(r.name)}<span class="tteam">${esc(r.team)}${backerTag(r)}</span>${bar(r)}</span>
       <span class="num muted">${r.pos > 1 ? `−${pts(lead - r.points)}` : ""}</span><span class="num pts">${pts(r.points)}</span></div>`).join("")}</div>
     ${tab === "teams" && TEAMS_NOTE[id] ? `<p class="muted small">${esc(TEAMS_NOTE[id])}</p>` : ""}`
     : `<div class="empty">${tab === "teams" ? "This series doesn't publish a team championship we can read." : "No standings yet."}</div>`;
 }
+
+// The championship at a glance, above the table: who leads, by how much over second, and how many races are left.
+function titleFight(st, rows, isMine) {
+  const [a, b] = rows;
+  if (!a || !(a.points > 0)) return "";
+  const left = st.left ?? null, done = (st.rounds || []).length;
+  const status = left === 0 && done >= 3 ? "Season complete" : left ? `${left} race${left === 1 ? "" : "s"} left` : "";
+  return `<div class="title-fight${isMine(a.name, a.team) ? " mine" : ""}"${tc(a)}>
+    <div class="tf-who"><span class="tf-label">${left === 0 && done >= 3 ? "Champion" : "Leads the championship"}</span>
+      ${whoLink(a.name)}<span class="tteam">${esc(a.team || "")}</span></div>
+    ${b ? `<div class="tf-gap"><b>${pts(a.points - b.points)}</b><small>pts ahead of ${esc(String(b.name).split(" / ")[0].split(" ").pop())}</small></div>` : ""}
+    ${status ? `<div class="tf-left">${esc(status)}${done ? ` · ${done} done` : ""}</div>` : ""}</div>`;
+}
+// Every race so far as one tile, coloured by the winner's team; under it, where your driver finished. Newest on the right,
+// scrolled into view sideways only (the page never moves).
+function seasonRibbon(st, rows, isMine) {
+  const rounds = st.rounds || [];
+  if (rounds.length < 2) return "";
+  const byName = new Map(rows.map(r => [r.name, r]));
+  const mine = rows.find(r => isMine(r.name, r.team));
+  const tiles = rounds.map((r, i) => {
+    const winner = Object.keys(r.pos).find(n => String(r.pos[n]) === "1");
+    const w = winner && (byName.get(winner) || rows.find(x => follow_match(x.name, winner)));
+    const me = mine && (r.pos[mine.name] ?? Object.entries(r.pos).find(([n]) => follow_match(mine.name, n))?.[1]);
+    const short = winner ? (w?.code || winner.split(" / ")[0].split(" ").pop().slice(0, 3).toUpperCase()) : "–";
+    return `<li${w?.color ? ` style="--tc:${esc(w.color)}"` : ""} title="${esc(`${r.event}: ${winner || "no result"}${mine && me ? ` · ${mine.name} P${me}` : ""}`)}">
+      <span class="rb-n">${i + 1}</span><b>${esc(short)}</b>${mine ? `<span class="rb-me${String(me) === "1" ? " win" : ""}">${me && /^\d+$/.test(String(me)) ? `P${esc(me)}` : me ? esc(me) : "–"}</span>` : ""}</li>`;
+  }).join("");
+  return `<div class="ribbon"><div class="rb-head"><span>Season so far · winners</span>${mine ? `<span>${esc(String(mine.name).split(" ").pop())}'s finish</span>` : ""}</div>
+    <ol class="rb-tiles" style="--cols:${Math.ceil(rounds.length / Math.ceil(rounds.length / 20))}">${tiles}</ol></div>`;
+}
+// The newest race in view: set sideways only, so the page itself never moves (an in-page switch must hold still).
+const ribbonWatched = new WeakSet();   // a morph keeps the element (and its listener) but wipes data- attributes
+function ribbonsToEnd() {
+  view.querySelectorAll(".rb-tiles").forEach(el => {
+    el.scrollLeft = el.scrollWidth;
+    const edges = () => {
+      el.classList.toggle("more-l", el.scrollLeft > 2);
+      el.classList.toggle("more-r", el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+    };
+    edges();
+    if (!ribbonWatched.has(el)) { ribbonWatched.add(el); el.addEventListener("scroll", edges, { passive: true }); }
+  });
+}
+// Loose name match for round results ("Max Verstappen" vs "VERSTAPPEN Max"): same words, any order, any case.
+const follow_match = (a, b) => { const w = x => String(x).toLowerCase().split(/[^a-zÀ-ɏ]+/).filter(Boolean).sort().join(" "); return w(a) === w(b); };
 
 function wireClassPicker(rerender, on = listen()) {
   view.querySelectorAll("[data-class]").forEach(b => b.addEventListener("click", () => {
@@ -1109,6 +1449,7 @@ async function standingsView(id, tab) {
     <div class="tabs" role="tablist" data-swaps>${tabs.map(([t, label]) =>
       `<a role="tab" href="#/standings/${id}/${t}" class="${t === tab ? "active" : ""}" aria-selected="${t === tab}">${label}</a>`).join("")}</div>
     <div class="swap">${standingsBody(id, tab, st)}</div>`);
+  ribbonsToEnd();
   scrollRowTo(view.querySelector(".series-pick a.active"));
   wireClassPicker(() => standingsView(id, tab));
 }
@@ -1174,6 +1515,11 @@ async function settingsView() {
       <div class="item"><span>Page motion<span class="small muted" style="display:block">Rise: each page builds in from the top. Slapshot: it flies in from the side.</span></span>
       <div class="seg" role="group" aria-label="Page motion">${[["rise", "Rise"], ["slapshot", "Slapshot"]].map(([k, l]) =>
         `<button data-motion="${k}" class="${motionStyle() === k ? "active" : ""}">${l}</button>`).join("")}</div></div>
+      <label class="item"><span>Live dock<span class="small muted" style="display:block">While a session with live timing is on, a strip at the bottom of every page shows where your drivers are. Tap it for live timing.</span></span>
+      <input type="checkbox" id="dock" ${dockOn() ? "checked" : ""}></label>
+      <div class="item"><span>Menu bar<span class="small muted" style="display:block">Where the menu bar sits on a phone, on this device. At the bottom it's under your thumb. Wide screens always have it on top.</span></span>
+      <div class="seg" role="group" aria-label="Menu bar">${[["bottom", "Bottom"], ["top", "Top"]].map(([k, l]) =>
+        `<button data-navat="${k}" class="${navAt() === k ? "active" : ""}">${l}</button>`).join("")}</div></div>
       <label class="item"><span>Betting odds<span class="small muted" style="display:block">DraftKings' race odds on event pages, driver pages and Pick'em duels. Off hides them everywhere.</span></span>
       <input type="checkbox" id="odds" ${oddsOn() ? "checked" : ""}></label></div>
 
@@ -1215,6 +1561,15 @@ async function settingsView() {
     if (motionOn()) b.dataset.motion === "rise" ? rise() : slapshot(1);   // a taste of it
   }));
   view.querySelector("#odds").addEventListener("change", e => store.set("odds", e.target.checked));
+  view.querySelector("#dock").addEventListener("change", e => {
+    try { localStorage.setItem("dock", JSON.stringify(e.target.checked)); } catch { /* this visit only */ }
+    dock?.then(m => m?.refresh());
+  });
+  view.querySelectorAll("[data-navat]").forEach(b => b.addEventListener("click", () => {
+    try { localStorage.setItem("navAt", b.dataset.navat); } catch { /* this visit only */ }
+    view.querySelectorAll("[data-navat]").forEach(x => x.classList.toggle("active", x === b));
+    applyNavAt();
+  }));
   view.querySelector("#nickname").addEventListener("change", e => {
     store.set("nickname", e.target.value.trim().slice(0, 24));
     for (const k of GET_CACHE.keys()) if (k.startsWith("/api/pickem")) GET_CACHE.delete(k);
@@ -1588,6 +1943,8 @@ async function wireView() {
   const st = { kind: "", series: "", driver: "", team: "", mine: false, ...local("wire", {}) };
   const save = next => { try { localStorage.setItem("wire", JSON.stringify(next)); } catch { /* fine */ } wireView(); };
   const [items, dir] = await Promise.all([fast(wirePath(st)), loadNames()]);
+  const newest = items.reduce((m, i) => i.time > m ? i.time : m, "");
+  if (newest && newest > local("wireSeen", "")) { try { localStorage.setItem("wireSeen", JSON.stringify(newest)); } catch { /* fine */ } }
   const shown = st.series ? [st.series] : enabledSeries();
   const inScope = x => x.series.some(id => shown.includes(id));
   paint(`<h1>Wire</h1>
@@ -1666,7 +2023,7 @@ async function personView(type, name) {
       <div><h1>${esc(name)}</h1>${about ? `<div class="muted small">${esc(about)}</div>` : ""}
       ${a?.backer ? `<div class="small backed">Races in ${a.f1_team ? "the colours of " : ""}${backerTag({ ...a, wildcard: false })}${a.f1_team ? "" : " colours"}</div>` : ""}</div></div>
     <div class="person-head">${seriesIds.map(chip).join(" ")} <span class="muted small">${tagged === "team" ? "Team" : "Driver"}</span>
-      <button class="btn${followed ? "" : " primary"}" id="follow">${followed ? "Following ✓" : "Follow"}</button></div>
+      ${tagged === "team" ? "" : `<a class="btn" href="#/compare/${encodeURIComponent(name)}">⇄ Compare</a>`}<button class="btn${followed ? "" : " primary"}" id="follow">${followed ? "Following ✓" : "Follow"}</button></div>
     ${bio}
     ${outLinks ? `<div class="series-links">${outLinks}</div>` : ""}
     ${academy.length ? `<h2>In F1 ACADEMY</h2><p class="small muted">The all-women series on F1 weekends. These drivers race in ${esc(name)}'s colours.</p>
@@ -1877,7 +2234,9 @@ function markChangesSeen() {
   updateNewDot();
 }
 function updateNewDot() {
-  document.querySelector('[data-nav="settings"]')?.classList.toggle("has-new", unseenChanges().length > 0);
+  const on = unseenChanges().length > 0;
+  menuBtn.classList.toggle("has-new", on);
+  menu.querySelector('[data-nav="settings"]')?.classList.toggle("has-new", on);
 }
 function newBanner() {
   const fresh = unseenChanges();
@@ -1908,7 +2267,8 @@ function whatsNewView() {
 let ME = null;
 
 function gateView() {
-  document.getElementById("tabs").hidden = true;
+  document.body.classList.add("gated");
+  brandLine();
   const st = ME.status;
   let body;
   if (st === "signed-out") {
@@ -2112,13 +2472,21 @@ function reportView(kind = "bug") {
   showMyReports("myreports");
 }
 
+// Compare two drivers (web/compare.js, loaded on demand).
+async function compareView(a, b) {
+  setNav("");
+  const m = await import("./compare.js?v=1");
+  await m.render({ api: fast, esc, chip, paint, view, backLink, listen, loadNames, normalise, entries: () => fast("/api/entries"),
+    same: (x, y) => normalise(x) === normalise(y) }, a, b);
+}
+
 // ---- page transitions ------------------------------------------------------------------------
 // "Slapshot": the old page goes at once and the new one flies in from the side already at speed, overshoots and
 // snaps back. Upcoming -> Wire -> Standings -> Series in tab order; deeper pages from the right, back from the left.
 // Plays once the new page's content is on screen; never for quiet redraws or the same page re-shown; off with
 // Settings > Display or the phone's Reduce Motion. Whole-pixel moves only, so text doesn't shift when it stops.
 const NAV_ORDER = { "": 0, wire: 1, picks: 2, standings: 3, series: 4, search: 5, settings: 5, new: 6, app: 6, report: 6, admin: 6 };
-const DEEP = new Set(["event", "driver", "team", "story", "live"]);
+const DEEP = new Set(["event", "driver", "team", "story", "live", "compare"]);
 let QUIET_ROUTE = false, lastHash = null, lastPage = null, pendingShot = 0;
 const motionOn = () => SETTINGS?.animations !== false && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 function shotFrom(prev, next, prevHash, nextHash) {
@@ -2176,12 +2544,12 @@ const VIEW_PLAIN = new Set(["/report", "/wire", "/new", "/app", "/series", "/set
 const VIEW_DEEP = [[/^\/series\/[\w-]+(?:\/\w+)?$/, "series/:id"], [/^\/live\/[\w-]+$/, "live/:series"],
   [/^\/driver\/.+$/, "driver/:name"], [/^\/team\/.+$/, "team/:name"], [/^\/story\/[\w-]+\/.+$/, "story/:id"],
   [/^\/event\/[\w-]+\/.+$/, "event/:id"], [/^\/track\/[\w-]+$/, "track/:id"],
-  [/^\/standings\/[\w-]+(?:\/\w+)?$/, "standings/:series"], [/^\/picks\/[\w-]+(?:\/.+)?$/, "picks/:sub"]];
+  [/^\/standings\/[\w-]+(?:\/\w+)?$/, "standings/:series"], [/^\/picks\/[\w-]+(?:\/.+)?$/, "picks/:sub"], [/^\/compare\/.+$/, "compare"]];
 const VIEW_NAME = { home: "Home", wire: "Race Wire", new: "What's new", app: "Get the app", series: "Series list",
   settings: "Settings", standings: "Standings", picks: "Pick'em", report: "Report a problem", "series/:id": "A series' page",
   "live/:series": "Live timing", "driver/:name": "Driver page", "team/:name": "Team page", "story/:id": "Race story",
   "event/:id": "Event page", "track/:id": "Track page", "standings/:series": "Standings, a series",
-  "picks/:sub": "Pick'em, a race or table" };
+  "picks/:sub": "Pick'em, a race or table", compare: "Compare" };
 
 function countView(hash) {
   if (ME?.status !== "approved" || ME.admin) return;
@@ -2224,7 +2592,7 @@ async function route(quiet = false) {
     }
     if (ME.status !== "approved") return gateView();
     if (navigated) countView(hash);
-    document.getElementById("tabs").hidden = false;
+    document.body.classList.remove("gated");
     if (!SETTINGS || !SERIES.length) {
       // First load: settings, What's new and the series list all at once.
       const [, changes, both] = await Promise.all([SETTINGS ? null : loadSettings(), early?.[0] || api("/api/changes").catch(() => []),
@@ -2239,6 +2607,9 @@ async function route(quiet = false) {
       }
     }
     updateNewDot();
+    brandLine();
+    setTimeout(startDock, 1500);   // after the first page has drawn
+    if (FIRST_RUN) setTimeout(openWelcome, 300);
     if (FOLLOW_FIRST && hash !== "/") { await FOLLOW_FIRST; FOLLOW_FIRST = null; }
     const m = hash.match(/^\/series\/([\w-]+)(?:\/(\w+))?$/);
     const lv = hash.match(/^\/live\/([\w-]+)$/);
@@ -2248,6 +2619,7 @@ async function route(quiet = false) {
     const trk = hash.match(/^\/track\/([\w-]+)$/);
     const sd = hash.match(/^\/standings(?:\/([\w-]+)(?:\/(\w+))?)?$/);
     const pk = hash.match(/^\/picks(?:\/([\w-]+)(?:\/(.+))?)?$/);
+    const cmp = hash.match(/^\/compare\/([^/]+)(?:\/([^/]+))?$/);
     if (hash !== "/report") reportFrom = location.hash || "#/";
     document.getElementById("foot").hidden = hash === "/report";
     if (hash === "/report") reportView();
@@ -2255,6 +2627,7 @@ async function route(quiet = false) {
     else if (hash === "/wire") await wireView();
     else if (hash === "/new") whatsNewView();
     else if (hash === "/search") await searchView();
+    else if (cmp) await compareView(decodeURIComponent(cmp[1]), cmp[2] ? decodeURIComponent(cmp[2]) : "");
     else if (hash === "/app") appView();
     else if (trk) await trackView(trk[1]);
     else if (person) await personView(person[1], decodeURIComponent(person[2]));
@@ -2306,6 +2679,7 @@ function navigate() {
   vt.finished.finally(() => named.forEach(el => { el.style.viewTransitionName = ""; }));
 }
 window.addEventListener("hashchange", navigate);
+startBar();
 route();
 setInterval(sendViews, 60000);
 // Coming back after a while counts as opening the app again; leaving sends what's been counted.

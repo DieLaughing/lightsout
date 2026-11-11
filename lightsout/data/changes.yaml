@@ -4,6 +4,54 @@
 # and `.venv/bin/python tools/release.py` publishes the day's GitHub Release.
 
 - date: 2026-11-10
+  kind: new
+  title: "A leaderboard for the reaction test"
+  text: "Every finished start now counts toward a leaderboard of everyone's best time, shown right under your result, with your place in the menu too. Names are the ones you use in Pick'em. Hit Again to have another go."
+  link: "#/"
+
+- date: 2026-11-10
+  kind: improved
+  title: "Easier first time in"
+  text: "Someone new to Lights Out now gets two quick steps before Home: pick the series you watch (the usual ones are already on), then the drivers you follow, with each series' current top three ready to tap or a search for anyone. Skip it and you get the usual series."
+  link: "#/"
+
+- date: 2026-11-10
+  kind: new
+  title: Compare any two drivers
+  text: "Put two drivers side by side: who finished ahead more often when both made it to the flag, and their wins, podiums, top 10s, average finish and retirements this season, with every round's result next to each other. Tap ⇄ Compare on a driver's page (teammates are one tap away), or type two names with \"vs\" in Search."
+  link: "#/search"
+
+- date: 2026-11-10
+  kind: new
+  title: Lights out
+  text: When a race in a series you follow starts while Home is open, the five red lights come on one by one, hold, and go out. And any time, Reaction test in the menu is a mini game with the real start sequence. Tap the moment the lights go out to get your time; jump the start and it'll tell you. Your best is kept on this device.
+  link: "#/"
+
+- date: 2026-11-10
+  kind: new
+  title: The live dock
+  text: While a session with live timing is on, a strip just above the menu bar shows where your drivers are on every page, with arrows when they gain or lose places, the lap, and any yellow flag, safety car or red flag. Tap it for live timing. Two sessions at once? Swipe between them. Don't want it? Settings > Display > Live dock.
+  link: "#/settings"
+
+- date: 2026-11-10
+  kind: improved
+  title: Upcoming, one card per race weekend
+  text: Upcoming is now grouped by weekend, with one card per race meeting instead of a card for every day. Each day of the weekend is one line (Thu P1 7:30 PM · P2 11:00 PM), races stand out, and where to watch is said once. Series racing at the same track the same weekend share a card, like F1 ACADEMY under the Las Vegas Grand Prix, or the three World Cups at Macau.
+  link: "#/"
+
+- date: 2026-11-10
+  kind: new
+  title: Race weekend on Home, and a livelier Standings
+  text: Home now leads with the race weekend that matters to you, in your driver's team colour, with a live countdown, where your driver stands, and the whole weekend as a timeline that fills in as sessions finish. Standings opens with the title fight (who leads, by how much, races left), a strip of every race this season showing who won and where your driver finished, arrows for places gained or lost at the last race, and a bar on every row for points against the leader.
+  link: "#/standings"
+
+- date: 2026-11-10
+  kind: new
+  title: A new menu bar
+  text: The tab bar is now one floating menu bar, like Shots on Goal's. It sits at the bottom under your thumb, with Search on one side and the menu on the other, and in the middle it tells you what's next ("F1 Qualifying · in 2h 05m") or what's on right now. The menu opens full screen with a line under each page saying what's waiting there. Prefer it on top? Settings > Display > Menu bar. On a computer it sits on top with every page in it.
+  link: "#/settings"
+
+- date: 2026-11-10
   kind: fixed
   title: Nothing hides under a side status bar
   text: On phones that put the time and battery down the side of the screen (like iPhone Duo folded, or any iPhone turned sideways), the top buttons, pages and tab bar now stay clear of it. Settings has a new "This screen" line that shows how much room your phone keeps clear on each side, in case something still looks cut off.
