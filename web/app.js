@@ -1232,10 +1232,21 @@ function seasonRibbon(st, rows, isMine) {
       <span class="rb-n">${i + 1}</span><b>${esc(short)}</b>${mine ? `<span class="rb-me${String(me) === "1" ? " win" : ""}">${me && /^\d+$/.test(String(me)) ? `P${esc(me)}` : me ? esc(me) : "–"}</span>` : ""}</li>`;
   }).join("");
   return `<div class="ribbon"><div class="rb-head"><span>Season so far · winners</span>${mine ? `<span>${esc(String(mine.name).split(" ").pop())}'s finish</span>` : ""}</div>
-    <ol class="rb-tiles">${tiles}</ol></div>`;
+    <ol class="rb-tiles" style="--cols:${Math.ceil(rounds.length / Math.ceil(rounds.length / 20))}">${tiles}</ol></div>`;
 }
 // The newest race in view: set sideways only, so the page itself never moves (an in-page switch must hold still).
-function ribbonsToEnd() { view.querySelectorAll(".rb-tiles").forEach(el => { el.scrollLeft = el.scrollWidth; }); }
+const ribbonWatched = new WeakSet();   // a morph keeps the element (and its listener) but wipes data- attributes
+function ribbonsToEnd() {
+  view.querySelectorAll(".rb-tiles").forEach(el => {
+    el.scrollLeft = el.scrollWidth;
+    const edges = () => {
+      el.classList.toggle("more-l", el.scrollLeft > 2);
+      el.classList.toggle("more-r", el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+    };
+    edges();
+    if (!ribbonWatched.has(el)) { ribbonWatched.add(el); el.addEventListener("scroll", edges, { passive: true }); }
+  });
+}
 // Loose name match for round results ("Max Verstappen" vs "VERSTAPPEN Max"): same words, any order, any case.
 const follow_match = (a, b) => { const w = x => String(x).toLowerCase().split(/[^a-zÀ-ɏ]+/).filter(Boolean).sort().join(" "); return w(a) === w(b); };
 

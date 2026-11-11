@@ -243,6 +243,17 @@ input:disabled { opacity: .6; }
 .rb-head { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 2px 6px; }
 .rb-tiles { list-style: none; margin: 0; padding: 0 0 2px; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
 .rb-tiles::-webkit-scrollbar { display: none; }
+/* Phones swipe it: the side with more races behind it fades out (web/app.js ribbonsToEnd sets .more-l / .more-r). */
+.rb-tiles.more-l { -webkit-mask-image: linear-gradient(to right, transparent, #000 28px); mask-image: linear-gradient(to right, transparent, #000 28px); }
+.rb-tiles.more-r { -webkit-mask-image: linear-gradient(to left, transparent, #000 28px); mask-image: linear-gradient(to left, transparent, #000 28px); }
+.rb-tiles.more-l.more-r { -webkit-mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+/* With a mouse there's no swipe (a wheel scrolls the page): every race shows, in even rows of up to 20 (--cols). */
+@media (pointer: fine) {
+  .rb-tiles { display: grid; grid-template-columns: repeat(var(--cols, 20), minmax(0, 1fr)); overflow: visible;
+    -webkit-mask-image: none !important; mask-image: none !important; }
+  .rb-tiles li { min-width: 0; }
+}
 .rb-tiles li { flex: 0 0 44px; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 5px 0 6px; border-radius: 10px;
   background: color-mix(in srgb, var(--tc, var(--muted)) 20%, var(--surface)); border: 1px solid color-mix(in srgb, var(--tc, var(--border)) 35%, var(--border));
   font-variant-numeric: tabular-nums; }
