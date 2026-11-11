@@ -113,6 +113,11 @@ body.gated :is(.pill-btn, .pill-link) { display: none; }
 .menu-links b { font-size: 38px; line-height: 1; font-weight: 900; text-transform: uppercase; letter-spacing: -.01em; font-style: italic; }
 .menu-links span { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--muted); }
 .menu-links a.active span::before { content: ""; width: 22px; height: 3px; border-radius: 2px; background: var(--accent); }
+/* The mini game sits with the pages, set off a little so it doesn't read as one. */
+.menu-links .menu-game { display: flex; flex-direction: column; align-items: inherit; gap: 2px; padding: 12px 6px 2px; border: 0; background: none; color: var(--text);
+  font: inherit; cursor: pointer; border-top: 1px dashed var(--border); margin-top: 6px; }
+.menu-links .menu-game b { font-size: 26px; line-height: 1; font-weight: 900; text-transform: uppercase; font-style: italic; color: var(--accent); }
+:root[data-nav="bottom"] .menu-links .menu-game { border-top: 0; border-bottom: 1px dashed var(--border); margin: 0 0 6px; padding: 2px 6px 12px; }
 .menu-links a.has-new b::after { content: ""; display: inline-block; vertical-align: super; margin-left: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
 @media (min-width: 900px) { :root[data-nav] .menu { flex-direction: column; justify-content: flex-start;
   padding-top: calc(110px + env(safe-area-inset-top)); padding-bottom: 32px; } :root[data-nav] .menu-links { flex-direction: column; } }

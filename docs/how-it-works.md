@@ -168,7 +168,8 @@ How the app moves (what animates, what must hold still, timings, rules for new U
 - Lights out (web/start.js, loaded on demand by lightsOut()): the start gantry, full screen (five pods, a light a
   second, a random 0.2-3 s hold, all out). When Home's countdown reaches a race / sprint / rally day in a followed
   series ([data-start] on .wk-count), startTicker plays it once per session per device (localStorage `started`) then
-  redraws Home as live. "Test your start" on the weekend card opens it as the reaction test: tap when they go out,
+  redraws Home as live. The menu's Reaction test (a button set apart under the pages; its line shows your best) and "Mini game: reaction
+  test" on the weekend card open it as the reaction test: tap when they go out,
   time in seconds, best kept in localStorage `reactionBest`; a tap before they go out is a jump start. Esc / ✕ /
   tap close. No dimming: Lights Out has no theme switch of its own yet (SOG's Dim at puck drop needs House lights).
 - Live dock (web/dock.js, from Shots on Goal; loaded by startDock 1.5 s after the first page): polls /api/live every

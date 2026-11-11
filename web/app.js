@@ -407,7 +407,7 @@ function brandLine() {
 }
 // The menu's lines that say what's waiting, read from the phone's own copies (prefetch() keeps them under ~90 s old),
 // so opening the menu never makes a request. No copy yet: the plain description stays.
-const MENU_INFO = { home: "Every race weekend, in your time", wire: "News and what happened on track", standings: "Drivers, teams and the last race",
+const MENU_INFO = { react: "Mini game: beat the five red lights", home: "Every race weekend, in your time", wire: "News and what happened on track", standings: "Drivers, teams and the last race",
   series: "Every championship, on or off", settings: "Drivers you follow, alerts, calendar" };
 function menuLines() {
   const set = (id, text) => { const el = document.getElementById(`info-${id}`); if (el && el.textContent !== (text || MENU_INFO[id])) el.textContent = text || MENU_INFO[id]; };
@@ -421,6 +421,8 @@ function menuLines() {
   set("series", SERIES.length ? `${enabledSeries().length} of ${SERIES.length} switched on` : "");
   const unseen = unseenChanges().length;
   set("settings", unseen ? `${unseen} new in What's new` : "");
+  const best = Number(local("reactionBest", 0));
+  set("react", best ? `Mini game · your best ${(best / 1000).toFixed(3)} s` : "");
 }
 function openMenu(byKey) {
   if (menuOpen) return;
@@ -455,7 +457,10 @@ function closeMenu() {
 function startBar() {
   applyNavAt();
   menuBtn.addEventListener("click", e => menuOpen ? closeMenu() : openMenu(e.detail === 0));
-  menu.addEventListener("click", e => { if (e.target.closest("a")) closeMenu(); });   // the page change closes it too
+  menu.addEventListener("click", e => {
+    if (e.target.closest("a")) closeMenu();   // the page change closes it too
+    else if (e.target.closest("[data-react]")) { closeMenu(); lightsOut({ label: "Reaction test", react: true }); }
+  });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && menuOpen) { closeMenu(); menuBtn.focus(); } });
   setInterval(() => { if (!document.hidden) brandLine(); }, 30000);   // "in 12 min" keeps counting
 }
@@ -655,7 +660,7 @@ function weekendHero(sessions, followed, cards, feeds, today) {
     <a class="ev-link wk-name" href="#/event/${esc(s.series)}/${encodeURIComponent(s.event_key)}">${esc(s.event_name)} ›</a>
     ${head}${mine}
     <ol class="wk-line">${line}</ol>
-    <div class="wk-foot">${feed ? `<a class="btn wk-timing" href="#/live/${esc(s.series)}">Live timing →</a>` : ""}<button class="link wk-react" type="button" data-react>Test your start ›</button></div>
+    <div class="wk-foot">${feed ? `<a class="btn wk-timing" href="#/live/${esc(s.series)}">Live timing →</a>` : ""}<button class="link wk-react" type="button" data-react>Mini game: reaction test ›</button></div>
   </section>`;
 }
 // The start gantry (web/start.js): a race you follow starting now, or the reaction test from the weekend card.
