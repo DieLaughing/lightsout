@@ -389,7 +389,8 @@ function untilText(iso) {
 }
 // The session the bar talks about: the same one Home's weekend card leads with (weekendPick), from the same list.
 function headline() {
-  const list = sessionsCopy().filter(x => shows(x) || isLive(x)), s = weekendPick(list, followedSeries());
+  const winter = winterIds();
+  const list = sessionsCopy().filter(x => isLive(x) || (shows(x) && !winter.has(x.series))), s = weekendPick(list, followedSeries());
   if (!s) return null;
   return { s, live: isLive(s), more: isLive(s) ? list.filter(isLive).length - 1 : 0 };
 }
@@ -664,6 +665,41 @@ function weekendHero(sessions, followed, cards, feeds, today) {
     <div class="wk-foot">${feed ? `<a class="btn wk-timing" href="#/live/${esc(s.series)}">Live timing →</a>` : ""}<button class="link wk-react" type="button" data-react>Mini game: reaction test ›</button></div>
   </section>`;
 }
+// ---- Winter in the paddock: Home between seasons -------------------------------------------------------------
+// /api/paddock (lightsout/paddock.py) lists the switched-on series that are between seasons. Home gives a card to the
+// ones you follow (with no follows found: the first three); every listed series steps out of the weekend card and the
+// bar's line, so a race three months away doesn't lead Home. Racing back within 10 days: the series isn't listed.
+const paddockPath = () => `/api/paddock?series=${enabledSeries().join(",")}`;
+function winterCards(list = GET_CACHE.get(paddockPath())?.data || []) {
+  const followed = followedSeries();
+  return followed.size ? list.filter(w => followed.has(w.series)) : list.slice(0, 3);
+}
+const winterIds = (list = GET_CACHE.get(paddockPath())?.data || []) => new Set(list.map(w => w.series));
+const daysBetween = (a, b) => Math.round((Date.parse(`${b}T12:00Z`) - Date.parse(`${a}T12:00Z`)) / 864e5);
+function paddockCard(w, today) {
+  const champ = w.champion?.driver || w.champion?.team, n = w.next;
+  const colour = champ?.color || BY_ID[w.series]?.color || "var(--accent)";
+  const who = (x, kind) => `<a class="who-link" href="#/${kind}/${encodeURIComponent(x.name)}"><b>${esc(x.name)}</b></a>`;
+  const d = w.champion?.driver, t = w.champion?.team;
+  const champLine = champ ? `<div class="pk-champ"><span class="pk-cup">${esc(w.champion.season)} champion</span> ${d ? who(d, "driver") : who(t, "team")}${d?.team ? ` · ${esc(d.team)}` : ""}${
+    d && t && t.name !== d.team ? `<div class="small muted">Teams: ${who(t, "team")}</div>` : ""}</div>` : "";
+  const nday = n && (n.start_utc ? localDay(n) : n.day), days = n ? Math.max(0, daysBetween(today, nday)) : null;
+  const count = n ? `<div class="pk-count"><b>${days}</b><small>${days === 1 ? "day" : "days"}</small></div>
+    <div class="pk-to">to <a class="ev-link" href="#/event/${esc(w.series)}/${encodeURIComponent(n.event_key)}">${esc(n.event)}</a>${n.place ? ` · ${esc(n.place)}` : ""} · ${esc(dayLabel(nday))}</div>`
+    : `<div class="pk-to muted">The ${esc(w.season + 1)} calendar isn't out yet.</div>`;
+  const tests = w.tests.length ? `<ul class="pk-tests">${w.tests.map(x => {
+    const on = x.start <= today && today <= x.end;
+    return `<li${on ? ' class="on"' : ""}><span>${esc(spanLabel(x.start, x.end))}</span> ${esc(x.name)}${x.place ? ` · ${esc(x.place)}` : ""}${on ? ' <span class="live">ON NOW</span>' : ""}</li>`;
+  }).join("")}</ul>` : "";
+  const move = m => `<li><a href="${esc(m.url)}" target="_blank" rel="noopener">${esc(m.title)}</a> <span class="small muted">${esc(m.source || "")} · ${esc(ago(m.time))}</span></li>`;
+  // Folded by default (Home stays short): the count says whether there's anything to read.
+  const moves = w.moves.length ? `<details class="pk-more"><summary>Silly season · ${w.moves.length} ${w.moves.length === 1 ? "move" : "moves"} in the news</summary>
+    <ul class="pk-moves">${w.moves.map(move).join("")}</ul></details>` : `<div class="pk-quiet small muted">No driver or team moves in the news yet.</div>`;
+  return `<section class="pk" style="--tc:${esc(colour)}">
+    <div class="wk-top">${chip(w.series)}<span>Off-season</span></div>
+    ${champLine}${count}${tests ? `<div class="pk-h">Testing</div>${tests}` : ""}${moves}</section>`;
+}
+
 // The start gantry (web/start.js): a race you follow starting now, or the reaction test from the weekend card.
 const lightsOut = opts => import("./start.js?v=2").then(m => m.play(opts)).catch(() => {});
 // One ticker for the countdown(s) on screen: every second, and it stops itself once they're gone.
@@ -707,8 +743,8 @@ async function homeView() {
     const before = JSON.stringify(FOLLOW_STATUS);
     loadFollowStatus().then(now => { if (JSON.stringify(now) !== before && (location.hash || "#/") === "#/") route(true); });
   }
-  const [sessions, allFeeds, cards] = await Promise.all([fast(`/api/sessions?series=${ids.join(",")}`), fast("/api/live", LIVE_COPY).catch(() => []),
-    follows().length ? fast("/api/cards").catch(() => []) : [], first]);
+  const [sessions, allFeeds, cards, paddock] = await Promise.all([fast(`/api/sessions?series=${ids.join(",")}`), fast("/api/live", LIVE_COPY).catch(() => []),
+    follows().length ? fast("/api/cards").catch(() => []) : [], fast(paddockPath()).catch(() => []), first]);
   const followed = followedSeries();
   const live = sessions.filter(isLive);
   let html = "";
@@ -721,14 +757,18 @@ async function homeView() {
   }
 
   const today = localDay({ start_utc: new Date().toISOString() });
-  const hero = weekendHero(sessions.filter(s => shows(s) || isLive(s)), followed, cards, feeds, today);
-  const heroEvent = hero && weekendPick(sessions.filter(s => shows(s) || isLive(s)), followed);
+  // Series between seasons get a winter card instead of leading the weekend card (headline() leaves them out too).
+  const winter = winterCards(paddock), winterSet = winterIds(paddock);
+  const leads = sessions.filter(s => isLive(s) || (shows(s) && !winterSet.has(s.series)));
+  const hero = weekendHero(leads, followed, cards, feeds, today);
+  const heroEvent = hero && weekendPick(leads, followed);
   html = hero + html;   // the weekend leads; other series' live timing follows
   const otherLive = live.filter(s => !(heroEvent && s.series === heroEvent.series && s.event_key === heroEvent.event_key));
   if (otherLive.length) {
     html += `<h2>Also on now</h2><div class="evcs">${eventCards(otherLive, followed)}</div>`;
   }
 
+  if (winter.length) html += `<h2>Winter in the paddock</h2><div class="pks">${winter.map(w => paddockCard(w, today)).join("")}</div>`;
   if (follows().length) html += `<h2>Following</h2>${heroCards(cards)}`;
 
   const upcoming = sessions.filter(s => !isLive(s) && shows(s) && (s.start_utc ? Date.parse(s.end_utc) > Date.now() : (s.end_day || s.day) >= today));
@@ -2527,7 +2567,7 @@ async function prefetch() {
   const ids = enabledSeries();
   const sid = store.get("standingsSeries") || SERIES.find(x => x.has_standings && ids.includes(x.id))?.id;
   const paths = [`/api/sessions?series=${ids.join(",")}`, wirePath({ kind: "", series: "", driver: "", team: "", mine: false, ...local("wire", {}) }),
-    ...(sid ? [`/api/series/${sid}/standings`] : []), ...(follows().length ? ["/api/cards"] : []), "/api/entries"];
+    ...(sid ? [`/api/series/${sid}/standings`] : []), ...(follows().length ? ["/api/cards"] : []), paddockPath(), "/api/entries"];
   for (const path of paths) {
     if (document.hidden) return;
     const hit = GET_CACHE.get(path);

@@ -572,13 +572,35 @@ a.item { text-decoration: none; color: inherit; }
 .on-chip span { opacity: .7; margin-left: 2px; }
 
 /* ---- Team colour (--tc from colors.yaml) made readable on either theme ---- */
-.hero, .wk, .title-fight, .ribbon, .standings .srow { --tcr: color-mix(in oklab, var(--tc, var(--muted)) 78%, black); }
+.hero, .wk, .pk, .title-fight, .ribbon, .standings .srow { --tcr: color-mix(in oklab, var(--tc, var(--muted)) 78%, black); }
 @media (prefers-color-scheme: dark) {
-  .hero, .wk, .title-fight, .ribbon, .standings .srow { --tcr: color-mix(in oklab, var(--tc, var(--muted)) 62%, white); }
+  .hero, .wk, .pk, .title-fight, .ribbon, .standings .srow { --tcr: color-mix(in oklab, var(--tc, var(--muted)) 62%, white); }
 }
 .standings .tteam { color: var(--tcr); font-weight: 600; }
 .standings .tteam-name::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px;
   background: var(--tc, var(--border)); vertical-align: 1px; }
+
+/* ---- Winter in the paddock: a series between seasons (champion, days to the opener, testing, moves) ---- */
+.pks { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 2px; align-items: flex-start; }
+.pks::-webkit-scrollbar { display: none; }
+@media (pointer: fine) and (min-width: 760px) { .pks { display: grid; grid-template-columns: 1fr 1fr; overflow: visible; } }
+.pk { flex: 0 0 min(88%, 400px); scroll-snap-align: start; box-sizing: border-box; padding: 14px 16px 12px; border-radius: 16px; border: 1px solid var(--border); border-left: 3px solid var(--tcr);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--tc) 12%, var(--surface)) 0%, var(--surface) 70%); }
+.pk-champ { margin-top: 10px; font-size: 15px; }
+.pk-cup { display: block; font-size: 12px; color: var(--muted); }
+.pk-count { margin-top: 10px; font-variant-numeric: tabular-nums; }
+.pk-count b { font-size: 44px; font-weight: 250; letter-spacing: -.03em; line-height: 1; }
+.pk-count small { margin-left: 4px; font-size: 13px; font-weight: 750; color: var(--muted); }
+.pk-to { font-size: 13.5px; margin-top: 2px; }
+.pk-h { margin: 14px 0 4px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.pk-tests, .pk-moves { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13.5px; }
+.pk-tests li > span:first-child { display: inline-block; min-width: 92px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pk-tests li.on { font-weight: 650; }
+.pks .pk:only-child { flex-basis: 100%; }
+.pk-moves { margin-top: 8px; }
+.pk-moves a { color: var(--text); text-decoration: none; font-weight: 500; }
+.pk-more, .pk-quiet { margin-top: 14px; }
+.pk-more summary { cursor: pointer; font-size: 13px; font-weight: 650; color: var(--tcr); }
 
 /* ---- Following: hero cards. A side-scroller on phones, a grid with a mouse ---- */
 .heroes { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 2px; }

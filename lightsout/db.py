@@ -196,6 +196,27 @@ class Store:
                                 "ORDER BY start_day LIMIT 1", (series, today)).fetchone()
         return dict(row) if row else None
 
+    def race_edges(self, series: str, now: str, kinds: tuple[str, ...]) -> tuple[dict | None, dict | None]:
+        """The series' last race session that has ended by `now`, and its first one that hasn't (one under way counts
+        as next: a two-week rally-raid isn't over on day two). kinds = what counts as racing. Each comes with its
+        event's name, season, venue and dates."""
+        ended = "COALESCE(s.end_utc, COALESCE(s.end_day, s.day) || 'T23:59:59Z')"
+        q = ("SELECT s.series, s.event_key, s.name, s.kind, s.start_utc, s.day, s.sort_utc, e.name AS event_name, e.season, "
+             "e.venue, e.country, e.start_day AS event_start, e.end_day AS event_end FROM session s "
+             "JOIN event e ON e.series=s.series AND e.key=s.event_key "
+             f"WHERE s.series=? AND s.kind IN ({','.join('?' * len(kinds))}) AND {ended} {{}} ? ORDER BY s.sort_utc {{}} LIMIT 1")
+        last = self.conn.execute(q.format("<", "DESC"), (series, *kinds, now)).fetchone()
+        nxt = self.conn.execute(q.format(">=", "ASC"), (series, *kinds, now)).fetchone()
+        return (dict(last) if last else None), (dict(nxt) if nxt else None)
+
+    def events_between(self, series: str, start: str, end: str | None) -> list[dict]:
+        """The series' events starting after `start` and (when given) before `end`, by date."""
+        q, args = "SELECT name, venue, start_day, end_day FROM event WHERE series=? AND start_day > ?", [series, start]
+        if end:
+            q += " AND start_day < ?"
+            args.append(end)
+        return [dict(r) for r in self.conn.execute(q + " ORDER BY start_day", args)]
+
     def record_run(self, series: str, ok: bool, error: str | None = None, counts: tuple[int, int] = (0, 0)):
         now = _iso(datetime.now(timezone.utc))
         with self.conn:

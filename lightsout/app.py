@@ -18,7 +18,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Red
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from . import access, bugs, adapters, alerts, changes, colors, f1a, follow, ics, news, odds, picks, places, profiles, refresh, slow, tickets, usage, watch, weather
+from . import access, bugs, adapters, alerts, changes, colors, f1a, follow, ics, news, odds, paddock, picks, places, profiles, refresh, slow, tickets, usage, watch, weather
 from .db import Store
 from .live.hub import LiveHub
 from .push import Pusher
@@ -67,6 +67,10 @@ async def news_loop() -> None:
         try:
             items, status = await news.fetch_all(live.tagger())
             fresh = store.add_news(items)
+            try:   # the first run also files what's already stored; a failure here never holds up news alerts
+                paddock.remember(store, items + (store.news() if first else []))
+            except Exception:
+                log.exception("paddock moves error")
             failing = [u for u, err in status.items() if err]
             store.record_run("news", not failing or len(failing) < len(status),
                              error="; ".join(f"{u}: {status[u]}" for u in failing)[:500] or None, counts=(len(fresh), len(items)))
@@ -284,7 +288,7 @@ RENOTIFY_AFTER = timedelta(hours=12)   # pressing Request twice doesn't ping the
 # Built and compressed once, reused for READY_TTL; live timing is never kept.
 READY_TTL = 30.0
 READY_PATHS = ("/api/series", "/api/sessions", "/api/names", "/api/entries", "/api/event/", "/api/stories/", "/api/track",
-               "/api/person/", "/api/wire", "/api/changes")  # not /api/live, /api/events/, /api/story/: those move during races
+               "/api/person/", "/api/wire", "/api/changes", "/api/paddock")  # not /api/live, /api/events/, /api/story/: those move during races
 _ready: dict[tuple, tuple] = {}
 
 
@@ -731,6 +735,12 @@ def _card(name: str, sid: str, table: dict) -> dict | None:
             "color": colors.for_team(team, sid), "pos": row["pos"], "points": row["points"],
             "behind": lead[0]["points"] - row["points"] if lead and row["pos"] > 1 else None,
             "wins": row.get("wins"), "form": form, "season": table.get("season_label", "")}
+
+
+@app.get("/api/paddock")
+def paddock_winter(series: str = ""):
+    """Home's off-season cards ("Winter in the paddock") for the series asked for that are between seasons."""
+    return paddock.winter(store, [s for s in series.split(",") if s in BY_ID])
 
 
 @app.get("/api/names")
