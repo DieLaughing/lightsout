@@ -24,6 +24,7 @@ RACING = (RACE, SPRINT, RALLY_DAY, EVENT)
 LEAD_DAYS = 10      # inside this many days of the first race, Home goes back to its race-weekend card
 BREAK_DAYS = 75     # a gap this long is an off-season even inside one numbered season (Formula E's summer)
 MOVES_DAYS = 150
+MOVES_KEEP = 400    # newest first; a busy winter across every series stays well under this
 MOVES_KEY = "paddock:moves"
 SHOW_MOVES = 6
 TESTING = Path(__file__).resolve().parent / "data" / "testing.yaml"
@@ -56,7 +57,9 @@ def remember(store, items: list[dict], now: datetime | None = None) -> int:
         if n["id"] not in kept and n["time"] >= cut and is_move(n):
             kept[n["id"]] = {k: n.get(k) for k in ("id", "time", "title", "url", "source", "series", "drivers", "teams")}
     if not hit or {m["id"] for m in hit[0]} != kept.keys():   # something added or aged out
-        store.save_cached(MOVES_KEY, sorted(kept.values(), key=lambda m: m["time"], reverse=True))
+        newest = sorted(kept.values(), key=lambda m: m["time"], reverse=True)[:MOVES_KEEP]
+        kept = {m["id"]: m for m in newest}
+        store.save_cached(MOVES_KEY, newest)
     return len(kept) - before
 
 
@@ -102,7 +105,7 @@ def _next(s: dict | None) -> dict | None:
     if not s:
         return None
     place = places.for_event(s["venue"], s["event_name"])
-    return {"event_key": s["event_key"], "event": s["event_name"], "session": s["name"], "start_utc": s["start_utc"],
+    return {"event_key": s["event_key"], "event": s["event_name"], "start_utc": s["start_utc"],
             "day": s["day"], "season": s["season"], "place": place["label"] if place else s["venue"] or s["country"] or ""}
 
 

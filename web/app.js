@@ -670,18 +670,17 @@ function weekendHero(sessions, followed, cards, feeds, today) {
 // ones you follow (with no follows found: the first three); every listed series steps out of the weekend card and the
 // bar's line, so a race three months away doesn't lead Home. Racing back within 10 days: the series isn't listed.
 const paddockPath = () => `/api/paddock?series=${enabledSeries().join(",")}`;
-function winterCards(list = GET_CACHE.get(paddockPath())?.data || []) {
+function winterCards(list) {
   const followed = followedSeries();
   return followed.size ? list.filter(w => followed.has(w.series)) : list.slice(0, 3);
 }
 const winterIds = (list = GET_CACHE.get(paddockPath())?.data || []) => new Set(list.map(w => w.series));
 const daysBetween = (a, b) => Math.round((Date.parse(`${b}T12:00Z`) - Date.parse(`${a}T12:00Z`)) / 864e5);
 function paddockCard(w, today) {
-  const champ = w.champion?.driver || w.champion?.team, n = w.next;
-  const colour = champ?.color || BY_ID[w.series]?.color || "var(--accent)";
+  const d = w.champion?.driver, t = w.champion?.team, n = w.next;
+  const colour = (d || t)?.color || BY_ID[w.series]?.color || "var(--accent)";
   const who = (x, kind) => `<a class="who-link" href="#/${kind}/${encodeURIComponent(x.name)}"><b>${esc(x.name)}</b></a>`;
-  const d = w.champion?.driver, t = w.champion?.team;
-  const champLine = champ ? `<div class="pk-champ"><span class="pk-cup">${esc(w.champion.season)} champion</span> ${d ? who(d, "driver") : who(t, "team")}${d?.team ? ` · ${esc(d.team)}` : ""}${
+  const champLine = d || t ? `<div class="pk-champ"><span class="pk-cup">${esc(w.champion.season)} champion</span> ${d ? who(d, "driver") : who(t, "team")}${d?.team ? ` · ${esc(d.team)}` : ""}${
     d && t && t.name !== d.team ? `<div class="small muted">Teams: ${who(t, "team")}</div>` : ""}</div>` : "";
   const nday = n && (n.start_utc ? localDay(n) : n.day), days = n ? Math.max(0, daysBetween(today, nday)) : null;
   const count = n ? `<div class="pk-count"><b>${days}</b><small>${days === 1 ? "day" : "days"}</small></div>
