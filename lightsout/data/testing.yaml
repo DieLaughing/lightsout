@@ -1,0 +1,18 @@
+# Pre-season tests the schedules don't carry, for Home's off-season card ("Winter in the paddock").
+# Only dates the series has announced. Tests already in a schedule (IMSA's Roar) are found there, so not listed here.
+# series id -> list of {name, place, start, end} (local dates). Past tests drop off the card by themselves.
+
+f1:   # announced with the 2027 calendar
+  - {name: Pre-season test, place: Bahrain, start: 2027-02-24, end: 2027-02-27}
+
+motogp:   # motogp.com, 2026-09-02
+  - {name: Valencia test, place: Valencia, start: 2026-12-01, end: 2026-12-01}
+  - {name: Shakedown (test riders and rookies), place: Sepang, start: 2027-01-29, end: 2027-01-30}
+  - {name: Official test, place: Sepang, start: 2027-01-31, end: 2027-02-01}
+  - {name: Official test, place: Buriram, start: 2027-02-06, end: 2027-02-07}
+
+moto2:
+  - {name: Pre-season tests, place: Jerez, start: 2027-02-16, end: 2027-02-21}
+
+moto3:
+  - {name: Pre-season tests, place: Jerez, start: 2027-02-16, end: 2027-02-21}

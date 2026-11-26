@@ -192,6 +192,22 @@ How the app moves (what animates, what must hold still, timings, rules for new U
   (done / live / next with where to watch and weather / later). /api/sessions now starts 3 days back (was 12 h) so a
   Sunday still shows Friday's sessions as done; Home filters finished sessions out of the list itself. Other live
   sessions follow as "Also on now".
+- Winter in the paddock (lightsout/paddock.py, /api/paddock?series=; Home's off-season cards, web/app.js paddockCard/
+  winterCards): a series is between seasons when nothing races for LEAD_DAYS (10) and its next race opens a new season,
+  comes after a gap of BREAK_DAYS (75) or more (Formula E's summer inside one numbered season), or isn't on the calendar
+  yet; a series with only next season on file (IndyCar, WRC drop the finished one) counts too. Racing = race, sprint,
+  rally day, event. Card: champion (P1 of the saved table, drivers and teams; a label with a year must be the finished
+  season; one without, like NASCAR's "Points", counts while the leader has points, so a reset table drops it), days to
+  the next season's first race, testing (schedule events named test/Roar + hand-kept lightsout/data/testing.yaml, only
+  announced dates; past ones drop off) and moves: news headlines with a tagged driver or team that read like a move
+  (paddock.MOVE, minus race-day words), kept for 150 days in the profile cache table (key paddock:moves, filed by the
+  news loop; the Wire's news table keeps 30 days), shown from a fortnight before the last race, folded under "Silly
+  season · N moves". Home asks for every switched-on series, shows the followed ones (no follows found: the first
+  three) as a side-scroller under the weekend card, and leaves every listed series out of the weekend card and the
+  bar's line (headline()), so a race months away never leads Home; live sessions always count. A session under way
+  is "next", not "last" (Store.race_edges uses the end time), so a series is never off-season mid-race. The champion
+  needs a table saved after the last race. Race-weekend behaviour is
+  otherwise untouched.
 - Standings extras (app.season_story, added to /api/series/<id>/standings): `rounds` (every saved race this season,
   each name's finish: the season ribbon, winner tiles in the winner's team colour, your driver's finish under each),
   `left` (events after the newest round with a race, sprint or rally day: "N races left", "Season complete" at 0 with

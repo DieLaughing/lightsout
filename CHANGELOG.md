@@ -3,6 +3,10 @@
 Every update to [Lights Out](https://github.com/DieLaughing/lightsout), newest first. The same list is on the app's What's new page.
 This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit that file, not this one.
 
+## November 25, 2026
+
+- **New: Winter in the paddock.** When a series you follow is between seasons, Home now shows its champion, the days left until the first race of next season, any testing dates, and the driver and team moves in the news (tap Silly season to read them). Once racing is about to start again, it goes back to the usual race-weekend card.
+
 ## November 10, 2026
 
 - **New: A leaderboard for the reaction test.** Every finished start now counts toward a leaderboard of everyone's best time, shown right under your result, with your place in the menu too. Names are the ones you use in Pick'em. Hit Again to have another go.
