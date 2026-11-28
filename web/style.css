@@ -887,3 +887,15 @@ html.gantry-open, html.gantry-open body { overflow: hidden; }
   padding: 6px 12px; border-radius: 999px; font-size: 13.5px; font-weight: 600; }
 #view a.chip-btn:hover { border-color: var(--text); }
 .cp-mates { align-items: center; margin-bottom: 8px; }
+
+/* The Dakar (web/app.js dakarHome/dakarBlock/dakarPicks) */
+.dk-now { margin: 0 0 10px; }
+.dk .seg { margin-bottom: 4px; }
+.dk-h { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin: 12px 0 2px; }
+.dk-stage.on { box-shadow: inset 3px 0 0 var(--accent); }
+.dk-stage.dk-off b { color: var(--muted); font-weight: 600; }
+.dk-more { margin-top: 12px; }
+.dk-more > div { margin: 4px 0; }
+.dk-credit { margin-top: 10px; }
+.dk-final > summary { padding: 12px; cursor: pointer; }
+.dk-pick .podium-pos { min-width: 3.6em; }

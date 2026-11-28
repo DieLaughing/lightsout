@@ -699,6 +699,77 @@ function paddockCard(w, today) {
     ${champLine}${count}${tests ? `<div class="pk-h">Testing</div>${tests}` : ""}${moves}</section>`;
 }
 
+// ---- The Dakar: stage by stage (lightsout/dakar.py; results from Wikipedia's article, credited wherever they show) ----
+// Home gets one card while it runs (/api/dakar is null otherwise), the event page the stages and each class's top
+// three, Pick'em a Dakar tab (each stage's Bikes and Cars winner).
+const DAKAR_CLASSES = ["Bikes", "Cars"];
+const isFollowed = n => { const k = normalise(n || ""); return follows().some(f => normalise(f.name) === k); };
+let dakarClass = "Bikes";
+// "Guillaume De Mévius" -> "De Mévius", "Nasser Al-Attiyah" -> "Al-Attiyah": the last word and any particles before it.
+const PARTICLES = new Set(["de", "da", "del", "della", "di", "du", "van", "von", "der", "den", "le", "la", "dos", "das"]);
+const surname = n => { const w = (n || "").split(" "); let i = w.length - 1; while (i > 1 && PARTICLES.has(w[i - 1].toLowerCase())) i--; return esc(w.slice(i).join(" ")); };
+const shortGap = g => g.replace(/^00:/, "");
+const stageRoute = s => s.start && s.finish && s.start !== s.finish ? `${esc(s.start)} → ${esc(s.finish)}` : esc(s.start || "");
+const stageKm = s => s.special_km ? `${s.special_km} km timed` : "";
+const dakarCredit = d => `<p class="small muted dk-credit">Stage results from <a href="${esc(d.url)}" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA), added by its editors after each stage, so they can be a few hours behind.</p>`;
+// Stage days are Morocco days: the server sends that day (d.day), so Home and the event page agree with it.
+function dakarToday(d, today = d.day) {
+  const t = d.today;
+  if (t?.kind === "rest") return `Rest day in ${esc(t.start)}`;
+  if (t?.kind === "transfer") return `Transfer day · ${stageRoute(t)}`;
+  if (t) return `<b>${esc(t.label)} today</b> · ${[stageRoute(t), stageKm(t), t.note].filter(Boolean).join(" · ")}`;
+  const first = d.stages[0];
+  if (first && today < first.day) return `Starts ${esc(dayLabel(first.day))}: ${esc(first.label.toLowerCase())} in ${esc(first.start)}`;
+  return d.stages.length && today > d.stages[d.stages.length - 1].day ? "Finished" : "";
+}
+function dakarHome(d, today) {
+  const r = DAKAR_CLASSES.map(c => d.results[c] && [c, d.results[c]]).filter(Boolean);
+  const same = r.every(([, x]) => x.stage === r[0][1].stage);   // a class can be a stage behind while Wikipedia catches up
+  const won = r.length ? `<div class="small">${same ? `${esc(r[0][1].stage)}: ` : ""}${r.map(([c, x]) =>
+    `${esc(c)} <b>${surname(x.top[0]?.name)}</b>${same ? "" : ` (${esc(x.stage)})`}`).join(" · ")}</div>` : "";
+  const lead = r.filter(([, x]) => x.overall.length);
+  today = d.day || today;
+  return `<h2>Dakar</h2><a class="card item dk-home" href="#/event/w2rc/${encodeURIComponent(d.event_key)}">
+    <div><div>${dakarToday(d, today) || "Dakar Rally"}</div>${won}
+    ${lead.length ? `<div class="small muted">Leading: ${lead.map(([c, x]) => `${esc(c)} ${surname(x.overall[0].name)}`).join(" · ")}</div>` : ""}</div><span aria-hidden="true">›</span></a>`;
+}
+function dakarBlock(d, today, watch) {
+  if (!d?.stages.length) return "";
+  today = d.day || today;
+  const rows = (list, overall) => list.map(x => `<div class="srow${isFollowed(x.name) ? " followed" : ""}"><span class="pos">${x.pos}</span>
+    <span class="who"><b>${esc(x.name)}</b><span class="muted">${esc(x.make || "")}</span></span><span class="num${x.gap ? " muted" : ""}">${esc(x.gap ? `+${shortGap(x.gap)}` : x.time)}</span></div>`).join("");
+  const classes = DAKAR_CLASSES.filter(c => d.results[c]);
+  if (!classes.includes(dakarClass)) dakarClass = classes[0] || "Bikes";
+  const res = d.results[dakarClass];
+  const panel = res ? `<div class="dk-h">${esc(res.stage)} · top three</div><div class="standings">${rows(res.top)}</div>
+      ${res.overall.length ? `<div class="dk-h">Overall</div><div class="standings">${rows(res.overall, true)}</div>` : ""}` : "";
+  const others = d.classes.filter(c => !DAKAR_CLASSES.includes(c) && d.results[c]);
+  const final = Object.entries(d.final || {});
+  const stageRow = s => `<div class="item dk-stage${s.day === today ? " on" : ""}${s.kind !== "stage" ? " dk-off" : ""}"><div>
+      <b>${esc(s.label)}</b> <span class="small muted">${esc(dayLabel(s.day))}${s.note ? ` · ${esc(s.note)}` : ""}</span>
+      <div class="small muted">${[stageRoute(s), stageKm(s)].filter(Boolean).join(" · ")}</div>
+      ${Object.keys(s.winners || {}).length ? `<div class="small">${Object.entries(s.winners).map(([c, n]) => `${esc(c)} <b>${surname(n)}</b>`).join(" · ")}</div>` : ""}
+    </div>${s.day === today ? '<span class="live">TODAY</span>' : ""}</div>`;
+  return `<h2>Dakar ${esc(d.year)}</h2>
+    <div class="card pad16 dk">
+      ${dakarToday(d, today) ? `<p class="dk-now">${dakarToday(d, today)}</p>` : ""}
+      ${d.picks ? `<p><a class="btn" href="#/picks/w2rc">Pick the stage winners →</a></p>` : ""}
+      ${classes.length ? `<div class="seg" role="group" aria-label="Class">${classes.map(c => `<button type="button" data-dk="${esc(c)}" class="${c === dakarClass ? "active" : ""}" aria-pressed="${c === dakarClass}">${esc(c)}</button>`).join("")}</div>
+        ${panel}` : `<p class="small muted">Results show here after each stage.</p>`}
+      ${others.length ? `<details class="dk-more"><summary class="small">Other classes</summary>${others.map(c => {
+        const x = d.results[c];
+        return `<div class="small"><b>${esc(c)}</b> · ${esc(x.stage)}: ${esc(x.top[0]?.name || "")}${x.overall[0] ? ` · leading: ${esc(x.overall[0].name)}` : ""}</div>`;
+      }).join("")}</details>` : ""}
+    </div>
+    ${final.length ? `<h2>Final standings</h2>${final.filter(([c]) => DAKAR_CLASSES.includes(c)).map(([c, list], i) => `<details class="card dk-final"${i ? "" : " open"}>
+      <summary><b>${esc(c)}</b> <span class="muted small">top ${list.length}</span></summary><div class="standings">${rows(list)}</div></details>`).join("")}` : ""}
+    <h2>Stages</h2><div class="card">${watch ? `<div class="evc-head"><span class="muted small">Where to watch</span>${badge(watch)}</div>` : ""}${d.stages.map(stageRow).join("")}</div>
+    ${dakarCredit(d)}`;
+}
+function wireDakar(rerender, on) {
+  view.querySelectorAll("[data-dk]").forEach(b => b.addEventListener("click", () => { dakarClass = b.dataset.dk; rerender(); }, on));
+}
+
 // The start gantry (web/start.js): a race you follow starting now, or the reaction test from the weekend card.
 const lightsOut = opts => import("./start.js?v=2").then(m => m.play(opts)).catch(() => {});
 // One ticker for the countdown(s) on screen: every second, and it stops itself once they're gone.
@@ -742,8 +813,13 @@ async function homeView() {
     const before = JSON.stringify(FOLLOW_STATUS);
     loadFollowStatus().then(now => { if (JSON.stringify(now) !== before && (location.hash || "#/") === "#/") route(true); });
   }
-  const [sessions, allFeeds, cards, paddock] = await Promise.all([fast(`/api/sessions?series=${ids.join(",")}`), fast("/api/live", LIVE_COPY).catch(() => []),
-    follows().length ? fast("/api/cards").catch(() => []) : [], fast(paddockPath()).catch(() => []), first]);
+  // The Dakar's stage card: asked for (as soon as sessions land) only when its two-week session is on or starts tomorrow.
+  const day0 = localDay({ start_utc: new Date().toISOString() });
+  const sessionsP = fast(`/api/sessions?series=${ids.join(",")}`);
+  const dakarP = sessionsP.then(list => list.some(s => s.series === "w2rc" && /dakar/i.test(s.event_name) && s.day && daysBetween(day0, s.day) <= 1)
+    ? fast("/api/dakar").catch(() => null) : null).catch(() => null);
+  const [sessions, allFeeds, cards, paddock, dakarNow] = await Promise.all([sessionsP, fast("/api/live", LIVE_COPY).catch(() => []),
+    follows().length ? fast("/api/cards").catch(() => []) : [], fast(paddockPath()).catch(() => []), dakarP, first]);
   const followed = followedSeries();
   const live = sessions.filter(isLive);
   let html = "";
@@ -763,6 +839,7 @@ async function homeView() {
   const heroEvent = hero && weekendPick(leads, followed);
   html = hero + html;   // the weekend leads; other series' live timing follows
   const otherLive = live.filter(s => !(heroEvent && s.series === heroEvent.series && s.event_key === heroEvent.event_key));
+  if (dakarNow) html += dakarHome(dakarNow, today);
   if (otherLive.length) {
     html += `<h2>Also on now</h2><div class="evcs">${eventCards(otherLive, followed)}</div>`;
   }
@@ -1194,19 +1271,22 @@ async function eventView(id, key) {
     ${yours.length ? `<h2>Your drivers</h2><div class="card standings">${yours.map(driverRow).join("")}</div>` : ""}
     ${!past ? watchList(e.watch_list) : ""}
     ${!past ? oddsBlock(e.odds, n => isMine({ name: n })) : ""}
+    ${dakarBlock(e.dakar, today, e.sessions[0]?.watch)}
     ${e.results?.rows?.length ? `<h2>Results</h2>${standingsBody(id, "last", { last_results: e.results.rows, last_event: e.name, last_session: e.results.session })}` : ""}
     ${Object.keys(e.qualifying || {}).length ? `<h2>Qualifying</h2>${standingsBody(id, "quali", { qualifying: e.qualifying, quali_event: e.name })}` : ""}
-    <h2>Schedule</h2>
+    ${e.dakar?.stages.length ? "" : `<h2>Schedule</h2>
     <div class="card">${e.sessions.length ? `${commonWatch(e.sessions) && e.sessions[0].watch
       ? `<div class="evc-head"><span class="muted small">Where to watch</span>${badge(e.sessions[0].watch)}</div>` : ""}${seriesRows(e.sessions)}`
-      : `<div class="empty">No sessions published yet.</div>`}</div>
+      : `<div class="empty">No sessions published yet.</div>`}</div>`}
     ${e.news.length ? `<h2>News</h2><div class="card">${e.news.map(n => `<a class="item news-item" href="${esc(n.url)}" target="_blank" rel="noopener">
       <div><b>${esc(n.title)}</b><div class="muted small">${esc(n.source || "")} · ${esc(ago(n.time))}</div></div></a>`).join("")}</div>` : ""}
     ${e.drivers.length ? `<h2>${e.entry_list ? "Entry list" : "On the grid"} (${e.drivers.length})</h2>
       <details class="card entry-list"${e.drivers.length <= 30 ? " open" : ""}><summary class="small muted">${e.entry_list
         ? "Everyone entered for this event" : "The series' regular drivers; this event has no separate entry list"}</summary>
         <div class="standings">${e.drivers.map(driverRow).join("")}</div></details>` : ""}`;
-  wireClassPicker(() => eventView(id, key));
+  const on = listen();
+  wireClassPicker(() => eventView(id, key), on);
+  wireDakar(() => eventView(id, key), on);
 }
 
 // Betting odds (DraftKings, fetched from a home connection; see lightsout/odds.py). Shown as American odds plus the
@@ -1635,13 +1715,14 @@ async function settingsView() {
 // Per race: five Duels (pick who finishes ahead; ★ = your lock, 2 points or nothing) and a Podium call (1 point per
 // driver who makes the podium, 2 for the exact spot). Picks close at lights out, when friends' picks appear.
 // One table per series. Server side: lightsout/picks.py.
-const PICK_SERIES = ["f1", "cup", "indycar"];
+const PICK_SERIES = ["f1", "cup", "indycar", "w2rc"];   // w2rc = the Dakar, only while the server lists it in choices
+const pickLabel = id => id === "w2rc" ? "DAKAR" : BY_ID[id].short;
 const raceWhen = iso => new Date(iso).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 const finishText = f => f == null ? "" : /^\d+$/.test(f) ? `Finished P${f}` : f === "R" ? "Retired" : esc(f);
 
 async function pickemView(series, eventKey, quiet = false) {
   setNav("picks");
-  const choices = PICK_SERIES.filter(id => BY_ID[id]);
+  const choices = PICK_SERIES.filter(id => BY_ID[id]), asked = choices.includes(series);
   if (!choices.includes(series)) series = choices.includes(store.get("pickSeries")) ? store.get("pickSeries") : choices[0];
   store.set("pickSeries", series);
   const path = `/api/pickem?series=${series}${eventKey ? `&event=${encodeURIComponent(eventKey)}` : ""}`;
@@ -1649,9 +1730,12 @@ async function pickemView(series, eventKey, quiet = false) {
   const d = await fast(path);
   const r = d.race, sl = d.slate;
   const here = `#/picks/${series}`;
+  const tabs = (d.choices || choices).filter(id => BY_ID[id] && (id === series || id !== "w2rc" || (d.choices || []).includes(id)));
   const head = `<h1>Pick'em</h1>
-    <div class="series-pick" role="tablist" aria-label="Series" data-swaps>${choices.map(id =>
-      `<a role="tab" href="#/picks/${id}" class="${id === series ? "active" : ""}" aria-selected="${id === series}">${esc(BY_ID[id].short)}</a>`).join("")}</div>`;
+    <div class="series-pick" role="tablist" aria-label="Series" data-swaps>${tabs.map(id =>
+      `<a role="tab" href="#/picks/${id}" class="${id === series ? "active" : ""}" aria-selected="${id === series}">${esc(pickLabel(id))}</a>`).join("")}</div>`;
+  if (series === "w2rc" && !asked && !(d.choices || []).includes("w2rc")) { store.set("pickSeries", "f1"); return pickemView("f1", null, quiet); }  // the Dakar's over
+  if (d.dakar) { dakarPicks(d, head, path, eventKey); return; }
   if (!r) { paint(`${head}<div class="swap"><div class="empty">No ${esc(BY_ID[series].name)} races on the schedule yet.</div></div>`); return; }
 
   const status = !sl ? "" : sl.graded ? `<span class="pill ok">Scored</span>` : sl.started ? `<span class="pill warn">Picks closed</span>`
@@ -1715,10 +1799,12 @@ async function pickemView(series, eventKey, quiet = false) {
     bindPicks = on => {
       const msg = t => { const m = document.getElementById("pickmsg"); if (m) m.textContent = t; };
       const send = async pick => {
+        let err = "";
         try { await postJSON("/api/pickem", { series, event: r.event_key, ...pick }); }
-        catch (e) { msg(e.detail || "Couldn't save that pick. Try again."); }
+        catch (e) { err = e.detail || "Couldn't save that pick. Try again."; }
         await api(path).catch(() => {});
-        pickemView(series, eventKey, true);
+        await pickemView(series, eventKey, true);
+        if (err) msg(err);   // after the redraw, so the reason stays on screen
       };
       view.querySelectorAll("[data-duel]").forEach(b => b.addEventListener("click", () => {
         const x = sl.duels[+b.dataset.duel], name = x.mine === b.dataset.name ? null : b.dataset.name;  // tap again to clear
@@ -1748,6 +1834,49 @@ async function pickemView(series, eventKey, quiet = false) {
     <h2>${esc(BY_ID[series].short)} season ${esc(b?.season ?? "")}</h2>${table(b?.table)}
     <p class="help small muted">You show up as <b>${esc(d.name)}</b>. <a href="#/settings">Change your name in Settings</a>.</p></div>`);
   bindPicks?.(listen());
+}
+
+// The Dakar tab: one pick per class (Bikes, Cars) for each stage's winner, a point each. Picks close at 6 am Morocco
+// time on the stage's day; friends' picks show from then. Scored from the same Wikipedia results as the event page.
+function dakarPicks(d, head, path, eventKey) {
+  const k = d.dakar, s = k.stage, here = "#/picks/w2rc";
+  const slug = l => encodeURIComponent(l.toLowerCase().replace(/ /g, "-"));
+  if (!s) { paint(`${head}<div class="swap"><div class="card"><div class="empty">The Dakar's stage list isn't out yet.</div></div>${dakarCredit(k)}</div>`); return; }
+  const status = k.classes.every(c => c.winner) ? `<span class="pill ok">Scored</span>` : s.closed ? `<span class="pill warn">Picks closed</span>`
+    : `<span class="pill">Open until ${esc(new Date(s.closes).toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" }))}</span>`;
+  const bar = `<div class="racebar" data-swaps>
+      ${k.prev ? `<a href="${here}/${slug(k.prev)}" aria-label="Previous stage">←</a>` : "<span></span>"}
+      <div><b><a class="ev-link" href="#/event/w2rc/${encodeURIComponent(k.event_key || "")}">Dakar ${esc(k.year)} · ${esc(s.label)}</a></b>
+        <div class="small muted">${esc(dayLabel(s.day))} · ${[stageRoute(s), stageKm(s), s.note].filter(Boolean).join(" · ")}</div></div>
+      ${k.next ? `<a href="${here}/${slug(k.next)}" aria-label="Next stage">→</a>` : "<span></span>"}
+    </div>`;
+  const rows = k.classes.map(c => {
+    const pts = c.points == null ? "" : `<span class="pill ${c.points ? "ok" : ""}">${c.points ? "+1" : "0"}</span>`;
+    return `<label class="podium-row dk-pick"><span class="podium-pos">${esc(c.class)}</span>
+      <select data-dkpick="${esc(c.class)}" ${s.closed ? "disabled" : ""}><option value="">Pick the stage winner…</option>${c.field.map(f =>
+        `<option value="${esc(f.name)}" ${f.name === c.mine ? "selected" : ""}>${esc(f.name)}${f.make ? ` (${esc(f.make)})` : ""}</option>`).join("")}</select>${pts}</label>
+      ${c.winner ? `<p class="small" style="margin:2px 0 8px"><b>Won by</b> ${esc(c.winner)}</p>` : ""}
+      ${s.closed && c.everyone.length ? `<p class="small muted" style="margin:0 0 8px">${c.everyone.map(p => `${esc(p.name)}: ${surname(p.pick)}`).join(" · ")}</p>`
+        : !s.closed && c.count ? `<p class="small muted" style="margin:0 0 8px">${c.count} friend${c.count > 1 ? "s have" : " has"} picked</p>` : ""}`;
+  }).join("");
+  const table = k.board.length ? `<div class="card"><table class="board"><tr><th></th><th>Name</th><th>Pts</th><th>Picks scored</th></tr>
+    ${k.board.map((p, i) => `<tr class="${p.me ? "me" : ""}"><td class="muted">${i + 1}</td><td>${esc(p.name)}${p.me ? " (you)" : ""}</td><td><b>${p.pts}</b></td><td>${p.picked}</td></tr>`).join("")}</table></div>`
+    : `<div class="card"><div class="empty">No scored stages yet.</div></div>`;
+  paint(`${head}<div class="swap">${bar}<div class="pick-status">${status}</div>
+    <p class="help small muted">Pick who wins this stage on a bike and in a car: <b>1 point</b> each. Picks close at 6 am Morocco time on the day of the stage.</p>
+    <div class="card pad16">${rows}</div><p class="small muted" id="pickmsg" role="status"></p>
+    <h2>Dakar ${esc(k.year)} table</h2>${table}${dakarCredit(k)}
+    <p class="help small muted">You show up as <b>${esc(d.name)}</b>. <a href="#/settings">Change your name in Settings</a>.</p></div>`);
+  const on = listen();
+  view.querySelectorAll("[data-dkpick]").forEach(sel => sel.addEventListener("change", async () => {
+    let err = "";
+    try { await postJSON("/api/pickem", { series: "w2rc", event: s.label, kind: sel.dataset.dkpick, name: sel.value || null }); }
+    catch (e) { err = e.detail || "Couldn't save that pick. Try again."; }
+    await api(path).catch(() => {});
+    await pickemView("w2rc", eventKey, true);
+    const m = document.getElementById("pickmsg");   // after the redraw, so the reason stays on screen
+    if (m && err) m.textContent = err;
+  }, on));
 }
 
 // ---- following ----------------------------------------------------------------

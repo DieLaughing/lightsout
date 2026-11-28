@@ -3,6 +3,10 @@
 Every update to [Lights Out](https://github.com/DieLaughing/lightsout), newest first. The same list is on the app's What's new page.
 This file is generated from `data/changes.yaml` by `tools/changelog.py`; edit that file, not this one.
 
+## November 28, 2026
+
+- **New: The Dakar, stage by stage.** The Dakar Rally runs January 9 to 23 this time, from Portugal to Morocco. While it's on, Home shows today's stage and who won yesterday's, and the Dakar's page lists every stage with the top three on bikes and in cars, plus who leads overall. If you have alerts on, you'll get each stage's winners as they're posted. Pick'em gets a Dakar tab: pick the bike and car winner of each stage for a point each. Results come from Wikipedia, so they can be a few hours behind.
+
 ## November 25, 2026
 
 - **New: Winter in the paddock.** When a series you follow is between seasons, Home now shows its champion, the days left until the first race of next season, any testing dates, and the driver and team moves in the news (tap Silly season to read them). Once racing is about to start again, it goes back to the usual race-weekend card.
