@@ -70,6 +70,7 @@ def test_summary_before_results(tmp_path):
 def test_alerts_once_and_only_fresh(tmp_path):
     s = _store(tmp_path)
     d = {**D26, "year": 2026}
+    assert dakar.news(d, s, date(2026, 1, 17)) == []                        # first sight: wait for a second read
     items = dakar.news(d, s, date(2026, 1, 17))
     assert [i["stage"]["label"] for i in items] == ["Stage 12", "Stage 13"]   # older stages are marked, not sent
     assert items[-1]["classes"] == ["Bikes", "Cars"]
@@ -81,8 +82,17 @@ def test_alerts_once_and_only_fresh(tmp_path):
     d2 = {**d, "results": {**d["results"], "Cars": {k: v for k, v in d["results"]["Cars"].items() if k != "Stage 13"}},
           "winners": {k: {c: n for c, n in v.items() if not (k == "Stage 13" and c == "Cars")} for k, v in d["winners"].items()},
           "year": 1999}
+    dakar.news(d2, s, date(2026, 1, 17))
     [only] = [i for i in dakar.news(d2, s, date(2026, 1, 17)) if i["stage"]["label"] == "Stage 13"]
     assert only["classes"] == ["Bikes"]
+    # A vandal swaps the winner for one read, reverted before the next: nothing goes out.
+    d3 = {**d, "year": 1998}
+    dakar.news(d3, s, date(2026, 1, 17))
+    for i in dakar.news(d3, s, date(2026, 1, 17)):
+        s.mark_sent(i["keys"])
+    bad = {**d3, "results": {**d3["results"], "Bikes": {**d3["results"]["Bikes"], "Stage 13": {"stage": [{"pos": 1, "name": "Some Vandal", "make": "", "time": "", "gap": ""}], "overall": []}}}}
+    assert dakar.news(bad, s, date(2026, 1, 17)) == []
+    assert dakar.news(d3, s, date(2026, 1, 17)) == []
     msg = dakar.alert_text(d, items[-1], {dakar.normalise("Nasser Al-Attiyah")}, {"Cars": "Mattias Ekström"})
     assert msg["title"] == "Dakar · Stage 13"
     assert "Cars: Mattias Ekström (Ford). Al-Attiyah leads overall · your pick Ekström +1" in msg["body"]

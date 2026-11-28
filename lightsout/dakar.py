@@ -106,8 +106,8 @@ def clean(s: str) -> str:
 
 
 def tables(text: str) -> list[list[dict]]:
-    """Every {| table |} in `text` as rows; a row = {"head": [cells], "cells": [cells]} in order, header (!) cells
-    marked with head=True."""
+    """Every {| table |} in `text` as a list of rows; a row is its cells in order ({text, rowspan, colspan, country,
+    head}), header (!) cells with head=True."""
     out = []
     for t in re.findall(r"^\{\|.*?^\|\}", text, re.M | re.S):
         rows, row = [], None
@@ -386,23 +386,34 @@ def summary(store, now: datetime | None = None) -> dict | None:
 
 # ---- alerts ---------------------------------------------------------------------------------------
 def news(d: dict, store, today: date) -> list[dict]:
-    """Stages with a Bikes or Cars winner not alerted yet. Each item carries every class with a winner so far (a
-    later push for the same stage replaces the earlier notification, so it repeats what that one said) and the
-    `keys` to mark once it's sent. Stages more than a day old are marked here, not returned (a late edit to stage 3
-    on day 9 isn't news)."""
-    out, stale = [], []
+    """Stages with a Bikes or Cars winner not alerted yet. A winner counts once the same name has been read twice
+    (one POLL apart), so a vandal's edit reverted within minutes never reaches anyone's phone. Each item carries
+    every class with a winner so far (a later push for the same stage replaces the earlier notification, so it
+    repeats what that one said) and the `keys` to mark once it's sent. Stages more than a day old are marked here,
+    not returned (a late edit to stage 3 on day 9 isn't news)."""
+    out, stale, seen = [], [], []
     for s in d["stages"]:
         if s["kind"] != "stage":
             continue
-        won = [c for c in ALERT_CLASSES if winner(d, s["label"], c)]
-        keys = [k for c in won if not store.was_sent(k := f"dakar:{d['year']}:{s['label']}:{c}")]
+        won, keys = [], []
+        for c in ALERT_CLASSES:
+            name = winner(d, s["label"], c)
+            if not name:
+                continue
+            k, twice = f"dakar:{d['year']}:{s['label']}:{c}", f"dakar-seen:{d['year']}:{s['label']}:{c}:{normalise(name)}"
+            if not store.was_sent(twice):
+                seen.append(twice)
+                continue
+            won.append(c)
+            if not store.was_sent(k):
+                keys.append(k)
         if not keys:
             continue
         if s["day"] >= (today - timedelta(days=1)).isoformat():
             out.append({"stage": s, "classes": won, "keys": keys})
         else:
             stale += keys
-    store.mark_sent(stale)
+    store.mark_sent(stale + seen)
     return out
 
 

@@ -218,8 +218,9 @@ How the app moves (what animates, what must hold still, timings, rules for new U
   last year's article once (the Pick'em field). Which Dakar = the w2rc event named Dakar not over for 14 days (the
   calendar entry stays one spanning manual.yaml event; the stage list comes from the article). Alerts: each stage's
   Bikes and Cars winners (+ overall leader, your followed names in either top three, your pick), sent key
-  dakar:<year>:<stage>:<class> to anyone with W2RC switched on and results alerts on; stages over a day old and the
-  first copy ever read are marked, not sent. Home card (/api/dakar answers from the day before to the day after),
+  dakar:<year>:<stage>:<class> to anyone with W2RC switched on and results alerts on, once the same winner has been
+  read twice (a POLL apart: a reverted vandal edit never goes out); a later class repeats the earlier one (same
+  notification tag); stages over a day old and the first copy ever read are marked, not sent. Home card (/api/dakar answers from the day before to the day after),
   event page = today's stage, Bikes/Cars switch (stage + overall top three), other classes folded, final top ten,
   every stage with its winners; it replaces the "timetable TBA" schedule card. Pick'em: Dakar tab from 14 days before
   to 10 days after (open_window, sent in `choices`), per stage a Bikes and a Cars winner (table dakar_pick), 1 point
