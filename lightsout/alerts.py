@@ -14,7 +14,7 @@ from datetime import datetime, timedelta, timezone
 from . import follow, watch
 from .db import Store
 from .push import Pusher
-from .series import BY_ID
+from .series import BY_ID, SERIES
 
 log = logging.getLogger("lightsout.alerts")
 
@@ -63,7 +63,8 @@ class Alerts:
             st = settings.get(email) or {}
             names = [f["name"] for f in st.get("follows") or [] if f.get("name")]
             series = {x for f in follow.status(self.store, names) for x in f["series"]} if names else set()
-            out.append({"email": email, "subs": mine, "prefs": prefs(st), "series": series,
+            enabled = set(st["series"]) if isinstance(st.get("series"), list) else {s.id for s in SERIES if s.default_on}
+            out.append({"email": email, "subs": mine, "prefs": prefs(st), "series": series, "enabled": enabled,
                         "follows": {follow.normalise(n) for n in names}})
         return out
 

@@ -1,0 +1,5264 @@
+<!-- Test fixture: the Stages-to-standings sections of the English Wikipedia article "2026 Dakar Rally" (revision 1385067764), https://en.wikipedia.org/wiki/2026_Dakar_Rally, by its editors, CC BY-SA 4.0. -->
+== Stages ==
+{| class="wikitable" style="font-size:85%;"
+! rowspan="2" |Stage
+! colspan="2" rowspan="2" |Date
+! rowspan="2" |Start
+! rowspan="2" |Finish
+! colspan="2" |Special (km)
+! colspan="2" |Total (km)
+! rowspan="2" |Assistance<br>(km)
+|-
+!FIM
+!FIA
+!FIM
+!FIA
+|-
+|Prologue
+|Saturday
+|3 January 2026
+|[[Yanbu]]
+|Yanbu
+|style="text-align: center;" colspan="2" |23
+|style="text-align: center;" colspan="2" |98
+|style="text-align: center;" |-
+|-
+|1
+|Sunday
+|4 January 2026
+|Yanbu
+|Yanbu
+|style="text-align: center;" colspan="2" |305
+|style="text-align: center;" colspan="2" |518
+|style="text-align: center;" |367
+|-
+|2
+|Monday
+|5 January 2026
+|Yanbu
+|[[Al-Ula]]
+|style="text-align: center;" colspan="2" |400
+|style="text-align: center;" colspan="2" |504
+|style="text-align: center;" |-
+|-
+|3
+|Tuesday
+|6 January 2026
+|Al-Ula
+|Al-Ula
+|style="text-align: center;" colspan="2" |422
+|style="text-align: center;" colspan="2" |666
+|style="text-align: center;" |-
+|-
+|4 (Marathon)
+|Wednesday
+|7 January 2026
+|Al-Ula
+|Bivouac Refuge
+|style="text-align: center;" |417
+|style="text-align: center;" |451
+|style="text-align: center;" |492
+|style="text-align: center;" |526
+|style="text-align: center;" |-
+|-
+|5 (Marathon)
+|Thursday
+|8 January 2026
+|Bivouac Refuge
+|[[Hail City|Ha'il]]
+|style="text-align: center;" |356
+|style="text-align: center;" |372
+|style="text-align: center;" |417
+|style="text-align: center;" |428
+|style="text-align: center;" |448
+|-
+|6
+|Friday
+|9 January 2026
+|Ha'il
+|[[Riyadh]]
+|style="text-align: center;" colspan="2" |331
+|style="text-align: center;" colspan="2" |920
+|style="text-align: center;" |-
+|-
+|Rest Day
+|Saturday
+|10 January 2026
+|style="text-align: center;" colspan="2" |Riyadh
+| colspan="5" style="text-align: center;" |-
+|-
+|7
+|Sunday
+|11 January 2026
+|Riyadh
+|[[Wadi ad-Dawasir]]
+|style="text-align: center;" colspan="2" |462
+|style="text-align: center;" colspan="2" |876
+|style="text-align: center;" |623
+|-
+|8
+|Monday
+|12 January 2026
+|Wadi ad-Dawasir
+|Wadi ad-Dawasir
+|style="text-align: center;" colspan="2" |481
+|style="text-align: center;" colspan="2" |717
+|style="text-align: center;" |-
+|-
+|9
+|Tuesday
+|13 January 2026
+|Wadi ad-Dawasir
+|Bivouac Refuge
+|style="text-align: center;" |418
+|style="text-align: center;" |410
+|style="text-align: center;" |540
+|style="text-align: center;" |531
+|style="text-align: center;" |-
+|-
+|10
+|Wednesday
+|14 January 2026
+|Bivouac Refuge
+|[[Bisha]]
+|style="text-align: center;" |371
+|style="text-align: center;" |421
+|style="text-align: center;" |417
+|style="text-align: center;" |469
+|style="text-align: center;" |358
+|-
+|11
+|Thursday
+|15 January 2026
+|Bisha
+|[[Al-Hunakiyah|Al Henakiyah]]
+|style="text-align: center;" colspan="2" |347
+|style="text-align: center;" colspan="2" |882
+|style="text-align: center;" |777
+|-
+|12
+|Friday
+|16 January 2026
+|Al Henakiyah
+|Yanbu
+|style="text-align: center;" colspan="2" |310
+|style="text-align: center;" colspan="2" |718
+|style="text-align: center;" |362
+|-
+|13
+|Saturday
+|17 January 2026
+|Yanbu
+|Yanbu
+|style="text-align: center;" colspan="2" |105
+|style="text-align: center;" colspan="2" |141
+|style="text-align: center;" |-
+|-
+!style="text-align: right;" colspan="5" |Total
+!4,748
+!4,840
+!7,906
+!7,994
+!style="text-align: center;" |3,562
+|}
+
+== Stage winners ==
+{| class="wikitable" style="font-size:85%;"
+!Stage
+!Bikes
+!Cars
+!Stock
+!Challenger (T3)
+!SSV (T4)
+!Trucks
+!Classics
+!Mission 1000
+|-
+| Prologue
+| {{flagicon|ESP}} [[Edgar Canet i Ardèvol|Edgar Canet]]
+| {{flagicon|SWE}} [[Mattias Ekström]]
+| {{flagicon|USA}} [[Sara Price]]
+| {{flagicon|NLD}} [[Paul Spierings]]
+| {{flagicon|USA}} [[Brock Heger]]
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| {{flagicon|ITA}} [[Francesco Pece]]
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+|-
+| Stage 1
+| {{flagicon|ESP}} [[Edgar Canet i Ardèvol|Edgar Canet]]
+| {{flagicon|BEL}} [[Guillaume De Mévius]]
+| {{flagicon|LTU}} [[Rokas Baciuška]]
+| {{flagicon|ARG}} [[David Zille]]
+| {{flagicon|FRA}} [[Xavier de Soultrait]]
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| {{flagicon|ITA}} [[Marco Ernesto Leva]]
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+|-
+| Stage 2
+| {{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]
+| {{flagicon|USA}} [[Seth Quintero]]
+| {{flagicon|USA}} [[Sara Price]]
+| {{flagicon|CHI}} [[Lucas del Rio]]
+| {{flagicon|POR}} [[Gonçalo Guerreiro]]
+| {{flagicon|NLD}} [[Gert Huzink]]
+| {{flagicon|LTU}} [[Karolis Raišys]]
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+|-
+| Stage 3
+| {{flagicon|ESP}} [[Tosha Schareina]]
+| {{flagicon|USA}} [[Mitch Guthrie]]
+| {{flagicon|FRA}} [[Stéphane Peterhansel]]
+| {{flagicon|NLD}} [[Puck Klaassen]]
+| {{flagicon|USA}} [[Brock Heger]]
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| {{flagicon|POL}} [[Tomasz Białkowski]]
+| {{flagicon|ESP}} [[Jordi Juvanteny]]
+|-
+| Stage 4
+| {{flagicon|ESP}} [[Tosha Schareina]]
+| {{flagicon|RSA}} [[Henk Lategan]]
+| {{flagicon|FRA}} [[Stéphane Peterhansel]]
+| {{flagicon|ARG}} [[Nicolás Cavigliasso]]
+| {{flagicon|USA}} [[Brock Heger]]
+| {{flagicon|CZE}} [[Martin Macík]]
+| {{flagicon|LTU}} [[Karolis Raišys]]
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+|-
+| Stage 5
+| {{flagicon|ARG}} [[Luciano Benavides]]
+| {{flagicon|ESP}} [[Nani Roma]]
+| {{flagicon|LTU}} [[Rokas Baciuška]]
+| {{flagicon|CHI}} [[Lucas del Rio]]
+| {{flagicon|USA}} [[Kyle Chaney]]
+| {{flagicon|CZE}} [[Martin Macík]]
+| {{flagicon|LTU}} [[Karolis Raišys]]
+| {{flagicon|ESP}} [[Jordi Juvanteny]]
+|-
+| Stage 6
+| {{flagicon|USA}} [[Ricky Brabec]]
+| {{flagicon|QAT}} [[Nasser Al-Attiyah]]
+| {{flagicon|USA}} [[Sara Price]]
+| {{flagicon|CHI}} [[Ignacio Casale]]
+| {{flagicon|FRA}} [[Xavier de Soultrait]]
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| {{flagicon|LTU}} [[Karolis Raišys]]
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+|-
+| Stage 7
+| {{flagicon|ARG}} [[Luciano Benavides]]
+| {{flagicon|SWE}} [[Mattias Ekström]]
+| {{flagicon|FRA}} [[Stéphane Peterhansel]]
+| {{flagicon|ARG}} [[Kevin Benavides]]
+| {{flagicon|ARG}} [[Jeremías Gonzalez Ferioli]]
+| {{flagicon|LTU}} [[Vaidotas Žala]]
+| {{flagicon|LTU}} [[Karolis Raišys]]
+| {{flagicon|ESP}} [[Jordi Juvanteny]]
+|-
+| Stage 8
+| {{flagicon|ARG}} [[Luciano Benavides]]
+| {{flagicon|RSA}} [[Saood Variawa]]
+| {{flagicon|LTU}} [[Rokas Baciuška]]
+| {{flagicon|NLD}} [[Puck Klaassen]]
+| {{flagicon|USA}} [[Brock Heger]]
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| {{flagicon|CZE}} [[Ondrej Klymciw]]
+| {{flagicon|ESP}} [[Jordi Juvanteny]]
+|-
+| Stage 9
+| {{flagicon|ESP}} [[Tosha Schareina]]
+| {{flagicon|POL}} [[Eryk Goczał]]
+| {{flagicon|LTU}} [[Rokas Baciuška]]
+| {{flagicon|NLD}} [[Paul Spierings]]
+| {{flagicon|CHI}} [[Francisco López Contardo]]
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| {{flagicon|FRA}} [[Maxence Gublin]]
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+|-
+| Stage 10
+| {{flagicon|FRA}} [[Adrien Van Beveren]]
+| {{flagicon|FRA}} [[Mathieu Serradori]]
+| {{flagicon|LTU}} [[Rokas Baciuška]]
+| {{flagicon|NLD}} [[Paul Spierings]]
+| {{flagicon|USA}} [[Brock Heger]]
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| {{flagicon|CZE}} [[Ondrej Klymciw]]
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+|-
+| Stage 11
+| {{flagicon|USA}} [[Skyler Howes]]
+| {{flagicon|SWE}} [[Mattias Ekström]]
+| {{flagicon|LTU}} [[Rokas Baciuška]]
+| {{flagicon|ARG}} [[Nicolás Cavigliasso]]
+| {{flagicon|USA}} [[Brock Heger]]
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| {{flagicon|INA}} [[Shammie Baridwan]]
+| {{flagicon|ESP}} [[Jordi Juvanteny]]
+|-
+| Stage 12
+| {{flagicon|USA}} [[Ricky Brabec]]
+| {{flagicon|QAT}} [[Nasser Al-Attiyah]]
+| {{flagicon|USA}} [[Sara Price]]
+| {{flagicon|ARG}} [[Kevin Benavides]]
+| {{flagicon|ARG}} [[Jeremías Gonzalez Ferioli]]
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| {{flagicon|FRA}} [[Maxence Gublin]]
+| {{flagicon|ESP}} [[Esther Merino]]
+|-
+| Stage 13
+| {{flagicon|ESP}} [[Edgar Canet i Ardèvol|Edgar Canet]]
+| {{flagicon|SWE}} [[Mattias Ekström]]
+| {{flagicon|LTU}} [[Rokas Baciuška]]
+| {{flagicon|ARG}} [[Kevin Benavides]]
+| {{flagicon|POR}} [[Joao Monteiro (rally driver)|Joao Monteiro]]
+| {{flagicon|NLD}} [[Kay Huzink]]
+| {{flagicon|LTU}} [[Karolis Raišys]]
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+|-
+! Rally winners
+! {{flagicon|ARG}} [[Luciano Benavides]]
+! {{flagicon|QAT}} [[Nasser Al-Attiyah]]
+! {{flagicon|LTU}} [[Rokas Baciuška]]
+! {{flagicon|ESP}} [[Pau Navarro (racing driver)|Pau Navarro]]
+! {{flagicon|USA}} [[Brock Heger]]
+! {{flagicon|LTU}} [[Vaidotas Žala]]
+! {{flagicon|LTU}} [[Karolis Raišys]]
+! {{flagicon|ESP}} [[Jordi Juvanteny]]
+|-
+|}
+
+== Stage results ==
+=== Bikes ===
+{| class="wikitable" style="font-size:85%;"
+|-
+!
+! colspan=5| Stage result
+! colspan=5| General classification
+|-
+! width="40px"| Stage
+! width="30px"| Pos
+! width="200px"| Competitor
+! width="70px"|Make
+! width="40px"|Time
+! width="40px"|Gap
+! width="30px"| Pos
+! width="200px"| Competitor
+! width="70px"|Make
+! width="40px"|Time
+! width="40px"|Gap
+|-
+!rowspan=3| Prologue
+|'''1'''
+|'''{{flagicon|ESP}} [[Edgar Canet i Ardèvol|Edgar Canet]]'''
+|'''[[KTM]]'''
+|'''00:11:31'''
+|
+|'''1'''
+|'''{{flagicon|ESP}} [[Edgar Canet i Ardèvol|Edgar Canet]]'''
+|'''[[KTM]]'''
+|'''00:11:31'''
+|
+|-
+| 2
+| {{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]
+| [[KTM]]
+| 00:11:34
+| 00:00:03
+| 2
+| {{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]
+| [[KTM]]
+| 00:11:34
+| 00:00:03
+|-
+| 3
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 00:11:36
+| 00:00:05
+| 3
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 00:11:36
+| 00:00:05
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 1
+|'''1'''
+|'''{{flagicon|ESP}} [[Edgar Canet i Ardèvol|Edgar Canet]]'''
+|'''[[KTM]]'''
+|'''03:16:11'''
+|
+|'''1'''
+|'''{{flagicon|ESP}} [[Edgar Canet i Ardèvol|Edgar Canet]]'''
+|'''[[KTM]]'''
+|'''03:27:42'''
+|
+|-
+| 2
+| {{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]
+| [[KTM]]
+| 03:17:13
+| 00:01:02
+| 2
+| {{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]
+| [[KTM]]
+| 03:28:47
+| 00:01:05
+|-
+| 3
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 03:17:43
+| 00:01:32
+| 3
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 03:29:19
+| 00:01:37
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 2
+| '''1'''
+| '''{{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]'''
+| '''[[KTM]]'''
+| '''04:13:37'''
+|
+| '''1'''
+| '''{{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]'''
+| '''[[KTM]]'''
+| '''07:42:24'''
+|
+|-
+| 2
+| {{flagicon|ESP}} [[Edgar Canet i Ardèvol|Edgar Canet]]
+| [[KTM]]
+| 04:15:12
+| 00:01:35
+| 2
+| {{flagicon|ESP}} [[Edgar Canet i Ardèvol|Edgar Canet]]
+| [[KTM]]
+| 07:42:54
+| 00:00:30
+|-
+| 3
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 04:15:23
+| 00:01:46
+| 3
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 07:44:42
+| 00:02:18
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 3
+| '''1'''
+| '''{{flagicon|ESP}} [[Tosha Schareina]]'''
+| '''[[Honda]]'''
+| '''04:26:39'''
+|
+| '''1'''
+| '''{{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]'''
+| '''[[KTM]]'''
+| '''12:12:31'''
+|
+|-
+| 2
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 4:28:56
+| 00:02:17
+| 2
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 12:13:38
+| 00:01:07
+|-
+| 3
+| {{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]
+| [[KTM]]
+| 04:30:07
+| 00:03:28
+| 3
+| {{flagicon|ESP}} [[Tosha Schareina]]
+| [[Honda]]
+| 12:13:44
+| 00:01:13
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 4
+| '''1'''
+| '''{{flagicon|ESP}} [[Tosha Schareina]]'''
+| '''[[Honda]]'''
+| '''04:31:56'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Tosha Schareina]]'''
+| '''[[Honda]]'''
+| '''16:45:50'''
+|
+|-
+| 2
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 04:32:02
+| 00:00:06
+| 2
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 16:45:50
+| 00:00:00
+|-
+| 3
+| {{flagicon|USA}} [[Skyler Howes]]
+| [[Honda]]
+| 04:32:06
+| 00:00:10
+| 3
+| {{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]
+| [[KTM]]
+| 16:47:04
+| 00:01:24
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 5
+| '''1'''
+| '''{{flagicon|ARG}} [[Luciano Benavides]]'''
+| '''[[KTM]]'''
+| '''04:05:16'''
+|
+| '''1'''
+| '''{{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]'''
+| '''[[KTM]]'''
+| '''20:58:10'''
+|
+|-
+| 2
+| {{flagicon|CHI}} [[José Ignacio Cornejo]]
+| [[Hero MotoCorp|Hero]]
+| 04:09:07
+| 00:03:51
+| 2
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 21:00:12
+| 00:02:02
+|-
+| 3
+| {{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]
+| [[KTM]]
+| 04:11:06
+| 00:05:50
+| 3
+| {{flagicon|ARG}} [[Luciano Benavides]]
+| [[KTM]]
+| 21:04:05
+| 00:05:55
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 6
+| '''1'''
+| '''{{flagicon|USA}} [[Ricky Brabec]]'''
+| '''[[Honda]]'''
+| '''03:41:33'''
+|
+| '''1'''
+| '''{{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]'''
+| '''[[KTM]]'''
+| '''24:41:00'''
+|
+|-
+| 2
+| {{flagicon|ESP}} [[Tosha Schareina]]
+| [[Honda]]
+| 03:42:47
+| 00:01:14
+| 2
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 24:41:45
+| 00:00:45
+|-
+| 3
+| {{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]
+| [[KTM]]
+| 03:42:50
+| 00:01:17
+| 3
+| {{flagicon|ARG}} [[Luciano Benavides]]
+| [[KTM]]
+| 24:51:15
+| 00:10:15
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 7
+| '''1'''
+| '''{{flagicon|ARG}} [[Luciano Benavides]]'''
+| '''[[KTM]]'''
+| '''04:00:56'''
+|
+| '''1'''
+| '''{{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]'''
+| '''[[KTM]]'''
+| '''28:47:31'''
+|
+|-
+| 2
+| {{flagicon|ESP}} [[Edgar Canet i Ardèvol|Edgar Canet]]
+| [[KTM]]
+| 04:05:43
+| 00:04:47
+| 2
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 28:51:56
+| 00:04:25
+|-
+| 3
+| {{flagicon|FRA}} [[Adrien Van Beveren]]
+| [[Honda]]
+| 04:05:53
+| 00:04:57
+| 3
+| {{flagicon|ARG}} [[Luciano Benavides]]
+| [[KTM]]
+| 28:52:11
+| 00:04:40
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 8
+| '''1'''
+| '''{{flagicon|ARG}} [[Luciano Benavides]]'''
+| '''[[KTM]]'''
+| '''04:26:39'''
+|
+| '''1'''
+| '''{{flagicon|ARG}} [[Luciano Benavides]]'''
+| '''[[KTM]]'''
+| '''33:18:50'''
+|
+|-
+| 2
+| {{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]
+| [[KTM]]
+| 04:31:29
+| 00:04:50
+| 2
+| {{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]
+| [[KTM]]
+| 33:19:00
+| 00:00:10
+|-
+| 3
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 04:31:41
+| 00:05:02
+| 3
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 33:23:37
+| 00:04:47
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 9
+| '''1'''
+| '''{{flagicon|ESP}} [[Tosha Schareina]]'''
+| '''[[Honda]]'''
+| '''03:45:42'''
+|
+| '''1'''
+| '''{{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]'''
+| '''[[KTM]]'''
+| '''37:09:17'''
+|
+|-
+| 2
+| {{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]
+| [[KTM]]
+| 03:50:17
+| 00:04:35
+| 2
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 37:15:41
+| 00:06:24
+|-
+| 3
+| {{flagicon|RSA}} [[Michael Docherty (motorcyclist)|Michael Docherty]]
+| [[KTM]]
+| 03:50:32
+| 00:04:50
+| 3
+| {{flagicon|ARG}} [[Luciano Benavides]]
+| [[KTM]]
+| 37:16:22
+| 00:07:05
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 10
+| '''1'''
+| '''{{flagicon|FRA}} [[Adrien Van Beveren]]'''
+| '''[[Honda]]'''
+| '''04:15:43'''
+|
+| '''1'''
+| '''{{flagicon|USA}} [[Ricky Brabec]]'''
+| '''[[Honda]]'''
+| '''41:35:13'''
+|
+|-
+| 2
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 04:19:32
+| 00:03:49
+| 2
+| {{flagicon|ARG}} [[Luciano Benavides]]
+| [[KTM]]
+| 41:36:09
+| 00:00:56
+|-
+| 3
+| {{flagicon|ARG}} [[Luciano Benavides]]
+| [[KTM]]
+| 04:19:47
+| 00:04:04
+| 3
+| {{flagicon|ESP}} [[Tosha Schareina]]
+| [[Honda]]
+| 41:50:56
+| 00:15:43
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 11
+| '''1'''
+| '''{{flagicon|USA}} [[Skyler Howes]]'''
+| '''[[Honda]]'''
+| '''03:09:02'''
+|
+| '''1'''
+| '''{{flagicon|ARG}} [[Luciano Benavides]]'''
+| '''[[KTM]]'''
+| '''44:48:48'''
+|
+|-
+| 2
+| {{flagicon|FRA}} [[Adrien Van Beveren]]
+| [[Honda]]
+| 03:09:23
+| 00:00:21
+| 2
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 44:49:11
+| 00:00:23
+|-
+| 3
+| {{flagicon|ESP}} [[Edgar Canet i Ardèvol|Edgar Canet]]
+| [[KTM]]
+| 03:10:17
+| 00:01:15
+| 3
+| {{flagicon|ESP}} [[Tosha Schareina]]
+| [[Honda]]
+| 45:04:04
+| 00:15:16
+|-
+! colspan=11|
+|- 
+! rowspan="3"| Stage 12
+| '''1'''
+| '''{{flagicon|USA}} [[Ricky Brabec]]'''
+| '''[[Honda]]'''
+| '''03:19:01'''
+| 
+| '''1'''
+| '''{{flagicon|USA}} [[Ricky Brabec]]'''
+| '''[[Honda]]'''
+| '''48:08:12'''
+|
+|-
+| 2
+| {{flagicon|ARG}} [[Luciano Benavides]]
+| [[KTM]]
+| 03:22:44
+| 00:03:43
+| 2
+| {{flagicon|ARG}} [[Luciano Benavides]]
+| [[KTM]]
+| 48:11:32
+| 00:03:20
+|-
+| 3
+| {{flagicon|ESP}} [[Tosha Schareina]]
+| [[Honda]]
+| 03:31:59
+| 00:12:58
+| 3
+| {{flagicon|ESP}} [[Tosha Schareina]]
+| [[Honda]]
+| 48:36:03
+| 00:27:51
+|-
+! colspan=11|
+|- 
+! rowspan="3"| Stage 13
+| '''1'''
+| '''{{flagicon|ESP}} [[Edgar Canet i Ardèvol|Edgar Canet]]'''
+| '''[[KTM]]'''
+| '''00:49:03'''
+| 
+| '''1'''
+| '''{{flagicon|ARG}} [[Luciano Benavides]]'''
+| '''[[KTM]]'''
+| '''49:00:41'''
+|
+|-
+| 2
+| {{flagicon|ARG}} [[Luciano Benavides]]
+| [[KTM]]
+| 00:49:09
+| 00:00:06
+| 2
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda]]
+| 49:00:43
+| 00:00:02
+|-
+| 3
+| {{flagicon|ESP}} [[Tosha Schareina]]
+| [[Honda]]
+| 00:49:50
+| 00:00:47
+| 3
+| {{flagicon|ESP}} [[Tosha Schareina]]
+| [[Honda]]
+| 49:25:53
+| 00:25:12
+|-
+! colspan=11|
+|-
+|}
+
+===Cars===
+{| class="wikitable" style="font-size:85%;"
+|-
+!
+! colspan=5| Stage result
+! colspan=5| General classification
+|-
+! width="40px"| Stage
+! width="30px"| Pos
+! width="200px"| Competitor
+! width="70px"|Make
+! width="40px"|Time
+! width="40px"|Gap
+! width="30px"| Pos
+! width="200px"| Competitor
+! width="70px"|Make
+! width="40px"|Time
+! width="40px"|Gap
+|-
+!rowspan=3| Prologue
+|'''1'''
+|'''{{flagicon|SWE}} [[Mattias Ekström]]'''
+|'''[[Ford Motor Company|Ford]]'''
+|'''00:10:48'''
+|
+| rowspan="3" colspan="5" | ''results of Prologue aren't accountable towards GC, only for starting position on Stage 1''
+|-
+| 2
+| {{flagicon|USA}} [[Mitch Guthrie]]
+| [[Ford Motor Company|Ford]]
+| 00:10:56
+| 00:00:08
+|-
+| 3
+| {{flagicon|BEL}} [[Guillaume De Mévius]]
+| [[Mini (marque)|Mini]]
+| 00:10:56
+| 00:00:08
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 1
+| '''1'''
+| '''{{flagicon|BEL}} [[Guillaume De Mévius]]'''
+| '''[[Mini (marque)|Mini]]'''
+| '''03:07:49'''
+|
+| '''1'''
+| '''{{flagicon|BEL}} [[Guillaume De Mévius]]'''
+| '''[[Mini (marque)|Mini]]'''
+| '''03:07:49'''
+|
+|-
+| 2
+| {{flagicon|QAT}} [[Nasser Al-Attiyah]]
+| [[Automobile Dacia|Dacia]]
+| 03:08:29
+| 00:00:40
+| 2
+| {{flagicon|QAT}} [[Nasser Al-Attiyah]]
+| [[Automobile Dacia|Dacia]]
+| 03:08:29
+| 00:00:40
+|-
+| 3
+| {{flagicon|CZE}} [[Martin Prokop]]
+| [[Ford Motor Company|Ford]]
+| 03:09:16
+| 00:01:27
+| 3
+| {{flagicon|CZE}} [[Martin Prokop]]
+| [[Ford Motor Company|Ford]]
+| 03:09:16
+| 00:01:27
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 2
+| '''1'''
+| '''{{flagicon|USA}} [[Seth Quintero]]'''
+| '''[[Toyota]]'''
+| '''03:57:16'''
+|
+| '''1'''
+| '''{{flagicon|QAT}} [[Nasser Al-Attiyah]]'''
+| '''[[Automobile Dacia|Dacia]]'''
+| '''07:12:16'''
+|
+|-
+| 2
+| {{flagicon|RSA}} [[Henk Lategan]]
+| [[Toyota]]
+| 03:58:58
+| 00:01:42
+| 2
+| {{flagicon|USA}} [[Seth Quintero]]
+| [[Toyota]]
+| 07:12:23
+| 00:00:07
+|-
+| 3
+| {{flagicon|SAU}} [[Yazeed Al-Rajhi]]
+| [[Toyota]]
+| 03:59:12
+| 00:01:56
+| 3
+| {{flagicon|BEL}} [[Guillaume De Mévius]]
+| [[Mini (marque)|Mini]]
+| 07:13:25
+| 00:01:09
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 3
+| '''1'''
+| '''{{flagicon|USA}} [[Mitch Guthrie]]'''
+| '''[[Ford Motor Company|Ford]]'''
+| '''04:04:32'''
+|
+| '''1'''
+| '''{{flagicon|USA}} [[Mitch Guthrie]]'''
+| '''[[Ford Motor Company|Ford]]'''
+| '''11:27:20'''
+|
+|-
+| 2
+| {{flagicon|CZE}} [[Martin Prokop]]
+| [[Ford Motor Company|Ford]]
+| 04:06:59
+| 00:02:27
+| 2
+| {{flagicon|CZE}} [[Martin Prokop]]
+| [[Ford Motor Company|Ford]]
+| 11:27:46
+| 00:00:26
+|-
+| 3
+| {{flagicon|RSA}} [[Guy Botterill]]
+| [[Toyota]]
+| 04:09:55
+| 00:05:23
+| 3
+| {{flagicon|SWE}} [[Mattias Ekström]]
+| [[Ford Motor Company|Ford]]
+| 11:28:28
+| 00:01:08
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 4
+| '''1'''
+| '''{{flagicon|RSA}} [[Henk Lategan]]'''
+| '''[[Toyota]]'''
+| '''04:47:08'''
+|
+| '''1'''
+| '''{{flagicon|RSA}} [[Henk Lategan]]'''
+| '''[[Toyota]]'''
+| '''16:29:15'''
+|
+|-
+| 2
+| {{flagicon|QAT}} [[Nasser Al-Attiyah]]
+| [[Automobile Dacia|Dacia]]
+| 04:54:11
+| 00:07:03
+| 2
+| {{flagicon|QAT}} [[Nasser Al-Attiyah]]
+| [[Automobile Dacia|Dacia]]
+| 16:33:10
+| 00:03:55
+|-
+| 3
+| {{flagicon|POL}} [[Marek Goczał]]
+| [[Toyota]]
+| 05:01:23
+| 00:14:15
+| 3
+| {{flagicon|SWE}} [[Mattias Ekström]]
+| [[Ford Motor Company|Ford]]
+| 16:42:15
+| 00:13:00
+|-
+! colspan=11|
+|- 
+! rowspan="3"| Stage 5
+| '''1'''
+| '''{{flagicon|ESP}} [[Nani Roma]]'''
+| '''[[Ford Motor Company|Ford]]'''
+| '''03:54:42'''
+|
+| '''1'''
+| '''{{flagicon|RSA}} [[Henk Lategan]]'''
+| '''[[Toyota]]'''
+| '''20:36:44'''
+|
+|-
+| 2
+| {{flagicon|USA}} [[Mitch Guthrie]]
+| [[Ford Motor Company|Ford]]
+| 03:54:46
+| 00:00:04
+| 2
+| {{flagicon|QAT}} [[Nasser Al-Attiyah]]
+| [[Automobile Dacia|Dacia]]
+| 20:40:01
+| 00:03:17
+|-
+| 3
+| {{flagicon|CZE}} [[Martin Prokop]]
+| [[Ford Motor Company|Ford]]
+| 03:57:00
+| 00:02:18
+| 3
+| {{flagicon|SWE}} [[Mattias Ekström]]
+| [[Ford Motor Company|Ford]]
+| 20:42:22
+| 00:05:38
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 6
+| '''1'''
+| '''{{Flagicon|QAT}} [[Nasser Al-Attiyah]]'''
+| '''[[Automobile Dacia|Dacia]]'''
+| '''03:38:28'''
+| 
+| '''1'''
+| '''{{Flagicon|QAT}} [[Nasser Al-Attiyah]]'''
+| '''[[Automobile Dacia|Dacia]]'''
+| '''24:18:29'''
+|
+|-
+| 2
+| {{Flagicon|FRA}} [[Sébastien Loeb]]
+| [[Automobile Dacia|Dacia]]
+| 03:41:26
+| 00:02:58
+| 2
+| {{Flagicon|RSA}} [[Henk Lategan]]
+| [[Toyota]]
+| 24:24:39
+| 00:06:10
+|-
+| 3
+| {{flagicon|USA}} [[Seth Quintero]]
+| [[Toyota]]
+| 03:41:47
+| 00:03:19
+| 3
+| {{flagicon|ESP}} [[Nani Roma]]
+| [[Ford Motor Company|Ford]]
+| 24:27:42
+| 00:09:13
+|-
+! colspan=11|
+|- 
+! rowspan="3"| Stage 7
+| '''1'''
+| '''{{flagicon|SWE}} [[Mattias Ekström]]'''
+| '''[[Ford Motor Company|Ford]]'''
+| '''03:44:22'''
+|
+| '''1'''
+| '''{{Flagicon|QAT}} [[Nasser Al-Attiyah]]'''
+| '''[[Automobile Dacia|Dacia]]'''
+| '''28:10:15'''
+|
+|-
+| 2
+| {{flagicon|POR}} [[Joao Ferreira (rally driver)|Joao Ferreira]]
+| [[Toyota]]
+| 03:48:49
+| 00:04:27
+| 2
+| {{flagicon|SWE}} [[Mattias Ekström]]
+| [[Ford Motor Company|Ford]]
+| 28:15:02
+| 00:04:47
+|-
+| 3
+| {{flagicon|USA}} [[Mitch Guthrie]]
+| [[Ford Motor Company|Ford]]
+| 03:49:17
+| 00:04:55
+| 3
+| {{flagicon|ESP}} [[Nani Roma]]
+| [[Ford Motor Company|Ford]]
+| 28:17:30
+| 00:07:15
+|-
+! colspan=11|
+|- 
+! rowspan="3"| Stage 8
+| '''1'''
+| '''{{flagicon|RSA}} [[Saood Variawa]]'''
+| '''[[Toyota]]'''
+| '''04:20:35'''
+|
+| '''1'''
+| '''{{Flagicon|QAT}} [[Nasser Al-Attiyah]]'''
+| '''[[Automobile Dacia|Dacia]]'''
+| '''32:32:06'''
+|
+|-
+| 2
+| {{flagicon|RSA}} [[Henk Lategan]]
+| [[Toyota]]
+| 04:20:38
+| 00:00:03
+| 2
+| {{flagicon|SWE}} [[Mattias Ekström]]
+| [[Ford Motor Company|Ford]]
+| 32:36:06
+| 00:04:00
+|-
+| 3
+| {{flagicon|SWE}} [[Mattias Ekström]]
+| [[Ford Motor Company|Ford]]
+| 04:21:04
+| 00:00:29
+| 3
+| {{flagicon|RSA}} [[Henk Lategan]]
+| [[Toyota]]
+| 32:38:14
+| 00:06:08
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 9
+| '''1'''
+| '''{{flagicon|POL}} [[Eryk Goczał]]'''
+| '''[[Toyota]]'''
+| '''03:46:42'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Nani Roma]]'''
+| '''[[Ford Motor Company|Ford]]'''
+| '''36:44:01'''
+|
+|-
+| 2
+| {{flagicon|POL}} [[Michal Goczał]]
+| [[Toyota]]
+| 03:54:27
+| 00:07:45
+| 2
+| {{flagicon|ESP}} [[Carlos Sainz Sr.|Carlos Sainz]]
+| [[Ford Motor Company|Ford]]
+| 36:44:58
+| 00:00:57
+|-
+| 3
+| {{flagicon|AUS}} [[Toby Price]]
+| [[Toyota]]
+| 03:58:18
+| 00:11:36
+| 3
+| {{Flagicon|QAT}} [[Nasser Al-Attiyah]]
+| [[Automobile Dacia|Dacia]]
+| 36:45:11
+| 00:01:10
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 10
+| '''1'''
+| '''{{flagicon|FRA}} [[Mathieu Serradori]]'''
+| '''Century'''
+| '''04:48:27'''
+|
+| '''1'''
+| '''{{Flagicon|QAT}} [[Nasser Al-Attiyah]]'''
+| '''[[Automobile Dacia|Dacia]]'''
+| '''41:39:50'''
+|
+|-
+| 2
+| {{Flagicon|QAT}} [[Nasser Al-Attiyah]]
+| [[Automobile Dacia|Dacia]]
+| 04:54:39
+| 00:06:12
+| 2
+| {{flagicon|RSA}} [[Henk Lategan]]
+| [[Toyota]]
+| 41:51:50
+| 00:12:00
+|-
+| 3
+| {{flagicon|FRA}} [[Sébastien Loeb]]
+| [[Automobile Dacia|Dacia]]
+| 04:57:47
+| 00:09:20
+| 3
+| {{flagicon|ESP}} [[Nani Roma]]
+| [[Ford Motor Company|Ford]]
+| 41:52:40
+| 00:12:50
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 11
+| '''1'''
+| '''{{flagicon|SWE}} [[Mattias Ekström]]'''
+| '''[[Ford Motor Company|Ford]]'''
+| '''02:47:22'''
+|
+| '''1'''
+| '''{{Flagicon|QAT}} [[Nasser Al-Attiyah]]'''
+| '''[[Automobile Dacia|Dacia]]'''
+| '''44:39:59'''
+|
+|-
+| 2
+| {{flagicon|FRA}} [[Romain Dumas]]
+| [[Ford Motor Company|Ford]]
+| 02:48:44
+| 00:01:22
+| 2
+| {{flagicon|ESP}} [[Nani Roma]]
+| [[Ford Motor Company|Ford]]
+| 44:48:39
+| 00:08:40
+|-
+| 3
+| {{flagicon|ESP}} [[Carlos Sainz Sr.|Carlos Sainz]]
+| [[Ford Motor Company|Ford]]
+| 02:49:48
+| 00:02:26
+| 3
+| {{flagicon|FRA}} [[Sébastien Loeb]]
+| [[Automobile Dacia|Dacia]]
+| 44:58:36
+| 00:18:37
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 12
+| '''1'''
+| '''{{Flagicon|QAT}} [[Nasser Al-Attiyah]]'''
+| '''[[Automobile Dacia|Dacia]]'''
+| '''03:21:52'''
+| 
+| '''1'''
+| '''{{Flagicon|QAT}} [[Nasser Al-Attiyah]]'''
+| '''[[Automobile Dacia|Dacia]]'''
+| '''48:01:51'''
+|
+|-
+| 2
+| {{flagicon|USA}} [[Mitch Guthrie]]
+| [[Ford Motor Company|Ford]]
+| 03:22:56
+| 00:01:04
+| 2
+| {{flagicon|ESP}} [[Nani Roma]]
+| [[Ford Motor Company|Ford]]
+| 48:17:53
+| 00:16:02
+|-
+| 3
+| {{Flagicon|AUS}} [[Toby Price]]
+| [[Toyota]]
+| 03:23:17
+| 00:01:25
+| 3
+| {{flagicon|SWE}} [[Mattias Ekström]]
+| [[Ford Motor Company|Ford]]
+| 48:25:12
+| 00:23:21
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 13
+| '''1'''
+| '''{{Flagicon|SWE}} [[Mattias Ekström]]'''
+| '''[[Ford Motor Company|Ford]]'''
+| '''00:46:14'''
+| 
+| '''1'''
+| '''{{Flagicon|QAT}} [[Nasser Al-Attiyah]]'''
+| '''[[Automobile Dacia|Dacia]]'''
+| '''48:56:53'''
+|
+|-
+| 2
+| {{flagicon|FRA}} [[Sébastien Loeb]]
+| [[Automobile Dacia|Dacia]]
+| 00:46:22
+| 00:00:08
+| 2
+| {{flagicon|ESP}} [[Nani Roma]]
+| [[Ford Motor Company|Ford]]
+| 49:06:35
+| 00:09:42
+|-
+| 3
+| {{Flagicon|RSA}} [[Henk Lategan]]
+| [[Toyota]]
+| 00:46:27
+| 00:00:13
+| 3
+| {{flagicon|SWE}} [[Mattias Ekström]]
+| [[Ford Motor Company|Ford]]
+| 49:11:26
+| 00:14:33
+|-
+! colspan=11|
+|-
+|}
+
+===Stock===
+{| class="wikitable" style="font-size:85%;"
+|-
+!
+! colspan=5| Stage result
+! colspan=5| General classification
+|-
+! width="40px"| Stage
+! width="30px"| Pos
+! width="200px"| Competitor
+! width="70px"|Make
+! width="40px"|Time
+! width="40px"|Gap
+! width="30px"| Pos
+! width="200px"| Competitor
+! width="70px"|Make
+! width="40px"|Time
+! width="40px"|Gap
+|-
+! rowspan=3 | Prologue
+| '''1'''
+| '''{{flagicon|USA}} [[Sara Price]]'''
+| '''[[Land Rover|Defender]]'''
+| '''00:12:03'''
+|
+| rowspan="3" colspan="5" | ''results of Prologue aren't accountable towards GC, only for starting position on Stage 1''
+|-
+| 2
+| {{flagicon|FRA}} [[Stéphane Peterhansel]]
+| [[Land Rover|Defender]]
+| 00:12:07
+| 00:00:04
+|-
+| 3
+| {{flagicon|LTU}} [[Rokas Baciuška]]
+| [[Land Rover|Defender]]
+| 00:12:08
+| 00:00:05
+|-
+! colspan="11" |
+|-
+! rowspan="3" | Stage 1
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''04:04:59'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''04:04:59'''
+|
+|-
+| 2
+| {{flagicon|FRA}} Ronald Basso
+| [[Toyota]]
+| 04:11:48
+| 00:06:49
+| 2
+| {{flagicon|FRA}} Ronald Basso
+| [[Toyota]]
+| 04:11:48
+| 00:06:49
+|-
+| 3
+| {{flagicon|JPN}} Akira Miura
+| [[Toyota]]
+| 04:16:27
+| 00:11:28
+| 3
+| {{flagicon|JPN}} Akira Miura
+| [[Toyota]]
+| 04:16:27
+| 00:11:28
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 2
+| '''1'''
+| '''{{flagicon|USA}} [[Sara Price]]'''
+| '''[[Land Rover|Defender]]'''
+| '''04:57:33'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''09:03:54'''
+|
+|-
+| 2
+| {{flagicon|LTU}} [[Rokas Baciuška]]
+| [[Land Rover|Defender]]
+| 04:58:55
+| 00:01:22
+| 2
+| {{flagicon|FRA}} Ronald Basso
+| [[Toyota]]
+| 09:15:54
+| 00:12:00
+|-
+| 3
+| {{flagicon|FRA}} [[Stéphane Peterhansel]]
+| [[Land Rover|Defender]]
+| 04:58:59
+| 00:01:26
+| 3
+| {{flagicon|JPN}} Akira Miura
+| [[Toyota]]
+| 09:20:01
+| 00:16:07
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 3
+| '''1'''
+| '''{{flagicon|FRA}} [[Stéphane Peterhansel]]'''
+| '''[[Land Rover|Defender]]'''
+| '''04:59:07'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''14:04:07'''
+|
+|-
+| 2
+| {{flagicon|LTU}} [[Rokas Baciuška]]
+| [[Land Rover|Defender]]
+| 05:00:13
+| 00:01:06
+| 2
+| {{flagicon|FRA}} Ronald Basso
+| [[Toyota]]
+| 14:32:56
+| 00:28:49
+|-
+| 3
+| {{flagicon|USA}} [[Sara Price]]
+| [[Land Rover|Defender]]
+| 05:01:39
+| 00:02:32
+| 3
+| {{flagicon|FRA}} [[Stéphane Peterhansel]]
+| [[Land Rover|Defender]]
+| 14:59:54
+| 00:55:47
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 4
+| '''1'''
+| '''{{flagicon|FRA}} [[Stéphane Peterhansel]]'''
+| '''[[Land Rover|Defender]]'''
+| '''05:52:28'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''20:08:37'''
+|
+|-
+| 2
+| {{flagicon|USA}} [[Sara Price]]
+| [[Land Rover|Defender]]
+| 05:57:40
+| 00:05:12
+| 2
+| {{flagicon|FRA}} Ronald Basso
+| [[Toyota]]
+| 20:51:13
+| 00:42:36
+|-
+| 3
+| {{flagicon|LTU}} [[Rokas Baciuška]]
+| [[Land Rover|Defender]]
+| 06:04:30
+| 00:11:52
+| 3
+| {{flagicon|FRA}} [[Stéphane Peterhansel]]
+| [[Land Rover|Defender]]
+| 20:52:32
+| 00:43:55
+|-
+! colspan=11|
+|- 
+! rowspan="3"| Stage 5
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''04:29:32'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''24:38:09'''
+|
+|-
+| 2
+| {{flagicon|FRA}} [[Stéphane Peterhansel]]
+| [[Land Rover|Defender]]
+| 04:30:09
+| 00:00:37
+| 2
+| {{flagicon|FRA}} [[Stéphane Peterhansel]]
+| [[Land Rover|Defender]]
+| 25:22:41
+| 00:44:32
+|-
+| 3
+| {{flagicon|USA}} [[Sara Price]]
+| [[Land Rover|Defender]]
+| 04:52:09
+| 00:22:37
+| 3
+| {{flagicon|FRA}} Ronald Basso
+| [[Toyota]]
+| 25:50:19
+| 01:12:10
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 6
+| '''1'''
+| '''{{Flagicon|USA}} [[Sara Price]]'''
+| '''[[Land Rover|Defender]]'''
+| '''04:32:10'''
+| 
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''29:12:58'''
+|
+|-
+| 2
+| {{flagicon|LTU}} [[Rokas Baciuška]]
+| [[Land Rover|Defender]]
+| 04:34:49
+| 00:02:39
+| 2
+| {{flagicon|FRA}} [[Stéphane Peterhansel]]
+| [[Land Rover|Defender]]
+| 29:57:41
+| 00:44:43
+|-
+| 3
+| {{flagicon|FRA}} [[Stéphane Peterhansel]]
+| [[Land Rover|Defender]]
+| 04:35:00
+| 00:02:50
+| 3
+| {{flagicon|FRA}} Ronald Basso
+| [[Toyota]]
+| 31:04:54
+| 01:51:56
+|-
+! colspan=11|
+|- 
+! rowspan="3"| Stage 7
+| '''1'''
+| '''{{flagicon|FRA}} [[Stéphane Peterhansel]]'''
+| '''[[Land Rover|Defender]]'''
+| '''04:20:29'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''33:33:48'''
+|
+|-
+| 2
+| {{flagicon|LTU}} [[Rokas Baciuška]]
+| [[Land Rover|Defender]]
+| 04:20:50
+| 00:00:21
+| 2
+| {{flagicon|FRA}} [[Stéphane Peterhansel]]
+| [[Land Rover|Defender]]
+| 34:18:10
+| 00:44:22
+|-
+| 3
+| {{flagicon|USA}} [[Sara Price]]
+| [[Land Rover|Defender]]
+| 04:26:54
+| 00:06:25
+| 3
+| {{flagicon|FRA}} Ronald Basso
+| [[Toyota]]
+| 35:51:36
+| 02:17:48
+|-
+! colspan=11|
+|- 
+! rowspan="3"| Stage 8
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''05:06:26'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''38:40:14'''
+|
+|-
+| 2
+| {{flagicon|USA}} [[Sara Price]]
+| [[Land Rover|Defender]]
+| 05:08:10
+| 00:01:44
+| 2
+| {{flagicon|USA}} [[Sara Price]]
+| [[Land Rover|Defender]]
+| 41:18:05
+| 02:37:51
+|-
+| 3
+| {{flagicon|JPN}} Akira Miura
+| [[Toyota]]
+| 06:14:41
+| 01:08:15
+| 3
+| {{flagicon|FRA}} Ronald Basso
+| [[Toyota]]
+| 42:19:37
+| 03:39:23
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 9
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''04:36:24'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''43:16:38'''
+|
+|-
+| 2
+| {{flagicon|USA}} [[Sara Price]]
+| [[Land Rover|Defender]]
+| 05:06:03
+| 00:29:39
+| 2
+| {{flagicon|USA}} [[Sara Price]]
+| [[Land Rover|Defender]]
+| 46:24:08
+| 03:07:30
+|-
+| 3
+| {{flagicon|JPN}} Akira Miura
+| [[Toyota]]
+| 05:12:55
+| 00:36:31
+| 3
+| {{flagicon|FRA}} Ronald Basso
+| [[Toyota]]
+| 47:40:34
+| 04:23:56
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 10
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''06:09:01'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''49:25:39'''
+|
+|-
+| 2
+| {{flagicon|USA}} [[Sara Price]]
+| [[Land Rover|Defender]]
+| 06:30:42
+| 00:21:41
+| 2
+| {{flagicon|USA}} [[Sara Price]]
+| [[Land Rover|Defender]]
+| 52:54:50
+| 03:29:11
+|-
+| 3
+| {{flagicon|FRA}} [[Stéphane Peterhansel]]
+| [[Land Rover|Defender]]
+| 06:31:27
+| 00:22:26
+| 3
+| {{flagicon|FRA}} Ronald Basso
+| [[Toyota]]
+| 54:43:36
+| 05:17:57
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 11
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''03:28:30'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''52:54:09'''
+|
+|-
+| 2
+| {{flagicon|FRA}} [[Stéphane Peterhansel]]
+| [[Land Rover|Defender]]
+| 03:29:19
+| 00:00:49
+| 2
+| {{flagicon|USA}} [[Sara Price]]
+| [[Land Rover|Defender]]
+| 56:53:18
+| 03:59:09
+|-
+| 3
+| {{flagicon|USA}} [[Sara Price]]
+| [[Land Rover|Defender]]
+| 03:58:28
+| 00:29:58
+| 3
+| {{flagicon|FRA}} Ronald Basso
+| [[Toyota]]
+| 58:55:00
+| 06:00:51
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 12
+| '''1'''
+| '''{{flagicon|USA}} [[Sara Price]]'''
+| '''[[Land Rover|Defender]]'''
+| '''04:17:35'''
+| 
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''57:13:54'''
+|
+|-
+| 2
+| {{flagicon|FRA}} [[Stéphane Peterhansel]]
+| [[Land Rover|Defender]]
+| 04:19:00
+| 00:01:25
+| 2
+| {{flagicon|USA}} [[Sara Price]]
+| [[Land Rover|Defender]]
+| 61:10:53
+| 03:56:59
+|-
+| 3
+| {{flagicon|LTU}} [[Rokas Baciuška]]
+| [[Land Rover|Defender]]
+| 04:19:45
+| 00:02:10
+| 3
+| {{flagicon|FRA}} Ronald Basso
+| [[Toyota]]
+| 65:43:47
+| 08:29:53
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 13
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''00:55:51'''
+| 
+| '''1'''
+| '''{{flagicon|LTU}} [[Rokas Baciuška]]'''
+| '''[[Land Rover|Defender]]'''
+| '''58:09:45'''
+|
+|-
+| 2
+| {{flagicon|FRA}} [[Stéphane Peterhansel]]
+| [[Land Rover|Defender]]
+| 00:56:23
+| 00:00:32
+| 2
+| {{flagicon|USA}} [[Sara Price]]
+| [[Land Rover|Defender]]
+| 62:07:45
+| 03:58:00
+|-
+| 3
+| {{flagicon|USA}} [[Sara Price]]
+| [[Land Rover|Defender]]
+| 00:56:52
+| 00:01:01
+| 3
+| {{flagicon|FRA}} Ronald Basso
+| [[Toyota]]
+| 66:44:14
+| 08:34:29
+|-
+! colspan=11|
+|-
+|}
+
+=== Challenger (T3) ===
+{| class="wikitable" style="font-size:85%;"
+|-
+!
+! colspan=5| Stage result
+! colspan=5| General classification
+|-
+! width="40px"| Stage
+! width="30px"| Pos
+! width="200px"| Competitor
+! width="70px"|Make
+! width="40px"|Time
+! width="40px"|Gap
+! width="30px"| Pos
+! width="200px"| Competitor
+! width="70px"|Make
+! width="40px"|Time
+! width="40px"|Gap
+|-
+!rowspan=3| Prologue
+| '''1'''
+| '''{{flagicon|NLD}} [[Paul Spierings]]'''
+| '''Taurus'''
+| '''00:12:31'''
+|
+| rowspan="3" colspan="5" | ''results of Prologue aren't accountable towards GC, only for starting position on Stage 1''
+|-
+| 2
+| {{flagicon|NLD}} [[Puck Klaassen]]
+| GRallyTeam
+| 00:12:37
+| 00:00:06
+|-
+| 3
+| {{flagicon|SAU}} [[Dania Akeel]]
+| Taurus
+| 00:12:44
+| 00:00:13
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 1
+| '''1'''
+| '''{{flagicon|ARG}} [[David Zille]]'''
+| '''Taurus'''
+| '''03:32:50'''
+|
+| '''1'''
+| '''{{flagicon|ARG}} [[David Zille]]'''
+| '''Taurus'''
+| '''03:32:50'''
+|
+|-
+| 2
+| {{flagicon|NLD}} [[Paul Spierings]]
+| Taurus
+| 03:33:32
+| 00:00:42
+| 2
+| {{flagicon|NLD}} [[Paul Spierings]]
+| Taurus
+| 03:33:32
+| 00:00:42
+|-
+| 3
+| {{flagicon|ARG}} [[Nicolás Cavigliasso]]
+| Taurus
+| 03:34:53
+| 00:02:03
+| 3
+| {{flagicon|ARG}} [[Nicolás Cavigliasso]]
+| Taurus
+| 03:34:53
+| 00:02:03
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 2
+| '''1'''
+| '''{{flagicon|CHI}} [[Lucas del Rio]]'''
+| '''Taurus'''
+| '''04:26:49'''
+|
+| '''1'''
+| '''{{flagicon|ARG}} [[David Zille]]'''
+| '''Taurus'''
+| '''08:09:03'''
+|
+|-
+| 2
+| {{flagicon|SAU}} [[Yasir Seaidan]]
+| Taurus
+| 04:29:29
+| 00:02:40
+| 2
+| {{flagicon|SAU}} [[Yasir Seaidan]]
+| Taurus
+| 08:11:01
+| 00:01:58
+|-
+| 3
+| {{flagicon|NLD}} [[Puck Klaassen]]
+| GRallyTeam
+| 04:30:46
+| 00:03:57
+| 3
+| {{flagicon|CHI}} [[Lucas del Rio]]
+| Taurus
+| 08:11:25
+| 00:02:22
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 3
+| '''1'''
+| '''{{flagicon|NLD}} [[Puck Klaassen]]'''
+| '''GRallyTeam'''
+| '''04:28:25'''
+|
+| '''1'''
+| '''{{flagicon|SAU}} [[Yasir Seaidan]]'''
+| '''Taurus'''
+| '''12:47:51'''
+|
+|-
+| 2
+| {{flagicon|SAU}} [[Yasir Seaidan]]
+| Taurus
+| 04:36:50
+| 00:08:25
+| 2
+| {{flagicon|NLD}} [[Puck Klaassen]]
+| GRallyReam
+| 12:50:44
+| 00:02:53
+|-
+| 3
+| {{flagicon|ESP}} [[Pau Navarro (rally driver)|Pau Navarro]]
+| Taurus
+| 04:39:43
+| 00:11:18
+| 3
+| {{flagicon|CHI}} [[Lucas del Rio]]
+| Taurus
+| 12:51:41
+| 00:03:50
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 4
+| '''1'''
+| '''{{flagicon|ARG}} [[Nicolás Cavigliasso]]'''
+| '''Taurus'''
+| '''05:23:12'''
+|
+| '''1'''
+| '''{{flagicon|SAU}} [[Yasir Seaidan]]'''
+| '''Taurus'''
+| '''18:20:19'''
+|
+|-
+| 2
+| {{flagicon|ESP}} [[Pau Navarro (rally driver)|Pau Navarro]]
+| Taurus
+| 05:25:41
+| 00:02:29
+| 2
+| {{flagicon|ESP}} [[Pau Navarro (rally driver)|Pau Navarro]]
+| Taurus
+| 18:21:04
+| 00:00:45
+|-
+| 3
+| {{flagicon|SAU}} [[Dania Akeel]]
+| Taurus
+| 05:27:18
+| 00:04:06
+| 3
+| {{flagicon|ARG}} [[Nicolás Cavigliasso]]
+| Taurus
+| 18:27:04
+| 00:06:45
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 5
+| '''1'''
+| '''{{Flagicon|CHI}} [[Lucas del Rio]]'''
+| '''Taurus'''
+| '''04:18:09'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Pau Navarro (rally driver)|Pau Navarro]]'''
+| '''Taurus'''
+| '''22:39:37'''
+|
+|-
+| 2
+| {{flagicon|ESP}} [[Pau Navarro (rally driver)|Pau Navarro]]
+| Taurus
+| 04:18:33
+| 00:00:24
+| 2
+| {{flagicon|SAU}} [[Yasir Seaidan]]
+| Taurus
+| 22:44:03
+| 00:04:26
+|-
+| 3
+| {{flagicon|SAU}} [[Dania Akeel]]
+| Taurus
+| 04:18:37
+| 00:00:28
+| 3
+| {{flagicon|ARG}} [[Nicolás Cavigliasso]]
+| Taurus
+| 22:48:02
+| 00:08:25
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 6
+| '''1'''
+| '''{{flagicon|CHI}} [[Ignacio Casale]]'''
+| '''Taurus'''
+| '''03:58:57'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Pau Navarro (rally driver)|Pau Navarro]]'''
+| '''Taurus'''
+| '''26:46:17'''
+|
+|-
+| 2
+| {{flagicon|SAU}} [[Dania Akeel]]
+| Taurus
+| 03:59:35
+| 00:00:38
+| 2
+| {{flagicon|ARG}} [[Nicolás Cavigliasso]]
+| Taurus
+| 26:51:14
+| 00:04:57
+|-
+| 3
+| {{flagicon|ARG}} [[Kevin Benavides]]
+| Taurus
+| 04:00:37
+| 00:01:40
+| 3
+| {{Flagicon|CHI}} [[Lucas del Rio]]
+| Taurus
+| 27:12:11
+| 00:25:54
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 7
+| '''1'''
+| '''{{flagicon|ARG}} [[Kevin Benavides]]'''
+| '''Taurus'''
+| '''04:22:57'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Pau Navarro (rally driver)|Pau Navarro]]'''
+| '''Taurus'''
+| '''31:17:03'''
+|
+|-
+| 2
+| {{flagicon|SAU}} [[Yasir Seaidan]]
+| Taurus
+| 04:27:36
+| 00:04:39
+| 2
+| {{flagicon|ARG}} [[Nicolás Cavigliasso]]
+| Taurus
+| 31:19:51
+| 00:02:48
+|-
+| 3
+| {{flagicon|ARG}} [[Nicolás Cavigliasso]]
+| Taurus
+| 04:28:37
+| 00:05:40
+| 3
+| {{Flagicon|CHI}} [[Lucas del Rio]]
+| Taurus
+| 31:46:12
+| 00:29:09
+|-
+! colspan=11|
+|- 
+! rowspan="3"| Stage 8
+| '''1'''
+| '''{{flagicon|NLD}} [[Puck Klaassen]]'''
+| '''GRallyTeam'''
+| '''04:55:38'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Pau Navarro (rally driver)|Pau Navarro]]'''
+| '''Taurus'''
+| '''36:18:05'''
+|
+|-
+| 2
+| {{flagicon|SAU}} [[Dania Akeel]]
+| Taurus
+| 04:55:41
+| 00:00:03
+| 2
+| {{flagicon|ARG}} [[Nicolás Cavigliasso]]
+| Taurus
+| 36:20:07
+| 00:02:02
+|-
+| 3
+| {{flagicon|NLD}} [[Paul Spierings]]
+| Taurus
+| 04:55:59
+| 00:00:21
+| 3
+| {{Flagicon|CHI}} [[Lucas del Rio]]
+| Taurus
+| 36:58:51
+| 00:40:46
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 9
+| '''1'''
+| '''{{flagicon|NLD}} [[Paul Spierings]]'''
+| '''Taurus'''
+| '''04:08:57'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Pau Navarro (rally driver)|Pau Navarro]]'''
+| '''Taurus'''
+| '''40:47:03'''
+|
+|-
+| 2
+| {{flagicon|ARG}} [[Kevin Benavides]]
+| Taurus
+| 04:10:17
+| 00:01:20
+| 2
+| {{flagicon|SAU}} [[Yasir Seaidan]]
+| Taurus
+| 41:28:44
+| 00:41:41
+|-
+| 3
+| {{flagicon|ARG}} [[David Zille]]
+| Taurus
+| 04:15:31
+| 00:06:34
+| 3
+| {{Flagicon|CHI}} [[Lucas del Rio]]
+| Taurus
+| 41:44:37
+| 00:57:34
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 10
+| '''1'''
+| '''{{flagicon|NLD}} [[Paul Spierings]]'''
+| '''Taurus'''
+| '''05:14:55'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Pau Navarro (rally driver)|Pau Navarro]]'''
+| '''Taurus'''
+| '''46:27:59'''
+|
+|-
+| 2
+| {{flagicon|SAU}} [[Yasir Seaidan]]
+| Taurus
+| 05:17:45
+| 00:02:50
+| 2
+| {{flagicon|SAU}} [[Yasir Seaidan]]
+| Taurus
+| 46:46:29
+| 00:18:30
+|-
+| 3
+| {{flagicon|ARG}} [[Kevin Benavides]]
+| Taurus
+| 05:18:17
+| 00:03:22
+| 3
+| {{Flagicon|CHI}} [[Lucas del Rio]]
+| Taurus
+| 47:13:47
+| 00:45:48
+|-
+! colspan=11|
+|- 
+! rowspan="3"| Stage 11
+| '''1'''
+| '''{{flagicon|ARG}} [[Nicolás Cavigliasso]]'''
+| '''Taurus'''
+| '''03:17:27'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Pau Navarro (rally driver)|Pau Navarro]]'''
+| '''Taurus'''
+| '''49:52:46'''
+|
+|-
+| 2
+| {{flagicon|NLD}} [[Paul Spierings]]
+| Taurus
+| 03:17:56
+| 00:00:29
+| 2
+| {{flagicon|SAU}} [[Yasir Seaidan]]
+| Taurus
+| 50:17:54
+| 00:25:08
+|-
+| 3
+| {{flagicon|SAU}} [[Dania Akeel]]
+| Taurus
+| 03:18:30
+| 00:01:03
+| 3
+| {{flagicon|ARG}} [[Nicolás Cavigliasso]]
+| Taurus
+| 50:36:50
+| 00:44:04
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 12
+| '''1'''
+| '''{{flagicon|ARG}} [[Kevin Benavides]]'''
+| '''Taurus'''
+| '''03:44:52'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Pau Navarro (rally driver)|Pau Navarro]]'''
+| '''Taurus'''
+| '''53:49:52'''
+|
+|-
+| 2
+| {{flagicon|SAU}} [[Dania Akeel]]
+| Taurus
+| 03:47:07
+| 00:02:15
+| 2
+| {{flagicon|SAU}} [[Yasir Seaidan]]
+| Taurus
+| 54:15:45
+| 00:25:53
+|-
+| 3
+| {{flagicon|ARG}} [[David Zille]]
+| Taurus
+| 03:48:29
+| 00:03:37
+| 3
+| {{flagicon|ARG}} [[Nicolás Cavigliasso]]
+| Taurus
+| 54:27:37
+| 00:37:45
+|-
+! colspan=11| 
+|-
+! rowspan="3"| Stage 13
+| '''1'''
+| '''{{flagicon|ARG}} [[Kevin Benavides]]'''
+| '''Taurus'''
+| '''00:52:28'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Pau Navarro (rally driver)|Pau Navarro]]'''
+| '''Taurus'''
+| '''54:46:21'''
+|
+|-
+| 2
+| {{flagicon|LUX}} [[Charles Munster]]
+| GRallyTeam
+| 00:53:41
+| 00:01:13
+| 2
+| {{flagicon|SAU}} [[Yasir Seaidan]]
+| Taurus
+| 55:09:43
+| 00:23:22
+|-
+| 3
+| {{flagicon|CHI}} [[Lucas del Rio]]
+| Taurus
+| 00:53:45
+| 00:01:17
+| 3
+| {{flagicon|ARG}} [[Nicolás Cavigliasso]]
+| Taurus
+| 55:22:13
+| 00:35:52
+|-
+! colspan=11|
+|-
+|}
+
+=== SSV (T4) ===
+{| class="wikitable" style="font-size:85%;"
+|-
+!
+! colspan=5| Stage result
+! colspan=5| General classification
+|-
+! width="40px"| Stage
+! width="30px"| Pos
+! width="200px"| Competitor
+! width="70px"|Make
+! width="40px"|Time
+! width="40px"|Gap
+! width="30px"| Pos
+! width="200px"| Competitor
+! width="70px"|Make
+! width="40px"|Time
+! width="40px"|Gap
+|-
+! rowspan="3"| Prologue
+| '''1'''
+| '''{{flagicon|USA}} [[Brock Heger]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''00:12:47'''
+|
+| rowspan="3" colspan="5" | ''results of Prologue aren't accountable towards GC, only for starting position on Stage 1''
+|-
+| 2
+| {{flagicon|POR}} [[Gonçalo Guerreiro]]
+| [[Polaris Inc.|Polaris]]
+| 00:12:51
+| 00:00:04
+|-
+| 3
+| {{flagicon|USA}} [[Kyle Chaney]]
+| [[Can-Am Off-Road|Can-Am]]
+| 00:12:53
+| 00:00:06
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 1
+| '''1'''
+| '''{{flagicon|FRA}} [[Xavier de Soultrait]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''03:38:45'''
+|
+| '''1'''
+| '''{{flagicon|FRA}} [[Xavier de Soultrait]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''03:38:45'''
+|
+|-
+| 2
+| {{flagicon|POR}} [[Alexandre Pinto (rally driver)|Alexandre Pinto]]
+| [[Polaris Inc.|Polaris]]
+| 03:42:19
+| 00:03:34
+| 2
+| {{flagicon|POR}} [[Alexandre Pinto (rally driver)|Alexandre Pinto]]
+| [[Polaris Inc.|Polaris]]
+| 03:42:19
+| 00:03:34
+|-
+| 3
+| {{flagicon|USA}} [[Brock Heger]]
+| [[Polaris Inc.|Polaris]]
+| 03:42:33
+| 00:03:48
+| 3
+| {{flagicon|USA}} [[Brock Heger]]
+| [[Polaris Inc.|Polaris]]
+| 03:42:33
+| 00:03:48
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 2
+| '''1'''
+| '''{{flagicon|POR}} [[Gonçalo Guerreiro]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''04:42:45'''
+|
+| '''1'''
+| '''{{flagicon|FRA}} [[Xavier de Soultrait]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''08:24:16'''
+|
+|-
+| 2
+| {{flagicon|FRA}} [[Florent Vayssade]]
+| [[Polaris Inc.|Polaris]]
+| 04:43:47
+| 00:01:02
+| 2
+| {{flagicon|POR}} [[Gonçalo Guerreiro]]
+| [[Polaris Inc.|Polaris]]
+| 08:26:03
+| 00:01:47
+|-
+| 3
+| {{flagicon|FRA}} [[Xavier de Soultrait]]
+| [[Polaris Inc.|Polaris]]
+| 04:45:31
+| 00:02:46
+| 3
+| {{flagicon|USA}} [[Brock Heger]]
+| [[Polaris Inc.|Polaris]]
+| 08:30:38
+| 00:06:22
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 3
+| '''1'''
+| '''{{flagicon|USA}} [[Brock Heger]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''04:38:09'''
+|
+| '''1'''
+| '''{{flagicon|USA}} [[Brock Heger]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''13:08:47'''
+|
+|- 
+| 2
+| {{flagicon|POR}} [[Gonçalo Guerreiro]]
+| [[Polaris Inc.|Polaris]]
+| 04:43:27
+| 00:05:18
+| 2
+| {{flagicon|POR}} [[Gonçalo Guerreiro]]
+| [[Polaris Inc.|Polaris]]
+| 13:09:30
+| 00:00:43
+|-
+| 3
+| {{flagicon|POR}} [[Joao Monteiro (rally driver)|Joao Monteiro]]
+| [[Can-Am Off-Road|Can-Am]]
+| 04:43:41
+| 00:05:32
+| 3
+| {{flagicon|FRA}} [[Xavier de Soultrait]]
+| [[Polaris Inc.|Polaris]]
+| 13:19:54
+| 00:11:07
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 4
+| '''1'''
+| '''{{flagicon|USA}} [[Brock Heger]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''05:21:48'''
+|
+| '''1'''
+| '''{{flagicon|USA}} [[Brock Heger]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''18:30:35'''
+|
+|-
+| 2
+| {{flagicon|POR}} [[Joao Monteiro (rally driver)|Joao Monteiro]]
+| [[Can-Am Off-Road|Can-Am]]
+| 05:37:50
+| 00:16:02
+| 2
+| {{flagicon|FRA}} [[Xavier de Soultrait]]
+| [[Polaris Inc.|Polaris]]
+| 19:02:06
+| 00:31:31
+|-
+| 3
+| {{Flagicon|POR}} [[Joao Dias (rally driver)|Joao Dias]]
+| [[Polaris Inc.|Polaris]]
+| 05:38:28
+| 00:16:40
+| 3
+| {{flagicon|POR}} [[Alexandre Pinto (rally driver)|Alexandre Pinto]]
+| [[Polaris Inc.|Polaris]]
+| 19:18:31
+| 00:47:56
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 5
+| '''1'''
+| '''{{flagicon|USA}} [[Kyle Chaney]]'''
+| '''[[Can-Am Off-Road|Can-Am]]'''
+| '''04:17:22'''
+|
+| '''1'''
+| '''{{flagicon|USA}} [[Brock Heger]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''22:51:24'''
+|
+|-
+| 2
+| {{flagicon|CHI}} [[Francisco López Contardo]]
+| [[Can-Am Off-Road|Can-Am]]
+| 04:18:13
+| 00:00:51
+| 2
+| {{flagicon|FRA}} [[Xavier de Soultrait]]
+| [[Polaris Inc.|Polaris]]
+| 23:29:00
+| 00:37:36
+|-
+| 3
+| {{flagicon|USA}} [[Brock Heger]]
+| [[Polaris Inc.|Polaris]]
+| 04:20:49
+| 00:03:27
+| 3
+| {{flagicon|USA}} [[Kyle Chaney]]
+| [[Can-Am Off-Road|Can-Am]]
+| 23:47:51
+| 00:56:27
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 6
+| '''1'''
+| '''{{flagicon|FRA}} [[Xavier de Soultrait]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''03:59:53'''
+|
+| '''1'''
+| '''{{flagicon|USA}} [[Brock Heger]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''26:56:33'''
+|
+|-
+| 2
+| {{flagicon|USA}} [[Kyle Chaney]]
+| [[Can-Am Off-Road|Can-Am]]
+| 04:02:00
+| 00:02:07
+| 2
+| {{flagicon|FRA}} [[Xavier de Soultrait]]
+| [[Polaris Inc.|Polaris]]
+| 27:28:53
+| 00:32:20
+|-
+| 3
+| {{flagicon|CHI}} [[Francisco López Contardo]]
+| [[Can-Am Off-Road|Can-Am]]
+| 04:02:27
+| 00:02:34
+| 3
+| {{flagicon|USA}} [[Kyle Chaney]]
+| [[Can-Am Off-Road|Can-Am]]
+| 27:49:51
+| 00:53:18
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 7
+| '''1'''
+| '''{{flagicon|ARG}} [[Jeremías Gonzalez Ferioli]]'''
+| '''[[Can-Am Off-Road|Can-Am]]'''
+| '''04:32:58'''
+|
+| '''1'''
+| '''{{flagicon|USA}} [[Brock Heger]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''31:42:13'''
+|
+|-
+| 2
+| {{flagicon|USA}} [[Kyle Chaney]]
+| [[Can-Am Off-Road|Can-Am]]
+| 04:33:05
+| 00:00:07
+| 2
+| {{flagicon|USA}} [[Kyle Chaney]]
+| [[Can-Am Off-Road|Can-Am]]
+| 32:22:56
+| 00:40:43
+|-
+| 3
+| {{flagicon|POR}} [[Joao Monteiro (rally driver)|Joao Monteiro]]
+| [[Can-Am Off-Road|Can-Am]]
+| 04:33:07
+| 00:00:09
+| 3
+| {{flagicon|FRA}} [[Xavier de Soultrait]]
+| [[Polaris Inc.|Polaris]]
+| 32:26:28
+| 00:44:15
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 8
+| '''1'''
+| '''{{flagicon|USA}} [[Brock Heger]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''05:04:15'''
+|
+| '''1'''
+| '''{{flagicon|USA}} [[Brock Heger]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''36:46:28'''
+|
+|-
+| 2
+| {{flagicon|ARG}} [[Jeremías Gonzalez Ferioli]]
+| [[Can-Am Off-Road|Can-Am]]
+| 05:05:01
+| 00:00:46
+| 2
+| {{flagicon|POR}} [[Joao Monteiro (rally driver)|Joao Monteiro]]
+| [[Can-Am Off-Road|Can-Am]]
+| 37:33:37
+| 00:47:09
+|-
+| 3
+| {{flagicon|POR}} [[Joao Monteiro (rally driver)|Joao Monteiro]]
+| [[Can-Am Off-Road|Can-Am]]
+| 05:05:58
+| 00:01:43
+| 3
+| {{flagicon|USA}} [[Kyle Chaney]]
+| [[Can-Am Off-Road|Can-Am]]
+| 37:37:55
+| 00:51:27
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 9
+| '''1'''
+| '''{{Flagicon|CHI}} [[Francisco López Contardo]]'''
+| '''[[Can-Am Off-Road|Can-Am]]'''
+| '''04:23:43'''
+|
+| '''1'''
+| '''{{flagicon|USA}} [[Brock Heger]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''41:22:03'''
+|
+|-
+| 2
+| {{Flagicon|SWE}} [[Johan Kristoffersson]]
+| [[Polaris Inc.|Polaris]]
+| 04:24:16
+| 00:00:33
+| 2
+| {{flagicon|USA}} [[Kyle Chaney]]
+| [[Can-Am Off-Road|Can-Am]]
+| 42:06:01
+| 00:43:58
+|-
+| 3
+| {{flagicon|USA}} [[Hunter Miller]]
+| [[Can-Am Off-Road|Can-Am]]
+| 04:27:33
+| 00:03:50
+| 3
+| {{flagicon|POR}} [[Joao Monteiro (rally driver)|Joao Monteiro]]
+| [[Can-Am Off-Road|Can-Am]]
+| 42:24:09
+| 01:02:06
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 10
+| '''1'''
+| '''{{flagicon|USA}} [[Brock Heger]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''05:18:14'''
+|
+| '''1'''
+| '''{{flagicon|USA}} [[Brock Heger]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''42:04:42'''
+|
+|- 
+| 2
+| {{flagicon|FRA}} [[Xavier de Soultrait]]
+| [[Polaris Inc.|Polaris]]
+| 05:19:29
+| 00:01:15
+| 2
+| {{flagicon|USA}} [[Kyle Chaney]]
+| [[Can-Am Off-Road|Can-Am]]
+| 47:42:04
+| 01:01:47
+|-
+| 3
+| {{flagicon|ARG}} [[Jeremías Gonzalez Ferioli]]
+| [[Can-Am Off-Road|Can-Am]]
+| 05:23:23
+| 00:05:09
+| 3
+| {{flagicon|FRA}} [[Xavier de Soultrait]]
+| [[Polaris Inc.|Polaris]]
+| 48:01:11
+| 01:20:54
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 11
+| '''1'''
+| '''{{flagicon|USA}} [[Brock Heger]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''03:30:11'''
+|
+| '''1'''
+| '''{{flagicon|USA}} [[Brock Heger]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''50:10:28'''
+|
+|-
+| 2
+| {{flagicon|ARG}} [[Jeremías Gonzalez Ferioli]]
+| [[Can-Am Off-Road|Can-Am]]
+| 03:31:02
+| 00:00:51
+| 2
+| {{flagicon|USA}} [[Kyle Chaney]]
+| [[Can-Am Off-Road|Can-Am]]
+| 51:16:34
+| 01:06:06
+|-
+| 3
+| {{Flagicon|SWE}} [[Johan Kristoffersson]]
+| [[Polaris Inc.|Polaris]]
+| 03:33:16
+| 00:03:05
+| 3
+| {{flagicon|FRA}} [[Xavier de Soultrait]]
+| [[Polaris Inc.|Polaris]]
+| 51:38:22
+| 01:27:54
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 12
+| '''1'''
+| '''{{flagicon|ARG}} [[Jeremías Gonzalez Ferioli]]'''
+| '''[[Can-Am Off-Road|Can-Am]]'''
+| '''03:51:36'''
+|
+| '''1'''
+| '''{{flagicon|USA}} [[Brock Heger]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''54:14:13'''
+|
+|-
+| 2
+| {{flagicon|POR}} [[Joao Monteiro (rally driver)|Joao Monteiro]]
+| [[Can-Am Off-Road|Can-Am]]
+| 03:58:31
+| 00:06:55
+| 2
+| {{flagicon|USA}} [[Kyle Chaney]]
+| [[Can-Am Off-Road|Can-Am]]
+| 55:17:59
+| 01:03:46
+|-
+| 3
+| {{flagicon|USA}} [[Hunter Miller]]
+| [[Can-Am Off-Road|Can-Am]]
+| 03:59:15
+| 00:07:39
+| 3
+| {{flagicon|FRA}} [[Xavier de Soultrait]]
+| [[Polaris Inc.|Polaris]]
+| 55:38:38
+| 01:24:25
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 13
+| '''1'''
+| '''{{flagicon|POR}} [[Joao Monteiro (rally driver)|Joao Monteiro]]'''
+| '''[[Can-Am Off-Road|Can-Am]]'''
+| '''00:55:09'''
+|
+| '''1'''
+| '''{{flagicon|USA}} [[Brock Heger]]'''
+| '''[[Polaris Inc.|Polaris]]'''
+| '''55:11:56'''
+|
+|-
+| 2
+| {{Flagicon|SWE}} [[Johan Kristoffersson]]
+| [[Polaris Inc.|Polaris]]
+| 00:55:23
+| 00:00:14
+| 2
+| {{flagicon|USA}} [[Kyle Chaney]]
+| [[Can-Am Off-Road|Can-Am]]
+| 56:13:35
+| 01:01:39
+|-
+| 3
+| {{flagicon|ARG}} [[Jeremías Gonzalez Ferioli]]
+| [[Can-Am Off-Road|Can-Am]]
+| 00:55:29
+| 00:00:20
+| 3
+| {{flagicon|FRA}} [[Xavier de Soultrait]]
+| [[Polaris Inc.|Polaris]]
+| 56:37:21
+| 01:25:25
+|-
+! colspan=11|
+|-
+|}
+
+=== Trucks ===
+{| class="wikitable" style="font-size:85%;"
+|-
+!
+! colspan=5| Stage result
+! colspan=5| General classification
+|-
+! width="40px"| Stage
+! width="30px"| Pos
+! width="200px"| Competitor
+! width="70px"|Make
+! width="40px"|Time
+! width="40px"|Gap
+! width="30px"| Pos
+! width="200px"| Competitor
+! width="70px"|Make
+! width="40px"|Time
+! width="40px"|Gap
+|-
+!rowspan=3| Prologue
+| '''1'''
+| '''{{flagicon|NLD}} [[Mitchel van den Brink]]'''
+| '''[[Iveco]]'''
+| '''00:13:05'''
+|
+| rowspan="3" colspan="5" | ''results of Prologue aren't accountable towards GC, only for starting position on Stage 1''
+|-
+| 2
+| {{flagicon|LTU}} [[Vaidotas Žala]]
+| [[Iveco]]
+| 00:13:08
+| 00:00:03
+|-
+| 3
+| {{flagicon|NLD}} [[Gert Huzink]]
+| [[Renault Trucks|Renault]]
+| 00:13:11
+| 00:00:06
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 1
+| '''1'''
+| '''{{flagicon|CZE}} [[Aleš Loprais]]'''
+| '''[[Iveco]]'''
+| '''03:42:15'''
+|
+| '''1'''
+| '''{{flagicon|CZE}} [[Aleš Loprais]]'''
+| '''[[Iveco]]'''
+| '''03:42:15'''
+|
+|-
+| 2
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| [[Iveco]]
+| 03:44:02
+| 00:01:47
+| 2
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| [[Iveco]]
+| 03:44:02
+| 00:01:47
+|-
+| 3
+| {{flagicon|CZE}} [[Martin Macík]]
+| [[Iveco]]
+| 03:49:34
+| 00:07:19
+| 3
+| {{flagicon|CZE}} [[Martin Macík]]
+| [[Iveco]]
+| 03:49:34
+| 00:07:19
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 2
+| '''1'''
+| '''{{flagicon|NLD}} [[Gert Huzink]]'''
+| '''[[Renault Trucks|Renault]]'''
+| '''04:42:45'''
+|
+| '''1'''
+| '''{{flagicon|NLD}} [[Mitchel van den Brink]]'''
+| '''[[Iveco]]'''
+| '''08:29:58'''
+|
+|-
+| 2
+| {{flagicon|LTU}} [[Vaidotas Žala]]
+| [[Iveco]]
+| 04:43:17
+| 00:00:32
+| 2
+| {{flagicon|LTU}} [[Vaidotas Žala]]
+| [[Iveco]]
+| 08:33:04
+| 00:03:06
+|-
+| 3
+| {{flagicon|CZE}} [[Martin Macík]]
+| [[Iveco]]
+| 04:43:54
+| 00:01:09
+| 3 
+| {{flagicon|CZE}} [[Martin Macík]]
+| [[Iveco]]
+| 08:33:28
+| 00:03:30
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 3
+| '''1'''
+| '''{{flagicon|NLD}} [[Mitchel van den Brink]]'''
+| '''[[Iveco]]'''
+| '''04:52:59'''
+|
+| '''1'''
+| '''{{flagicon|NLD}} [[Mitchel van den Brink]]'''
+| '''[[Iveco]]'''
+| '''13:22:57'''
+|
+|-
+| 2
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| [[Iveco]]
+| 04:54:01
+| 00:01:02
+| 2
+| {{Flagicon|CZE}} [[Martin Macík]]
+| [[Iveco]]
+| 13:31:18
+| 00:08:21
+|-
+| 3
+| {{Flagicon|NLD}} [[Richard de Groot]]
+| [[Iveco]]
+| 04:56:34
+| 00:03:35
+| 3
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| [[Iveco]]
+| 13:31:51
+| 00:08:54
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 4
+| '''1'''
+| '''{{flagicon|CZE}} [[Martin Macík]]'''
+| '''[[Iveco]]'''
+| '''05:40:19'''
+|
+| '''1'''
+| '''{{flagicon|CZE}} [[Martin Macík]]'''
+| '''[[Iveco]]'''
+| '''19:11:37'''
+|
+|-
+| 2
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| [[Iveco]]
+| 05:53:08
+| 00:12:49
+| 2
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| [[Iveco]]
+| 19:16:05
+| 00:04:28
+|-
+| 3
+| {{flagicon|LTU}} [[Vaidotas Žala]]
+| [[Iveco]]
+| 05:58:28
+| 00:18:09
+| 3
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| [[Iveco]]
+| 19:41:39
+| 00:30:02
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 5
+| '''1'''
+| '''{{flagicon|CZE}} [[Martin Macík]]'''
+| '''[[Iveco]]'''
+| '''04:30:26'''
+|
+| '''1'''
+| '''{{flagicon|CZE}} [[Martin Macík]]'''
+| '''[[Iveco]]'''
+| '''23:42:03'''
+|
+|-
+| 2
+| {{flagicon|NLD}} [[Kay Huzink]]
+| [[Renault Trucks|Renault]]
+| 04:33:44
+| 00:03:18
+| 2
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| [[Iveco]]
+| 23:50:32
+| 00:08:29
+|-
+| 3
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| [[Iveco]]
+| 04:34:27
+| 00:04:01
+| 3
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| [[Iveco]]
+| 24:36:28
+| 00:54:25
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 6
+| '''1'''
+| '''{{flagicon|CZE}} [[Aleš Loprais]]'''
+| '''[[Iveco]]'''
+| '''04:10:50'''
+|
+| '''1'''
+| '''{{flagicon|NLD}} [[Mitchel van den Brink]]'''
+| '''[[Iveco]]'''
+| '''28:04:08'''
+|
+|-
+| 2
+| {{flagicon|LTU}} [[Vaidotas Žala]]
+| [[Iveco]]
+| 04:12:48
+| 00:01:58
+| 2
+| {{Flagicon|CZE}} [[Martin Macík]]
+| [[Iveco]]
+| 28:39:32
+| 00:35:24
+|-
+| 3
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| [[Iveco]]
+| 04:13:36
+| 00:02:46
+| 3
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| [[Iveco]]
+| 28:50:18
+| 00:46:10
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 7
+| '''1'''
+| '''{{flagicon|LTU}} [[Vaidotas Žala]]'''
+| '''[[Iveco]]'''
+| '''04:27:24'''
+|
+| '''1'''
+| '''{{flagicon|NLD}} [[Mitchel van den Brink]]'''
+| '''[[Iveco]]'''
+| '''32:44:49'''
+|
+|-
+| 2
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| [[Iveco]]
+| 04:28:47
+| 00:01:23
+| 2
+| {{Flagicon|CZE}} [[Martin Macík]]
+| [[Iveco]]
+| 33:13:34
+| 00:28:45
+|-
+| 3
+| {{Flagicon|CZE}} [[Martin Macík]]
+| [[Iveco]]
+| 04:34:02
+| 00:06:38
+| 3
+| {{flagicon|LTU}} [[Vaidotas Žala]]
+| [[Iveco]]
+| 33:17:51
+| 00:33:02
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 8
+| '''1'''
+| '''{{flagicon|NLD}} [[Mitchel van den Brink]]'''
+| '''[[Iveco]]'''
+| '''05:03:42'''
+|
+| '''1'''
+| '''{{flagicon|NLD}} [[Mitchel van den Brink]]'''
+| '''[[Iveco]]'''
+| '''37:48:31'''
+|
+|-
+| 2
+| {{flagicon|LTU}} [[Vaidotas Žala]]
+| [[Iveco]]
+| 05:09:13
+| 00:05:31
+| 2
+| {{flagicon|LTU}} [[Vaidotas Žala]]
+| [[Iveco]]
+| 38:27:04
+| 00:38:33
+|-
+| 3
+| {{Flagicon|CZE}} [[Martin Macík]]
+| [[Iveco]]
+| 05:25:26
+| 00:21:44
+| 3
+| {{Flagicon|CZE}} [[Martin Macík]]
+| [[Iveco]]
+| 38:39:00
+| 00:50:29
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 9
+| '''1'''
+| '''{{flagicon|CZE}} [[Aleš Loprais]]'''
+| '''[[Iveco]]'''
+| '''04:26:43'''
+|
+| '''1'''
+| '''{{flagicon|NLD}} [[Mitchel van den Brink]]'''
+| '''[[Iveco]]'''
+| '''42:20:28'''
+|
+|-
+| 2
+| {{flagicon|LTU}} [[Vaidotas Žala]]
+| [[Iveco]]
+| 04:28:36
+| 00:01:53
+| 2
+| {{flagicon|LTU}} [[Vaidotas Žala]]
+| [[Iveco]]
+| 42:55:40
+| 00:35:12
+|-
+| 3
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| [[Iveco]]
+| 04:31:57
+| 00:05:14
+| 3
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| [[Iveco]]
+| 43:16:12
+| 00:55:44
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 10
+| '''1'''
+| '''{{flagicon|CZE}} [[Aleš Loprais]]'''
+| '''[[Iveco]]'''
+| '''05:35:54'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Vaidotas Žala]]'''
+| '''[[Iveco]]'''
+| '''48:33:11'''
+|
+|-
+| 2
+| {{flagicon|LTU}} [[Vaidotas Žala]]
+| [[Iveco]]
+| 05:37:31
+| 00:01:37
+| 2
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| [[Iveco]]
+| 48:52:06
+| 00:18:55
+|-
+| 3
+| {{flagicon|CZE}} [[Martin Soltys]]
+| [[Tatra (company)|Tatra]]
+| 05:58:24
+| 00:22:30
+| 3
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| [[Iveco]]
+| 49:08:41
+| 00:35:30
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 11
+| '''1'''
+| '''{{flagicon|CZE}} [[Aleš Loprais]]'''
+| '''[[Iveco]]'''
+| '''03:19:59'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Vaidotas Žala]]'''
+| '''[[Iveco]]'''
+| '''51:55:14'''
+|
+|-
+| 2
+| {{flagicon|LTU}} [[Vaidotas Žala]]
+| [[Iveco]]
+| 03:22:30
+| 00:02:31
+| 2
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| [[Iveco]]
+| 52:12:05
+| 00:16:24
+|-
+| 3
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| [[Iveco]]
+| 03:24:18
+| 00:04:19
+| 3
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| [[Iveco]]
+| 52:32:59
+| 00:37:18
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 12
+| '''1'''
+| '''{{flagicon|NLD}} [[Mitchel van den Brink]]'''
+| '''[[Iveco]]'''
+| '''03:58:47'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Vaidotas Žala]]'''
+| '''[[Iveco]]'''
+| '''56:01:24'''
+|
+|-
+| 2
+| {{flagicon|LTU}} [[Vaidotas Žala]]
+| [[Iveco]]
+| 04:05:43
+| 00:06:56
+| 2
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| [[Iveco]]
+| 56:22:48
+| 00:21:24
+|-
+| 3
+| {{flagicon|CZE}} [[Martin Soltys]]
+| [[Tatra (company)|Tatra]]
+| 04:07:11
+| 00:08:24
+| 3
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| [[Iveco]]
+| 56:31:46
+| 00:30:22
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 13
+| '''1'''
+| '''{{flagicon|NLD}} [[Kay Huzink]]'''
+| '''[[Renault Trucks|Renault]]'''
+| '''00:54:41'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Vaidotas Žala]]'''
+| '''[[Iveco]]'''
+| '''56:58:38'''
+|
+|-
+| 2
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| [[Iveco]]
+| 00:55:55
+| 00:01:14
+| 2
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| [[Iveco]]
+| 57:18:56
+| 00:20:18
+|-
+| 3
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| [[Iveco]]
+| 00:56:08
+| 00:01:27
+| 3
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| [[Iveco]]
+| 57:27:41
+| 00:29:03
+|-
+! colspan=11|
+|-
+|}
+
+=== Classics ===
+{| class="wikitable" style="font-size:85%;"
+|-
+!
+! colspan=5| Stage result
+! colspan=5| General classification
+|-
+! width="40px"| Stage
+! width="30px"| Pos
+! width="200px"| Competitor
+! width="70px"|Make
+! width="40px"|Points
+! width="40px"|Gap
+! width="30px"| Pos
+! width="200px"| Competitor
+! width="70px"|Make
+! width="40px"|Points
+! width="40px"|Gap
+|-
+! rowspan="3"| Prologue
+| '''1'''
+| '''{{flagicon|ITA}} [[Francesco Pece]]'''
+| '''[[Nissan]]'''
+| '''3'''
+|
+| '''1'''
+| '''{{flagicon|ITA}} [[Francesco Pece]]'''
+| '''[[Nissan]]'''
+| '''3'''
+|
+|-
+| 2
+| {{flagicon|LTU}} [[Karolis Raišys]]
+| [[Land Rover]]
+| 4
+| +1
+| 2
+| {{flagicon|LTU}} [[Karolis Raišys]]
+| [[Land Rover]]
+| 4
+| +1
+|-
+| 3
+| {{flagicon|POL}} [[Tomasz Staniszewski]]
+| [[Porsche]]
+| 4
+| +1
+| 3
+| {{flagicon|POL}} [[Tomasz Staniszewski]]
+| [[Porsche]]
+| 4
+| +1
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 1
+| '''1'''
+| '''{{flagicon|ITA}} [[Marco Ernesto Leva]]'''
+| '''[[Mitsubishi]]'''
+| '''71'''
+|
+| '''1'''
+| '''{{flagicon|ITA}} [[Marco Ernesto Leva]]'''
+| '''[[Mitsubishi]]'''
+| '''71'''
+|
+|-
+| 2
+| {{flagicon|INA}} [[Shammie Baridwan]]
+| [[Toyota]]
+| 76
+| +5
+| 2
+| {{flagicon|INA}} [[Shammie Baridwan]]
+| [[Toyota]]
+| 76
+| +5
+|-
+| 3
+| {{flagicon|LTU}} [[Karolis Raišys]]
+| [[Land Rover]]
+| 77
+| +6
+| 3
+| {{flagicon|LTU}} [[Karolis Raišys]]
+| [[Land Rover]]  
+| 77
+| +6
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 2
+| '''1'''
+| '''{{flagicon|LTU}} [[Karolis Raišys]]'''
+| '''[[Land Rover]]'''
+| '''48'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Karolis Raišys]]'''
+| '''[[Land Rover]]'''
+| '''125'''
+|
+|-
+| 2
+| {{flagicon|FRA}} [[Maxence Gublin]]
+| [[Land Rover]]
+| 50
+| +2
+| 2
+| {{flagicon|ITA}} [[Marco Ernesto Leva]]
+| [[Mitsubishi]]
+| 125
+| 0
+|-
+| 3
+| {{flagicon|ITA}} [[Marco Ernesto Leva]]
+| [[Mitsubishi]]
+| 54
+| +6
+| 3
+| {{flagicon|FRA}} [[Maxence Gublin]]
+| [[Land Rover]]
+| 154
+| +29
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 3
+| '''1'''
+| '''{{flagicon|POL}} [[Tomasz Białkowski]]'''
+| '''[[DAF Trucks|DAF]]'''
+| '''97'''
+|
+| '''1'''
+| '''{{flagicon|FRA}} [[Maxence Gublin]]'''
+| '''[[Land Rover]]'''
+| '''254'''
+|
+|-
+| 2
+| {{flagicon|FRA}} [[Maxence Gublin]]
+| [[Land Rover]]
+| 100
+| +3
+| 2
+| {{flagicon|LTU}} [[Karolis Raišys]]
+| [[Land Rover]]
+| 262
+| +8
+|-
+| 3
+| {{flagicon|ITA}} [[Lorenzo Traglio]]
+| [[Nissan]]
+| 106
+| +9
+| 3
+| {{flagicon|ITA}} [[Marco Ernesto Leva]]
+| [[Mitsubishi]]
+| 279
+| +25
+|-
+! colspan=11|
+|- 
+! rowspan="3"| Stage 4
+| '''1'''
+| '''{{flagicon|LTU}} [[Karolis Raišys]]'''
+| '''[[Land Rover]]'''
+| '''24'''
+|
+| '''1'''
+| '''{{flagicon|FRA}} [[Maxence Gublin]]'''
+| '''[[Land Rover]]'''
+| '''279'''
+|
+|-
+| 2
+| {{flagicon|FRA}} [[Maxence Gublin]]
+| [[Land Rover]]
+| 25
+| +1
+| 2
+| {{flagicon|LTU}} [[Karolis Raišys]]
+| [[Land Rover]]
+| 286
+| +7
+|-
+| 3
+| {{flagicon|CRO}} [[Juraj Šebalj]]
+| [[Toyota]]
+| 38
+| +14
+| 3
+| {{flagicon|ITA}} [[Marco Ernesto Leva]]
+| [[Mitsubishi]]
+| 322
+| +43
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 5
+| '''1'''
+| '''{{flagicon|LTU}} [[Karolis Raišys]]'''
+| '''[[Land Rover]]'''
+| '''43'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Karolis Raišys]]'''
+| '''[[Land Rover]]'''
+| '''329'''
+|
+|-
+| 2
+| {{flagicon|ITA}} [[Francesco Pece]]
+| [[Nissan]]
+| 57
+| +14
+| 2
+| {{flagicon|ITA}} [[Marco Ernesto Leva]]
+| [[Mitsubishi]]
+| 385
+| +56
+|-
+| 3
+| {{flagicon|ITA}} [[Marco Ernesto Leva]]
+| [[Mitsubishi]]
+| 63
+| +20
+| 3
+| {{flagicon|ESP}} [[Juan Morera (rally driver)|Juan Morera]]
+| [[Porsche]]
+| 451
+| +122
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 6
+| '''1'''
+| '''{{flagicon|LTU}} [[Karolis Raišys]]'''
+| '''[[Land Rover]]'''
+| '''58'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Karolis Raišys]]'''
+| '''[[Land Rover]]'''
+| '''387'''
+|
+|-
+| 2
+| {{flagicon|ITA}} [[Josef Unterholzner]]
+| [[Mitsubishi]]
+| 60
+| +2
+| 2
+| {{flagicon|ITA}} [[Marco Ernesto Leva]]
+| [[Mitsubishi]]
+| 484
+| +97
+|-
+| 3
+| {{Flagicon|POL}} [[Tomasz Białkowski]]
+| [[DAF Trucks|DAF]]
+| 61
+| +3
+| 3
+| {{flagicon|ESP}} [[Juan Morera (rally driver)|Juan Morera]]
+| [[Porsche]]
+| 518
+| +131
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 7
+| '''1'''
+| '''{{flagicon|LTU}} [[Karolis Raišys]]'''
+| '''[[Land Rover]]'''
+| '''61'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Karolis Raišys]]'''
+| '''[[Land Rover]]'''
+| '''448'''
+|
+|-
+| 2
+| {{flagicon|POL}} [[Tomasz Staniszewski]]
+| [[Porsche]]
+| 72
+| +11
+| 2
+| {{flagicon|ESP}} [[Juan Morera (rally driver)|Juan Morera]]
+| [[Porsche]]
+| 598
+| +150
+|-
+| 3
+| {{flagicon|ITA}} [[Josef Unterholzner]]
+| [[Mitsubishi]]
+| 78
+| +17
+| 3
+| {{flagicon|ITA}} [[Josef Unterholzner]]
+| [[Mitsubishi]]
+| 656
+| +208
+|-
+! colspan=11|
+|- 
+! rowspan="3"| Stage 8
+| '''1'''
+| '''{{flagicon|CZE}} [[Ondrej Klymciw]]'''
+| '''[[Mitsubishi]]'''
+| '''22'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Karolis Raišys]]'''
+| '''[[Land Rover]]'''
+| '''487'''
+|
+|-
+| 2
+| {{flagicon|ESP}} [[Juan Morera (rally driver)|Juan Morera]]
+| [[Porsche]]
+| 33
+| +11
+| 2
+| {{flagicon|ESP}} [[Juan Morera (rally driver)|Juan Morera]]
+| [[Porsche]]
+| 631
+| +144
+|-
+| 3
+| {{flagicon|LTU}} [[Karolis Raišys]]
+| [[Land Rover]]
+| 39
+| +17
+| 3
+| {{flagicon|ITA}} [[Josef Unterholzner]]
+| [[Mitsubishi]]
+| 719
+| +232
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 9
+| '''1'''
+| '''{{flagicon|FRA}} [[Maxence Gublin]]'''
+| '''[[Land Rover]]'''
+| '''22'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Karolis Raišys]]'''
+| '''[[Land Rover]]'''
+| '''520'''
+|
+|-
+| 2
+| {{flagicon|LTU}} [[Karolis Raišys]]
+| [[Land Rover]]
+| 33
+| +11
+| 2
+| {{flagicon|ESP}} [[Juan Morera (rally driver)|Juan Morera]]
+| [[Porsche]]
+| 694
+| +174
+|-
+| 3
+| {{flagicon|CZE}} [[Ondrej Klymciw]]
+| [[Mitsubishi]]
+| 35
+| +13
+| 3
+| {{flagicon|ITA}} [[Josef Unterholzner]]
+| [[Mitsubishi]]
+| 772
+| +252
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 10
+| '''1'''
+| '''{{flagicon|CZE}} [[Ondrej Klymciw]]'''
+| '''[[Mitsubishi]]'''
+| '''28'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Karolis Raišys]]'''
+| '''[[Land Rover]]'''
+| '''553'''
+|
+|-
+| 2
+| {{flagicon|LTU}} [[Karolis Raišys]]
+| [[Land Rover]]
+| 33
+| +5
+| 2
+| {{flagicon|ITA}} [[Josef Unterholzner]]
+| [[Mitsubishi]]
+| 812
+| +259
+|-
+| 3
+| {{flagicon|POL}} [[Tomasz Staniszewski]]
+| [[Porsche]]
+| 33
+| +5 
+| 3
+| {{flagicon|CZE}} [[Ondrej Klymciw]]
+| [[Mitsubishi]]
+| 832
+| +279
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 11
+| '''1'''
+| '''{{flagicon|INA}} [[Shammie Baridwan]]'''
+| '''[[Toyota]]'''
+| '''22'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Karolis Raišys]]'''
+| '''[[Land Rover]]'''
+| '''588'''
+|
+|-
+| 2
+| {{flagicon|LTU}} [[Karolis Raišys]]
+| [[Land Rover]]
+| 35
+| +13
+| 2
+| {{flagicon|CZE}} [[Ondrej Klymciw]]
+| [[Mitsubishi]]
+| 923
+| +335
+|-
+| 3
+| {{flagicon|FRA}} [[Maxence Gublin]]
+| [[Land Rover]]
+| 35
+| +13
+| 3
+| {{flagicon|ITA}} [[Josef Unterholzner]]
+| [[Mitsubishi]]
+| 1024
+| +436
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 12
+| '''1'''
+| '''{{flagicon|FRA}} [[Maxence Gublin]]'''
+| '''[[Land Rover]]'''
+| '''52'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Karolis Raišys]]'''
+| '''[[Land Rover]]'''
+| '''715'''
+|
+|-
+| 2
+| {{flagicon|CZE}} [[Ondrej Klymciw]]
+| [[Mitsubishi]]
+| 56
+| +4
+| 2
+| {{flagicon|CZE}} [[Ondrej Klymciw]]
+| [[Mitsubishi]]
+| 979
+| +264
+|-
+| 3
+| {{flagicon|CAN}} [[David Bensadoun]]
+| [[Toyota]]
+| 56
+| +4
+| 3
+| {{flagicon|ITA}} [[Josef Unterholzner]]
+| [[Mitsubishi]]
+| 1103
+| +388
+|-
+! colspan=11|
+|- 
+! rowspan="3"| Stage 13
+| '''1'''
+| '''{{flagicon|LTU}} [[Karolis Raišys]]'''
+| '''[[Land Rover]]'''
+| '''20'''
+|
+| '''1'''
+| '''{{flagicon|LTU}} [[Karolis Raišys]]'''
+| '''[[Land Rover]]'''
+| '''735'''
+|
+|-
+| 2
+| {{flagicon|ITA}} [[Filippo Colnaghi]]
+| [[Nissan]]
+| 20
+| 0
+| 2
+| {{flagicon|CZE}} [[Ondrej Klymciw]]
+| [[Mitsubishi]]
+| 1003
+| +268
+|-
+| 3
+| {{flagicon|CZE}} [[Ondrej Klymciw]]
+| [[Mitsubishi]]
+| 24
+| +4
+| 3
+| {{flagicon|ITA}} [[Josef Unterholzner]]
+| [[Mitsubishi]]
+| 1137
+| +402
+|-
+! colspan=11|
+|-
+|}
+
+=== Mission 1000 ===
+{| class="wikitable" style="font-size:85%;"
+|-
+!
+! colspan=5| Stage result
+! colspan=5| General classification
+|-
+! width="40px"| Stage
+! width="30px"| Pos
+! width="200px"| Competitor
+! width="84px"|Make
+! width="40px"|Points
+! width="40px"|Gap
+! width="30px"| Pos
+! width="200px"| Competitor
+! width="77px"|Make
+! width="40px"|Points
+! width="40px"|Gap
+|-
+! rowspan=3| Prologue
+| '''1'''
+| '''{{flagicon|ARG}} [[Benjamin Pascual]]'''
+| '''[[Segway Inc.|Segway]]'''
+| '''15'''
+|
+| '''1'''
+| '''{{flagicon|ARG}} [[Benjamin Pascual]]'''
+| '''[[Segway Inc.|Segway]]'''
+| '''15'''
+|
+|-
+| 2
+| {{flagicon|CHN}} [[Yi Guanghui]]
+| [[Segway Inc.|Segway]]
+| 15
+| 0
+| 2
+| {{flagicon|CHN}} [[Yi Guanghui]]
+| [[Segway Inc.|Segway]]
+| 15
+| 0
+|-
+| 3
+| {{flagicon|CHN}} [[Jie Yang (motorcyclist)|Jie Yang]]
+| [[Segway Inc.|Segway]]
+| 15
+| 0
+| 3
+| {{flagicon|CHN}} [[Jie Yang (motorcyclist)|Jie Yang]]
+| [[Segway Inc.|Segway]]
+| 15
+| 0
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 1
+| '''1'''
+| '''{{flagicon|ARG}} [[Benjamin Pascual]]'''
+| '''[[Segway Inc.|Segway]]'''
+| 10
+| 
+| '''1'''
+| '''{{flagicon|ARG}} [[Benjamin Pascual]]'''
+| '''[[Segway Inc.|Segway]]'''
+| 25
+|
+|-
+| 2
+| {{flagicon|ESP}} [[Jordi Juvanteny]]
+| [[MAN Truck & Bus|MAN]]
+| 10
+| 0
+| 2
+| {{flagicon|CHN}} [[Yi Guanghui]]
+| [[Segway Inc.|Segway]]
+| 25
+| 0
+|-
+| 3
+| {{flagicon|ESP}} [[Miguel Puertas]]
+| Arctic Leopard
+| 10
+| 0
+| 3
+| {{flagicon|CHN}} [[Jie Yang (motorcyclist)|Jie Yang]]
+| [[Segway Inc.|Segway]]
+| 22
+| -3
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 2
+| '''1'''
+| '''{{flagicon|ARG}} [[Benjamin Pascual]]'''
+| '''[[Segway Inc.|Segway]]'''
+| 10
+|
+| '''1'''
+| '''{{flagicon|ARG}} [[Benjamin Pascual]]'''
+| '''[[Segway Inc.|Segway]]'''
+| 35
+|
+|-
+| 2
+| {{flagicon|CHN}} [[Yi Guanghui]]
+| [[Segway Inc.|Segway]]
+| 10
+| 0
+| 2
+| {{flagicon|CHN}} [[Yi Guanghui]]
+| [[Segway Inc.|Segway]]
+| 35
+| 0
+|-
+| 3
+| {{flagicon|ESP}} [[Jordi Juvanteny]]
+| [[MAN Truck & Bus|MAN]]
+| 10
+| 0
+| 3
+| {{flagicon|CHN}} [[Jie Yang (motorcyclist)|Jie Yang]]
+| [[Segway Inc.|Segway]]
+| 32
+| -3
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 3
+| '''1'''
+| '''{{flagicon|ESP}} [[Jordi Juvanteny]]'''
+| '''[[MAN Truck & Bus|MAN]]'''
+| '''15'''
+|
+| '''1'''
+| '''{{flagicon|ARG}} [[Benjamin Pascual]]'''
+| '''[[Segway Inc.|Segway]]'''
+| '''45'''
+|
+|-
+| 2
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+| [[Segway Inc.|Segway]]
+| 10
+| -5
+| 2
+| {{flagicon|CHN}} [[Yi Guanghui]]
+| [[Segway Inc.|Segway]]
+| 45
+| 0
+|-
+| 3
+| {{flagicon|CHN}} [[Yi Guanghui]]
+| [[Segway Inc.|Segway]]
+| 10
+| -5
+| 3
+| {{flagicon|ESP}} [[Jordi Juvanteny]]
+| [[MAN Truck & Bus|MAN]]
+| 45
+| 0
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 4
+| '''1'''
+| '''{{flagicon|ARG}} [[Benjamin Pascual]]'''
+| '''[[Segway Inc.|Segway]]'''
+| '''20'''
+|
+| '''1'''
+| '''{{flagicon|ARG}} [[Benjamin Pascual]]'''
+| '''[[Segway Inc.|Segway]]'''
+| '''65'''
+|
+|-
+| 2
+| {{flagicon|ESP}} [[Jordi Juvanteny]]
+| [[MAN Truck & Bus|MAN]]
+| 15
+| -5
+| 2
+| {{flagicon|CHN}} [[Yi Guanghui]]
+| [[Segway Inc.|Segway]]
+| 60
+| -5
+|-
+| 3
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+| Arctic Leopard
+| 15
+| -5
+| 3
+| {{flagicon|ESP}} [[Jordi Juvanteny]]
+| [[MAN Truck & Bus|MAN]]
+| 60
+| -5
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 5
+| '''1'''
+| '''{{flagicon|ESP}} [[Jordi Juvanteny]]'''
+| '''[[MAN Truck & Bus|MAN]]'''
+| '''30'''
+| 
+| '''1'''
+| '''{{flagicon|ESP}} [[Jordi Juvanteny]]'''
+| '''[[MAN Truck & Bus|MAN]]''' 
+| '''90'''
+|
+|-
+| 2
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+| Arctic Leopard
+| 30
+| 0
+| 2
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+| [[Segway Inc.|Segway]]
+| 85
+| -5
+|-
+| 3
+| {{flagicon|CHN}} [[Jie Yang (motorcyclist)|Jie Yang]]
+| [[Segway Inc.|Segway]]
+| 22
+| -8
+| 3
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+| Arctic Leopard
+| 76
+| -14
+|-
+! colspan=11|
+|- 
+! rowspan="3"| Stage 6
+| '''1'''
+| ''' {{flagicon|ESP}} [[Fran Gómez Pallas]]'''
+| '''Arctic Leopard'''
+| '''10'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Jordi Juvanteny]]'''
+| '''[[MAN Truck & Bus|MAN]]'''
+| '''100'''
+|
+|-
+| 2
+| {{flagicon|ESP}} [[Esther Merino]]
+| Arctic Leopard
+| 10
+| 0
+| 2
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+| [[Segway Inc.|Segway]]
+| 95
+| -5
+|-
+| 3
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+| [[Segway Inc.|Segway]]
+| 10
+| 0
+| 3
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+| Arctic Leopard
+| 86
+| -14
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 7
+| '''1'''
+| '''{{flagicon|ESP}} [[Jordi Juvanteny]]'''
+| '''[[MAN Truck & Bus|MAN]]'''
+| '''22'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Jordi Juvanteny]]'''
+| '''[[MAN Truck & Bus|MAN]]'''
+| '''122'''
+|
+|-
+| 2
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+| Arctic Leopard
+| 20
+| -2
+| 2
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+| [[Segway Inc.|Segway]]
+| 115
+| -7
+|-
+| 3
+| {{flagicon|ESP}} [[Miguel Puertas]]
+| Arctic Leopard
+| 20
+| -2
+| 3
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+| Arctic Leopard
+| 106
+| -16
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 8
+| '''1'''
+| '''{{flagicon|ESP}} [[Jordi Juvanteny]]'''
+| '''[[MAN Truck & Bus|MAN]]'''
+| '''30'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Jordi Juvanteny]]'''
+| '''[[MAN Truck & Bus|MAN]]'''
+| '''152'''
+|
+|-
+| 2
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+| Arctic Leopard
+| 25
+| -5 
+| 2
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+| Arctic Leopard
+| 131
+| -21
+|-
+| 3
+| {{flagicon|ESP}} [[Esther Merino]]
+| Arctic Leopard
+| 15
+| -15
+| 3
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+| [[Segway Inc.|Segway]]
+| 130
+| -22
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 9
+| '''1'''
+| '''{{flagicon|ARG}} [[Benjamin Pascual]]'''
+| '''[[Segway Inc.|Segway]]'''
+| '''20'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Jordi Juvanteny]]'''
+| '''[[MAN Truck & Bus|MAN]]'''
+| '''167'''
+|
+|-
+| 2
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+| Arctic Leopard
+| 20
+| 0
+| 2
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+| Arctic Leopard
+| 151
+| -16
+|-
+| 3
+| {{flagicon|CHN}} [[Jie Yang (motorcyclist)|Jie Yang]]
+| [[Segway Inc.|Segway]]
+| 20
+| 0
+| 3
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+| [[Segway Inc.|Segway]]
+| 150
+| -17
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 10
+| '''1'''
+| '''{{flagicon|ESP}} [[Fran Gómez Pallas]]'''
+| '''Arctic Leopard'''
+| '''20'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Jordi Juvanteny]]'''
+| '''[[MAN Truck & Bus|MAN]]'''
+| '''182'''
+|
+|-
+| 2
+| {{flagicon|ESP}} [[Esther Merino]]
+| Arctic Leopard
+| 20
+| 0
+| 2
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+| Arctic Leopard
+| 171
+| -11
+|-
+| 3
+| {{flagicon|ESP}} [[Jordi Juvanteny]]
+| [[MAN Truck & Bus|MAN]]
+| 15
+| -5 
+| 3
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+| [[Segway Inc.|Segway]]
+| 165
+| -17
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 11
+| '''1'''
+| '''{{flagicon|ESP}} [[Jordi Juvanteny]]'''
+| '''[[MAN Truck & Bus|MAN]]'''
+| '''20'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Jordi Juvanteny]]'''
+| '''[[MAN Truck & Bus|MAN]]'''
+| '''202'''
+|
+|-
+| 2
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+| Arctic Leopard
+| 20
+| 0
+| 2
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+| Arctic Leopard
+| 191
+| -11
+|-
+| 3
+| {{flagicon|ESP}} [[Esther Merino]]
+| Arctic Leopard
+| 20
+| 0
+| 3
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+| [[Segway Inc.|Segway]]
+| 180
+| -22
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 12
+| '''1'''
+| '''{{flagicon|ESP}} [[Esther Merino]]'''
+| '''Arctic Leopard'''
+| '''20'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Jordi Juvanteny]]'''
+| '''[[MAN Truck & Bus|MAN]]'''
+| '''217'''
+|
+|-
+| 2
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+| Arctic Leopard
+| 20
+| 0
+| 2
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+| Arctic Leopard
+| 211
+| -6
+|-
+| 3
+| {{flagicon|ESP}} [[Miguel Puertas]]
+| Arctic Leopard
+| 20
+| 0
+| 3
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+| [[Segway Inc.|Segway]]
+| 189
+| -28
+|-
+! colspan=11|
+|-
+! rowspan="3"| Stage 13
+| '''1'''
+| '''{{flagicon|ARG}} [[Benjamin Pascual]]'''
+| '''[[Segway Inc.|Segway]]'''
+| '''20'''
+|
+| '''1'''
+| '''{{flagicon|ESP}} [[Jordi Juvanteny]]'''
+| '''[[MAN Truck & Bus|MAN]]'''
+| '''237'''
+|
+|-
+| 2
+| {{flagicon|ESP}} [[Jordi Juvanteny]]
+| [[MAN Truck & Bus|MAN]]
+| 20
+| 0
+| 2
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+| Arctic Leopard
+| 231
+| -6
+|-
+| 3
+| {{flagicon|CHN}} [[Yi Guanghui]]
+| [[Segway Inc.|Segway]]
+| 20
+| 0
+| 3
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+| [[Segway Inc.|Segway]]
+| 209
+| -28
+|-
+! colspan=11|
+|-
+|}
+
+== Final standings ==
+
+===Bikes===
+{| class="wikitable" style="width:50em;margin-bottom:0;"
+! colspan=5| Final standings (positions 1–10)<ref name="Final Standings">{{cite web|url=https://www.dakar.com/en/rankings|title=2026 Rankings after stage 13|access-date=January 17, 2026|website=Dakar.com|publisher=ASO}}</ref>
+|-
+!Rank
+! style="width:250px;"|Rider
+! style="width:200px;"|Bike
+! style="width:70px;"|Time
+! style="width:70px;"|Difference
+|- style="background:#e3e4e5;"
+! 1
+| {{flagicon|ARG}} [[Luciano Benavides]]
+| [[KTM 450 Rally|KTM 450 Rally Factory]]
+| 49:00:41
+|
+|- style="background:#e3e4e5;"
+! 2
+| {{flagicon|USA}} [[Ricky Brabec]]
+| [[Honda CRF450R|Honda CRF 450]]
+| 49:00:43
+| +00:00:02
+|- style="background:#e3e4e5;"
+! 3
+| {{flagicon|ESP}} [[Tosha Schareina]]
+| [[Honda CRF450R|Honda CRF 450]]
+| 49:25:53
+| +00:25:12
+|-
+! 4
+| {{flagicon|USA}} [[Skyler Howes]]
+| [[Honda CRF450R|Honda CRF 450]]
+| 49:57:22
+| +00:56:41
+|-
+! 5
+| {{flagicon|AUS}} [[Daniel Sanders (motorcyclist)|Daniel Sanders]]
+| [[KTM 450 Rally|KTM 450 Rally Factory]]
+| 50:03:56
+| +01:03:15
+|-
+! 6
+| {{flagicon|FRA}} [[Adrien Van Beveren]]
+| [[Honda CRF450R|Honda CRF 450]]
+| 50:05:27
+| +01:04:46
+|-
+! 7
+| {{flagicon|CHI}} [[José Ignacio Cornejo]]
+| [[Hero MotoCorp|Hero]] 450 Rally
+| 50:40:31
+| +01:39:50
+|-
+! 8
+| {{flagicon|BOT}} [[Ross Branch (motorcyclist)|Ross Branch]]
+| [[Hero MotoCorp|Hero]] 450 Rally
+| 51:49:56
+| +02:49:15
+|-
+! 9
+| {{flagicon|SLO}} [[Toni Mulec]]
+| [[KTM 450 Rally|KTM 450 Rally Factory Replica]]
+| 51:57:59
+| +02:57:18
+|-
+! 10
+| {{flagicon|USA}} [[Preston Campbell (motorcyclist)|Preston Campbell]]
+| [[Honda CRF450R|Honda CRF 450]]
+| 52:02:36
+| +03:01:55
+|-
+|}
+
+====Rally2 Bikes====
+The Rally2 class for bikes refers to Rally2 entries eligible for the FIM World Rally-Raid Cup.
+
+{| class="wikitable" style="width:50em;margin-bottom:0;"
+! colspan=5| Final standings (positions 1–10)<ref name="Final Standings">{{cite web|url=https://www.dakar.com/en/rankings|title=2026 Rankings after stage 13|access-date=January 17, 2026|website=Dakar.com|publisher=ASO}}</ref>
+|-
+!Rank
+! style="width:250px;"|Rider
+! style="width:200px;"|Bike
+! style="width:70px;"|Time
+! style="width:70px;"|Difference
+|- style="background:#e3e4e5;"
+! 1
+| {{flagicon|SLO}} [[Toni Mulec]]
+| [[KTM 450 Rally|KTM 450 Rally Factory Replica]]
+| 51:57:59
+|
+|- style="background:#e3e4e5;"
+! 2
+| {{flagicon|USA}} [[Preston Campbell (motorcyclist)|Preston Campbell]]
+| [[Honda CRF450R|Honda CRF 450]]
+| 52:02:36
+| +00:04:37
+|- style="background:#e3e4e5;"
+! 3
+| {{flagicon|POR}} [[Martim Ventura]]
+| [[Honda CRF450R|Honda CRF 450]]
+| 53:35:14
+| +01:37:15
+|-
+! 4
+| {{flagicon|POL}} [[Konrad Dąbrowski]]
+| [[KTM 450 Rally|KTM 450 Rally Factory Replica]]
+| 54:20:39
+| +02:22:40
+|-
+! 5
+| {{flagicon|LTU}} [[Nerimantas Jucius]]
+| [[Honda CRF450R|Honda CRF 450]]
+| 54:36:02
+| +02:38:03
+|-
+! 6
+| {{flagicon|MGL}} [[Khaliunbold Erdenebileg]]
+| [[KTM 450 Rally|KTM 450 Rally Factory Replica]]
+| 54:43:42
+| +02:45:43
+|-
+! 7
+| {{flagicon|POR}} [[Bruno Santos (motorcyclist)|Bruno Santos]]
+| [[Husqvarna Motorcycles|Husqvarna]] 450 Rally Factory Replica
+| 55:23:15
+| +03:25:16
+|-
+! 8
+| {{flagicon|FRA}} [[Benjamin Melot]]
+| [[KTM 450 Rally|KTM 450 Rally Factory Replica]]
+| 55:48:52
+| +03:50:53
+|-
+! 9
+| {{flagicon|ESP}} [[Josep Pedró]]
+| [[Husqvarna Motorcycles|Husqvarna]] 450 Rally Replica
+| 56:03:24
+| +04:05:25
+|-
+! 10
+| {{flagicon|CZE}} [[Milan Engel]]
+| Kove 450 Rally
+| 56:04:22
+| +04:06:23
+|-
+|}
+
+====Original by Motul====
+The Original by Motul class, also known as the Malle Moto class, refers to bikes and quads competitors competing without any kind of assistance. The organizers provide 1 trunk per competitor for storage of the personal belongings, spare parts and tools. Competitors are only allowed to bring 1 headlight, 1 set of wheels, 1 set of tyres, 1 tent with sleeping bag and mattress, 1 travel bag and 1x 25 liter (6.6 gallon) backpack. Organizers allow free use of the generators, compressors and tool-boxes in the bivouac.
+{| class="wikitable" style="width:50em;margin-bottom:0;"
+! colspan=5| Final standings (positions 1–10)<ref name="Final Standings">{{cite web|url=https://www.dakar.com/en/rankings|title=2026 Rankings after stage 13|access-date=January 17, 2026|website=Dakar.com|publisher=ASO}}</ref>
+|-
+!Rank
+! style="width:250px;"|Rider
+! style="width:200px;"|Bike
+! style="width:70px;"|Time
+! style="width:70px;"|Difference
+|- style="background:#e3e4e5;"
+! 1
+| {{flagicon|FRA}} [[Benjamin Melot]]
+| [[KTM 450 Rally|KTM 450 Rally Factory Replica]]
+| 55:48:52
+| 
+|- style="background:#e3e4e5;"
+! 2
+| {{flagicon|ESP}} [[Josep Pedró]]
+| [[Husqvarna Motorcycles|Husqvarna]] 450 Rally Replica
+| 56:03:24
+| +00:14:32
+|- style="background:#e3e4e5;"
+! 3
+| {{flagicon|BEL}} [[Jérôme Martiny]]
+| [[Honda CRF450R|Honda CRF 450]]
+| 57:13:35
+| +01:24:43
+|-
+! 4
+| {{flagicon|ROM}} [[Emanuel Gyenes]]
+| [[KTM 450 Rally|KTM 450 Rally Factory Replica]]
+| 59:20:47
+| +03:31:55
+|-
+! 5
+| {{flagicon|ESP}} [[Javier Vega (motorcyclist)|Javier Vega]]
+| Kove 450 Rally
+| 60:16:13
+| +04:27:21
+|-
+! 6
+| {{flagicon|DEU}} [[Maxi Schek]]
+| [[KTM 450 Rally|KTM 450 Rally Factory Replica]]
+| 60:52:43
+| +05:03:51
+|-
+! 7
+| {{flagicon|CZE}} [[David Pabiška]]
+| [[KTM 450 Rally|KTM 450 Rally Factory Replica]]
+| 62:29:00
+| +06:40:08
+|-
+! 8
+| {{flagicon|ITA}} [[Tiziano Interno]]
+| [[KTM 450 Rally|KTM 450 Rally Factory Replica]]
+| 63:29:19
+| +07:40:27
+|-
+! 9
+| {{flagicon|FRA}} [[Florian Bancilhon]]
+| [[KTM 450 Rally|KTM 450 Rally Factory Replica]]
+| 63:38:01
+| +07:49:09
+|-
+! 10
+| {{flagicon|ITA}} [[Andrea Gava]]
+| Kove 450 Rally
+| 63:47:37
+| +07:58:45
+|-
+|}
+
+===Cars===
+{| class="wikitable" style="width:70em;margin-bottom:0;"
+! colspan=6| Final standings (positions 1–10)<ref name="Final Standings" />
+|-
+!Rank
+! Driver
+! Co-Driver
+! Car
+! Time
+! Difference
+|- style="background:#e3e4e5;"
+! 1
+| {{flagicon|QAT}} [[Nasser Al-Attiyah]]
+| {{flagicon|BEL}} [[Fabian Lurquin]]
+| [[Dacia Sandrider]]
+| 48:56:53
+|
+|- style="background:#e3e4e5;"
+! 2
+| {{flagicon|ESP}} [[Nani Roma]]
+| {{flagicon|ESP}} [[Alex Haro]]
+| [[Ford Raptor]]
+| 49:06:35
+| +00:09:42
+|- style="background:#e3e4e5;"
+! 3
+| {{flagicon|SWE}} [[Mattias Ekström]]
+| {{flagicon|SWE}} [[Emil Bergkvist]]
+| [[Ford Raptor]]
+| 49:11:26
+| +00:14:33
+|-
+! 4
+| {{flagicon|FRA}} [[Sébastien Loeb]]
+| {{flagicon|FRA}} [[Edouard Boulanger]]
+| [[Dacia Sandrider]]
+| 49:12:03
+| +00:15:10
+|-
+! 5
+| {{flagicon|ESP}} [[Carlos Sainz Sr.|Carlos Sainz]]
+| {{flagicon|ESP}} [[Lucas Cruz]]
+| [[Ford Raptor]]
+| 49:25:23
+| +00:28:30
+|-
+! 6
+| {{flagicon|FRA}} [[Mathieu Serradori]]
+| {{flagicon|FRA}} [[Loïc Minaudier]]
+| Century CR7
+| 49:41:55
+| +00:45:02
+|-
+! 7
+| {{flagicon|BRA}} [[Lucas Moraes]]
+| {{flagicon|DEU}} [[Dennis Zenz]]
+| [[Dacia Sandrider]]
+| 49:44:43
+| +00:47:50
+|-
+! 8
+| {{flagicon|AUS}} [[Toby Price]]
+| {{flagicon|ESP}} [[Armand Monleon]]
+| [[Toyota Hilux Dakar|Toyota Hilux GR]]
+| 49:49:00
+| +00:52:07
+|-
+! 9
+| {{flagicon|USA}} [[Seth Quintero]]
+| {{flagicon|USA}} [[Andrew Short]]
+| [[Toyota Hilux Dakar|Toyota Hilux GR]]
+| 50:11:55
+| +01:15:02
+|-
+! 10
+| {{flagicon|RSA}} [[Saood Variawa]]
+| {{flagicon|FRA}} [[François Cazalet]]
+| [[Toyota Hilux Dakar|Toyota Hilux IMT EVO]]
+| 50:20:29
+| +01:23:36
+|-
+|}
+
+===Stock===
+{| class="wikitable" style="width:70em;margin-bottom:0;"
+! colspan=6| Final standings (positions 1–7)<ref name="Final Standings" />
+|-
+!Rank
+! Driver
+! Co-Driver
+! Car
+! Time
+! Difference
+|- style="background:#e3e4e5;"
+! 1
+| {{flagicon|LTU}} [[Rokas Baciuška]]
+| {{flagicon|ESP}} Oriol Vidal
+| [[Land Rover Defender (L663)|Defender]] Dakar D7X-R
+| 58:09:45
+|
+|- style="background:#e3e4e5;"
+! 2
+| {{flagicon|USA}} [[Sara Price]]
+| {{flagicon|USA}} Sean Berriman
+| [[Land Rover Defender (L663)|Defender]] Dakar D7X-R
+| 62:07:45
+| +03:58:00
+|- style="background:#e3e4e5;"
+! 3
+| {{flagicon|FRA}} Ronald Basso
+| {{flagicon|FRA}} Julien Menard
+| [[Toyota Land Cruiser]] GR Sport
+| 66:44:14
+| +08:34:29
+|-
+! 4
+| {{flagicon|FRA}} [[Stéphane Peterhansel]]
+| {{flagicon|FRA}} Michaël Metge
+| [[Land Rover Defender (L663)|Defender]] Dakar D7X-R
+| 96:25:55
+| +38:16:10
+|-
+! 5
+| {{flagicon|JPN}} Akira Miura
+| {{flagicon|FRA}} Jean-Michel Polato
+| [[Toyota Land Cruiser]] GR Sport
+| 145:52:44
+| +87:42:59
+|-
+! 6
+| {{flagicon|HUN}} Peter Hamza
+| {{flagicon|AUT}} Andras Kalmar
+| [[Nissan Patrol]]
+| 201:13:11
+| +143:03:26
+|-
+! 7
+| {{flagicon|SAU}} Majed Al-Thunayan
+| {{flagicon|SAU}} Hani Al-Noumesi
+| [[Nissan Patrol]]
+| 267:22:02
+| +209:12:17
+|}
+
+===Challenger (T3)===
+{| class="wikitable" style="width:70em;margin-bottom:0;"
+! colspan=6| Final standings (positions 1–10)<ref name="Final Standings" />
+|-
+!Rank
+! Driver
+! Co-Driver
+! Car
+! Time
+! Difference
+|- style="background:#e3e4e5;"
+! 1
+| {{flagicon|ESP}} [[Pau Navarro (racing driver)|Pau Navarro]]
+| {{flagicon|ESP}} [[Jan Rosa]]
+| Taurus T3 Max
+| 54:46:21
+|
+|- style="background:#e3e4e5;"
+! 2
+| {{flagicon|SAU}} [[Yasir Seaidan]]
+| {{flagicon|FRA}} [[Xavier Flick]]
+| Taurus EVO Max
+| 55:09:43
+| +00:23:22
+|- style="background:#e3e4e5;"
+! 3
+| {{flagicon|ARG}} [[Nicolás Cavigliasso]]
+| {{flagicon|ARG}} [[Valen Pertegarini]]
+| Taurus EVO Max
+| 55:22:13
+| +00:35:52
+|-
+! 4
+| {{flagicon|CHI}} [[Lucas del Rio]]
+| {{flagicon|ARG}} [[Bruno Jacomy]]
+| Taurus T3 Max
+| 55:23:30
+| +00:37:09
+|- 
+! 5
+| {{flagicon|NLD}} [[Puck Klaassen]]
+| {{flagicon|ARG}} [[Augusto Sanz]]
+| GRallyteam G-Ecko
+| 55:40:33
+| +00:54:12
+|-
+! 6
+| {{flagicon|CHI}} [[Ignacio Casale]]
+| {{flagicon|BRA}} [[Carlos Sachs]]
+| Taurus T3 Max
+| 56:40:41
+| +01:54:20
+|-
+! 7
+| {{flagicon|ARG}} [[Kevin Benavides]]
+| {{flagicon|ARG}} [[Lisandro Sisterna]]
+| Taurus T3 Max
+| 57:19:11
+| +02:32:50
+|-
+! 8
+| {{flagicon|SAU}} [[Dania Akeel]]
+| {{flagicon|FRA}} [[Sébastien Delaunay]]
+| Taurus T3 Max
+| 57:22:26
+| +02:36:50
+|-
+! 9
+| {{flagicon|NLD}} [[Paul Spierings]]
+| {{flagicon|NLD}} [[Jan Pieter van der Stelt]]
+| Taurus EVO Max
+| 57:59:07
+| +03:12:46
+|-
+! 10
+| {{flagicon|ARG}} [[David Zille]]
+| {{flagicon|ARG}} [[Sebastian Cesana]]
+| Taurus T3 Max
+| 58:14:46
+| +03:28:25
+|-
+|}
+
+===SSV (T4)===
+{| class="wikitable" style="width:70em;margin-bottom:0;"
+! colspan=6| Final standings (positions 1–10)<ref name="Final Standings" />
+|-
+!Rank
+! Driver
+! Co-Driver
+! Car
+! Time
+! Difference
+|- style="background:#e3e4e5;"
+! 1
+| {{flagicon|USA}} [[Brock Heger]]
+| {{flagicon|USA}} [[Max Eddy]]
+| [[Polaris RZR|Polaris RZR Pro R]]
+| 55:11:56
+| 
+|- style="background:#e3e4e5;"
+! 2
+| {{flagicon|USA}} [[Kyle Chaney]]
+| {{flagicon|USA}} [[Jacob Argubright]]
+| [[Can-Am Off-Road|BRP Can-Am Maverick R]]
+| 56:13:35
+| +01:01:39
+|- style="background:#e3e4e5;"
+! 3
+| {{flagicon|FRA}} [[Xavier de Soultrait]]
+| {{flagicon|FRA}} [[Martin Bonnet (co-driver)|Martin Bonnet]]
+| [[Polaris RZR|Polaris RZR Pro R]]
+| 56:37:21
+| +01:25:25
+|-
+! 4
+| {{flagicon|POR}} [[Joao Monteiro (rally driver)|Joao Monteiro]]
+| {{flagicon|POR}} [[Nuno Morais (co-driver)|Nuno Morais]]
+| [[Can-Am Off-Road|BRP Can-Am Maverick R]] 
+| 57:39:21
+| +02:27:25
+|-
+! 5
+| {{flagicon|ARG}} [[Jeremías Gonzalez Ferioli]]
+| {{flagicon|ARG}} [[Gonzalo Rinaldi]]
+| [[Can-Am Off-Road|BRP Can-Am Maverick R]] 
+| 58:02:40
+| +02:50:44
+|-
+! 6
+| {{flagicon|CHI}} [[Francisco López Contardo]]
+| {{flagicon|CHI}} [[Álvaro Leon]]
+| [[Can-Am Off-Road|BRP Can-Am Maverick R]] 
+| 58:10:50
+| +02:58:54
+|-
+! 7
+| {{flagicon|ARG}} [[Manuel Andújar (motorcyclist)|Manuel Andújar]]
+| {{flagicon|ARG}} [[Andres Frini]]
+| [[Can-Am Off-Road|BRP Can-Am Maverick R]] 
+| 58:49:33
+| +03:37:37
+|-
+! 8
+| {{flagicon|SWE}} [[Johan Kristoffersson]]
+| {{flagicon|NOR}} [[Ola Fløene]]
+| [[Polaris RZR|Polaris RZR Pro R]]
+| 59:12:20
+| +04:00:24
+|-
+! 9
+| {{flagicon|POL}} [[Maciej Oleksowicz]]
+| {{flagicon|POL}} [[Marcin Sienkiewicz]]
+| [[Can-Am Off-Road|BRP Can-Am Maverick R]] 
+| 63:56:50
+| +08:44:54
+|-
+! 10
+| {{flagicon|FRA}} [[Gauthier Honvault]]
+| {{flagicon|FRA}} [[Delphine Delfino]]
+| [[Can-Am Off-Road|BRP Can-Am Maverick R]] 
+| 64:27:48
+| +09:15:52
+|-
+|}
+
+===Trucks===
+{| class="wikitable" style="width:70em;margin-bottom:0;"
+! colspan=7| Final standings (positions 1–10)<ref name="Final Standings" />
+|-
+!Rank
+! Driver
+! Co-Driver
+! Technician
+! Truck
+! Time
+! Difference
+|- style="background:#e3e4e5;"
+! 1
+| {{flagicon|LTU}} [[Vaidotas Žala]]
+| {{flagicon|POR}} [[Paulo Fiuza]]
+| {{flagicon|NLD}} [[Max van Grol]]
+| [[Iveco PowerStar]]
+| 56:58:38
+|
+|- style="background:#e3e4e5;"
+! 2
+| {{flagicon|CZE}} [[Aleš Loprais]]
+| {{flagicon|CZE}} [[David Kripal]]
+| {{flagicon|CZE}} [[Jiri Stross]]
+| [[Iveco PowerStar]]
+| 57:18:56
+| +00:20:18
+|- style="background:#e3e4e5;"
+! 3
+| {{flagicon|NLD}} [[Mitchel van den Brink]]
+| {{flagicon|NLD}} [[Bart van Heun]]
+| {{flagicon|NLD}} [[Jarno van de Pol]]
+| [[Iveco PowerStar]]
+| 57:27:41
+| +00:29:03
+|-
+! 4
+| {{flagicon|CZE}} [[Martin Macík]]
+| {{flagicon|CZE}} [[František Tomášek (co-driver)|František Tomášek]]
+| {{flagicon|CZE}} [[David Svanda]]
+| MM Technology [[Iveco]] Dakar EVO4
+| 61:34:44
+| +04:36:06
+|-
+! 5
+| {{flagicon|NLD}} [[Richard de Groot]]
+| {{flagicon|NLD}} [[Martijn van Rooij]]
+| {{flagicon|NLD}} [[Jan Hulsebosch]]
+| [[Iveco PowerStar]]
+| 62:11:46
+| +05:13:08
+|-
+! 6
+| {{flagicon|CZE}} [[Michal Valtr]]
+| {{flagicon|CZE}} [[Lukas Kvasnica]]
+| {{flagicon|CZE}} [[Radim Kaplanek]]
+| [[Iveco PowerStar]]
+| 63:16:57
+| +06:18:19
+|-
+! 7
+| {{flagicon|NLD}} [[Kay Huzink]]
+| {{flagicon|NLD}} [[Rob Buursen]]
+| {{flagicon|NLD}} [[Gerrit Schoneveld]]
+| [[Renault Trucks C|Renault C460 EVO 4]]
+| 63:17:34
+| +06:18:56
+|-
+! 8
+| {{flagicon|NLD}} [[Martin van den Brink]]
+| {{flagicon|BEL}} [[Peter Willemsen]]
+| {{flagicon|NLD}} [[Rijk Mouw]]
+| [[Iveco PowerStar]]
+| 64:40:45
+| +07:42:07
+|-
+! 9
+| {{flagicon|ITA}} [[Claudio Bellina]]
+| {{flagicon|ITA}} [[Marco Arnoletti]]
+| {{flagicon|ITA}} [[Bruno Gotti]]
+| MM Technology [[Iveco]] Dakar EVO4
+| 71:38:21
+| +14:39:43
+|-
+! 10
+| {{flagicon|NLD}} [[Marnix Leeuw]]
+| {{flagicon|NLD}} [[Marco Siemons]]
+| {{flagicon|NLD}} [[Bert van Donkelaar]]
+| [[Iveco PowerStar]]
+| 73:53:15
+| +16:54:37
+|-
+|}
+
+===Classics===
+{| class="wikitable" style="width:70em;margin-bottom:0;"
+! colspan=7| Final standings (positions 1–10)<ref name="Final Standings" />
+|-
+!Rank
+! Driver
+! Co-Driver
+! Technician
+! Vehicle
+! Points
+! Difference
+|- style="background:#e3e4e5;"
+! 1
+| {{flagicon|LTU}} [[Karolis Raišys]]
+| {{flagicon|FRA}} [[Christophe Marques]]
+| align="center" | <small>''No technician''</small>
+| [[Land Rover Defender]]
+| 735
+|
+|- style="background:#e3e4e5;"
+! 2
+| {{flagicon|CZE}} [[Ondrej Klymciw]]
+| {{flagicon|CZE}} [[Josef Broz]]
+| align="center" | <small>''No technician''</small>
+| [[Mitsubishi Pajero]]
+| 1003
+| +268
+|- style="background:#e3e4e5;"
+! 3
+| {{flagicon|ITA}} [[Josef Unterholzner]]
+| {{flagicon|ITA}} [[Franco Gaioni]]
+| align="center" | <small>''No technician''</small>
+| [[Mitsubishi Pajero]]
+| 1137
+| +402
+|-
+! 4
+| {{flagicon|ITA}} [[Marco Ernesto Leva]]
+| {{flagicon|ITA}} [[Alexia Giugni]]
+| align="center" | <small>''No technician''</small>
+| [[Mitsubishi Pajero]]
+| 1230
+| +495
+|-
+! 5
+| {{flagicon|INA}} [[Julian Johan]]
+| {{flagicon|FRA}} [[Mathieu Monplaisi]]
+| align="center" | <small>''No technician''</small>
+| [[Toyota Land Cruiser|Toyota HDJ 100]]
+| 1357
+| +622
+|-
+! 6
+| {{flagicon|POL}} [[Mariusz Pietrzycki]]
+| {{flagicon|POL}} [[Kamil Jablonski]]
+| align="center" | <small>''No technician''</small>
+| [[Toyota Land Cruiser|Toyota HDJ 80]]
+| 1377
+| +642
+|-
+! 7
+| {{flagicon|INA}} [[Shammie Baridwan]]
+| {{flagicon|LTU}} [[Ignas Daunoravičius]]
+| align="center" | <small>''No technician''</small>
+| [[Toyota Land Cruiser|Toyota HZJ 78]]
+| 1393
+| +658
+|-
+! 8
+| {{flagicon|ITA}} [[Francesco Pece]]
+| {{flagicon|ITA}} [[Simona Morosi]]
+| align="center" | <small>''No technician''</small>
+| [[Nissan Terrano]]
+| 1513
+| +778
+|-
+! 9
+| {{flagicon|POL}} [[Tomasz Białkowski]]
+| {{flagicon|POL}} [[Dariusz Baskiewicz]]
+| {{flagicon|POL}} [[Adam Grodzki]]
+| [[DAF F241 series|DAF Bull]]
+| 1553
+| +818
+|-
+! 10
+| {{flagicon|DEU}} [[Jörg Sand]]
+| {{flagicon|NLD}} [[Onno den Boer]]
+| align="center" | <small>''No technician''</small>
+| [[Mercedes-Benz G-Class|Mercedes Classe G]]
+| 1615
+| +880
+|-
+|}
+
+===Mission 1000===
+{| class="wikitable" style="width:70em;margin-bottom:0;"
+! colspan=7| Final standings (positions 1–7)<ref name="Final Standings" />
+|-
+!Rank
+! Driver
+! Co-Driver
+! Technician
+! Vehicle
+! Points
+! Difference
+|- style="background:#e3e4e5;"
+! 1
+| {{flagicon|ESP}} [[Jordi Juvanteny]]
+| {{flagicon|ESP}} [[José Luis Criado]]
+| {{flagicon|ESP}} [[Xavier Ribas (co-driver)|Xavier Ribas]]
+| [[MAN TG-range|MAN TGA]]
+| 237
+|
+|- style="background:#e3e4e5;"
+! 2
+| {{flagicon|ESP}} [[Fran Gómez Pallas]]
+| align="center" | <small>''No co-driver''</small>
+| align="center" | <small>''No technician''</small>
+| Arctic Leopard EXE 880 Rally
+| 231
+| -6
+|- style="background:#e3e4e5;"
+! 3
+| {{flagicon|ARG}} [[Benjamin Pascual]]
+| align="center" | <small>''No co-driver''</small>
+| align="center" | <small>''No technician''</small>
+| [[Segway Inc.|Segway]]
+| 209
+| -28
+|-
+! 4
+| {{flagicon|ESP}} [[Esther Merino]]
+| align="center" | <small>''No co-driver''</small>
+| align="center" | <small>''No technician''</small>
+| Arctic Leopard EXE 880 Rally
+| 208
+| -29
+|-
+! 5
+| {{flagicon|ESP}} [[Miguel Puertas]]
+| align="center" | <small>''No co-driver''</small>
+| align="center" | <small>''No technician''</small>
+| Arctic Leopard EXE 880 Rally
+| 200
+| -37
+|-
+! 6
+| {{flagicon|CHN}} [[Yi Guanghui]]
+| align="center" | <small>''No co-driver''</small>
+| align="center" | <small>''No technician''</small>
+| [[Segway Inc.|Segway]]
+| 197
+| -40
+|-
+! 7
+| {{flagicon|CHN}} [[Jie Yang (motorcyclist)|Jie Yang]]
+| align="center" | <small>''No co-driver''</small>
+| align="center" | <small>''No technician''</small>
+| [[Segway Inc.|Segway]]
+| 193
+| -44
+|-
+|}
+
+==Notes== 
+{{notelist}}
+
+==References==
+{{Reflist}}
+
+==External links==
+*{{Official website|https://www.dakar.com/en/}}
+
+{{Dakar Rally}}
+
+[[Category:Dakar Rally by year]]
+[[Category:Saudi Arabia sport-related lists]]
+[[Category:2026 in rally raid|Dakar]]
+[[Category:2026 in Saudi Arabian motorsport|Dakar Rally]]
+[[Category:January 2026 sports events in Saudi Arabia|Dakar Rally]

@@ -208,6 +208,26 @@ How the app moves (what animates, what must hold still, timings, rules for new U
   is "next", not "last" (Store.race_edges uses the end time), so a series is never off-season mid-race. The champion
   needs a table saved after the last race. Race-weekend behaviour is
   otherwise untouched.
+- The Dakar (lightsout/dakar.py, /api/dakar, event page `dakar`, Pick'em series w2rc): the English Wikipedia article
+  "<year> Dakar Rally" (CC BY-SA, credited on every view; dakar.com refuses automated requests). Its tables are the same
+  every year: Stages (date, start, finish, special/total km; rest days and transfers kept), Stage winners, Stage results
+  per class (each row = the stage's Nth place then the overall Nth place: top three of each), Final standings (top ten;
+  cars carry the co-driver). Parsed from wikitext (tables(): rows/cells with rowspan/colspan, clean() strips refs,
+  templates and links). dakar.loop: from BEFORE_DAYS (45) before the start, daily; from the day before to AFTER_DAYS
+  (3) after, every 15 min, a revision check first and the page only when it changed (cache key dakar:<year>);
+  last year's article once (the Pick'em field). Which Dakar = the w2rc event named Dakar not over for 14 days (the
+  calendar entry stays one spanning manual.yaml event; the stage list comes from the article). Alerts: each stage's
+  Bikes and Cars winners (+ overall leader, your followed names in either top three, your pick), sent key
+  dakar:<year>:<stage>:<class> to anyone with W2RC switched on and results alerts on, once the same winner has been
+  read twice (a POLL apart: a reverted vandal edit never goes out); a later class repeats the earlier one (same
+  notification tag); stages over a day old and the first copy ever read are marked, not sent. Home card (/api/dakar answers from the day before to the day after),
+  event page = today's stage, Bikes/Cars switch (stage + overall top three), other classes folded, final top ten,
+  every stage with its winners; it replaces the "timetable TBA" schedule card. Pick'em: Dakar tab from 14 days before
+  to 10 days after (open_window, sent in `choices`), per stage a Bikes and a Cars winner (table dakar_pick), 1 point
+  each, closing 05:00 UTC on the stage's day (6 am Morocco); points are worked out from the article on every read,
+  so a corrected result corrects the table. Field (25 per class) = this year's overall order and stage top threes,
+  then last year's top ten and stage top threes. Tests: tests/test_dakar.py with credited fixtures of the 2026/2027
+  articles.
 - Standings extras (app.season_story, added to /api/series/<id>/standings): `rounds` (every saved race this season,
   each name's finish: the season ribbon, winner tiles in the winner's team colour, your driver's finish under each),
   `left` (events after the newest round with a race, sprint or rally day: "N races left", "Season complete" at 0 with

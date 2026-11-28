@@ -1,0 +1,147 @@
+<!-- Test fixture: the Stages-to-standings sections of the English Wikipedia article "2027 Dakar Rally" (revision 1387649862), https://en.wikipedia.org/wiki/2027_Dakar_Rally, by its editors, CC BY-SA 4.0. -->
+== Stages ==
+{| class="wikitable" style="font-size:85%;"
+! rowspan="2" |Stage<ref name="stage"/>
+! colspan="2" rowspan="2" |Date
+! rowspan="2" |Start
+! rowspan="2" |Finish
+! |Special (km)
+! |Total (km)
+|-
+!FIM & FIA
+!FIM & FIA
+|-
+|Prologue
+|Saturday
+|9 January 2027
+|[[Loulé]]
+|Loulé
+|style="text-align: center;" |29
+|style="text-align: center;" |129
+|-
+|1
+|Sunday
+|10 January 2027
+|Loulé
+|Loulé
+|style="text-align: center;" |100
+|style="text-align: center;"  |300
+|-
+|Transfer
+|Monday
+|11 January 2027
+|Loulé
+|[[Bouarfa, Morocco|Bouârfa]]
+|style="text-align: center;" |-
+|style="text-align: center;"  |-
+|-
+|2
+|Tuesday
+|12 January 2027
+|Bouârfa
+|Bouârfa
+|style="text-align: center;" |390
+|style="text-align: center;"  |490
+|-
+|3
+|Wednesday
+|13 January 2027
+|Bouârfa
+|Bouârfa
+|style="text-align: center;" |410
+|style="text-align: center;"  |490
+|-
+|4
+|Thursday
+|14 January 2027
+|Bouârfa
+|[[Zagora, Morocco|Zagora]]
+|style="text-align: center;" |490
+|style="text-align: center;"  |750
+|-
+|5
+|Friday
+|15 January 2027
+|Zagora
+|Zagora
+|style="text-align: center;" |365
+|style="text-align: center;"  |540
+|-
+|6
+|Saturday
+|16 January 2027
+|Zagora
+|[[Agadir]]
+|style="text-align: center;" |365
+|style="text-align: center;"  |760
+|-
+|Rest Day
+|Sunday
+|17 January 2027
+|style="text-align: center;" colspan="2" |Agadir
+| colspan="2" style="text-align: center;" |-
+|-
+|7
+|Monday
+|18 January 2027
+|Agadir
+|[[Smara]]
+|style="text-align: center;" |500
+|style="text-align: center;"  |790
+|-
+|8
+|Tuesday
+|19 January 2027
+|Smara
+|Bivouac Refuge
+|style="text-align: center;" |355
+|style="text-align: center;"  |525
+|-
+|9
+|Wednesday
+|20 January 2027
+|Bivouac Refuge
+|Smara
+|style="text-align: center;" |390
+|style="text-align: center;"  |625
+|-
+|10
+|Thursday
+|21 January 2027
+|Smara
+|Smara
+|style="text-align: center;" |470
+|style="text-align: center;"  |560
+|-
+|11
+|Friday
+|22 January 2027
+|Smara
+|[[Marrakesh]]
+|style="text-align: center;" |455
+|style="text-align: center;"  |1035
+|-
+|12
+|Saturday
+|23 January 2027
+|Marrakesh
+|Marrakesh
+|style="text-align: center;" |22
+|style="text-align: center;"  |240
+|-
+!style="text-align: right;" colspan="5" |Total
+!4,341
+!7,234
+|}
+
+==References==
+{{Reflist}}
+
+==External links==
+*{{Official website|https://www.dakar.com/en/}}
+
+{{Dakar Rally}}
+
+[[Category:Dakar Rally by year]]
+[[Category:Sports events]]
+[[Category:Sports events affected by the 2026 Iran war|Dakar Rally]

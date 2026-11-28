@@ -18,7 +18,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Red
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from . import access, bugs, adapters, alerts, changes, colors, f1a, follow, ics, news, odds, paddock, picks, places, profiles, refresh, slow, tickets, usage, watch, weather
+from . import access, bugs, adapters, alerts, changes, colors, dakar, f1a, follow, ics, news, odds, paddock, picks, places, profiles, refresh, slow, tickets, usage, watch, weather
 from .db import Store
 from .live.hub import LiveHub
 from .push import Pusher
@@ -46,6 +46,7 @@ def _cal_token() -> str:
 store = Store(DATA_DIR / "lightsout.db")
 bugs.init(store.conn)
 picks.init(store.conn)
+dakar.init(store.conn)
 usage.init(sqlite3.connect(store.path, check_same_thread=False, timeout=10))   # its own: see usage.init
 slow.init(sqlite3.connect(store.path, check_same_thread=False, timeout=10))
 CAL_TOKEN = _cal_token()
@@ -100,7 +101,8 @@ async def lifespan(app: FastAPI):
     if not os.environ.get("LIGHTSOUT_NO_REFRESH"):
         tasks += [asyncio.create_task(refresh.loop(store)), asyncio.create_task(news_loop()),
                   asyncio.create_task(tickets.refresh_loop()), asyncio.create_task(weather.loop(store, DATA_DIR)),
-                  asyncio.create_task(slow.loop(store, access.notify)), asyncio.create_task(profiles.loop(store))]
+                  asyncio.create_task(slow.loop(store, access.notify)), asyncio.create_task(profiles.loop(store)),
+                  asyncio.create_task(dakar.loop(store, alerter))]
     yield
     for task in tasks:
         task.cancel()
@@ -288,7 +290,7 @@ RENOTIFY_AFTER = timedelta(hours=12)   # pressing Request twice doesn't ping the
 # Built and compressed once, reused for READY_TTL; live timing is never kept.
 READY_TTL = 30.0
 READY_PATHS = ("/api/series", "/api/sessions", "/api/names", "/api/entries", "/api/event/", "/api/stories/", "/api/track",
-               "/api/person/", "/api/wire", "/api/changes", "/api/paddock")  # not /api/live, /api/events/, /api/story/: those move during races
+               "/api/person/", "/api/wire", "/api/changes", "/api/paddock", "/api/dakar")  # not /api/live, /api/events/, /api/story/: those move during races
 _ready: dict[tuple, tuple] = {}
 
 
@@ -743,6 +745,15 @@ def paddock_winter(series: str = ""):
     return paddock.winter(store, [s for s in series.split(",") if s in BY_ID])
 
 
+@app.get("/api/dakar")
+def dakar_now():
+    """The Dakar from the day before it starts to the day after it ends (Home's stage card), else null."""
+    d = dakar.summary(store)
+    today = datetime.now(timezone.utc).date()
+    on = d and d["start_day"] <= (today + timedelta(days=1)).isoformat() and (today - timedelta(days=1)).isoformat() <= (d["end_day"] or d["start_day"])
+    return d if on else None
+
+
 @app.get("/api/names")
 def names():
     return live.tagger().directory()
@@ -834,6 +845,9 @@ def event_page(series_id: str, event_key: str):
         if (ev.get("end_day") or ev.get("start_day") or "") >= _iso(datetime.now(timezone.utc))[:10]:
             ev["watch_list"] = f1a.watch(store, ev, weather.place_for(ev.get("venue"), ev.get("name")))
     ev["odds"] = odds.for_event(series_id, ev.get("start_day"), ev.get("end_day"))
+    if series_id == dakar.SERIES and "dakar" in ev["name"].lower():
+        d = dakar.summary(store)
+        ev["dakar"] = d if d and d["event_key"] == event_key else None
 
     st = store.standings(series_id) or {}
     same = st.get("last_event") and weather.norm(st["last_event"]) in (weather.norm(ev["name"]), weather.norm(ev.get("venue") or ""))
@@ -937,13 +951,17 @@ def friend_names() -> dict[str, str]:
 
 @app.get("/api/pickem")
 def pickem(request: Request, series: str = "f1", event: str | None = None):
+    me, names = request.state.email, friend_names()
+    choices = list(picks.SERIES) + ([dakar.SERIES] if dakar.open_window(store) else [])
+    if series == dakar.SERIES:   # the Dakar: each stage's Bikes and Cars winner (lightsout/dakar.py)
+        return {"series": series, "choices": choices, "name": names.get(me, me.split("@")[0]),
+                "dakar": dakar.view(store, me, names, event)}
     if series not in picks.SERIES:
         raise HTTPException(404)
-    me, names = request.state.email, friend_names()
     picks.grade(store, series)
     races = picks.races(store, series)
     race = picks.choose(races, event)
-    out = {"series": series, "choices": list(picks.SERIES), "name": names.get(me, me.split("@")[0]),
+    out = {"series": series, "choices": choices, "name": names.get(me, me.split("@")[0]),
            "race": None, "slate": None, "board": None, "prev": None, "next": None}
     if not race:
         return out
@@ -971,6 +989,16 @@ def pickem(request: Request, series: str = "f1", event: str | None = None):
 async def pickem_save(request: Request):
     body = await request.json()
     series = body.get("series")
+    if series == dakar.SERIES:
+        d = dakar.view(store, request.state.email, {}, str(body.get("event") or ""))
+        if not d["stage"] or d["stage"]["label"].lower().replace(" ", "-") != str(body.get("event") or "").lower().replace(" ", "-"):
+            raise HTTPException(400, "Unknown stage.")
+        try:
+            dakar.set_pick(store, request.state.email, d["year"], d["stage"], str(body.get("kind")),
+                           str(body["name"])[:80] if body.get("name") else None)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc))
+        return {"ok": True}
     if series not in picks.SERIES:
         raise HTTPException(400, "Unknown series.")
     race = picks.choose(picks.races(store, series), str(body.get("event") or "")) if body.get("event") else None

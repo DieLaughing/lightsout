@@ -30,7 +30,9 @@ f4wc:
 
 # Rally-raids run up to two weeks, so each is one spanning entry rather than a daily one.
 w2rc:
-  - {name: Dakar Rally, country: Saudi Arabia, start: 2027-01-01, end: 2027-01-15, url: https://www.dakar.com/en}
+  # Dakar 2027 moved from Saudi Arabia to Portugal and Morocco (announced 2026-10-30): prologue Loulé Jan 9, finish
+  # Marrakesh Jan 23. Stage list and results come from Wikipedia while it runs (lightsout/dakar.py).
+  - {name: Dakar Rally, venue: Loulé to Marrakesh, country: Morocco, start: 2027-01-09, end: 2027-01-23, url: https://www.dakar.com/en}
   - {name: Abu Dhabi Desert Challenge, country: UAE, start: 2027-03-21, end: 2027-03-26}
   - {name: South African Safari Rally, venue: Sun City, country: South Africa, start: 2027-06-14, end: 2027-06-19}
   - {name: Rally-Raid Portugal, country: Portugal, start: 2027-09-21, end: 2027-09-26}
